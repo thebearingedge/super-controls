@@ -13,7 +13,10 @@
     "cover": "nyc npm -s t",
     "check": "nyc check-coverage",
     "report": "codecov",
-    "build": "babel src/ -d dist/ --ignore test.js,__test__.js",
+    "build:src": "babel src/ -d dist/ --ignore test.js,__test__.js",
+    "build:html": "pug src/examples/ -o examples/ -P",
+    "build": "run-s -s build:*",
+    "prebuild": "rimraf dist/ examples/",
     "travis": "run-s -s lint cover check build",
     "precommit": "run-s -s lint test",
     "prepublishOnly": "run-s -s travis"
@@ -53,8 +56,10 @@
     "npm-run-all": "^4.1.2",
     "nyc": "^11.3.0",
     "prop-types": "^15.6.0",
+    "pug-cli": "^1.0.0-alpha6",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
+    "rimraf": "^2.6.2",
     "sinon": "^4.1.1",
     "sinon-chai": "^2.14.0"
   },
