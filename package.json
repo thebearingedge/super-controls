@@ -1,0 +1,67 @@
+{
+  "name": "control-components",
+  "version": "1.0.0-alpha.1",
+  "description": "Streamlined form controls for React.",
+  "main": "dist/index.js",
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "lint": "eslint src/",
+    "test": "mocha -r babel-register src/*.test.js",
+    "tdd": "npm -s t -- -w -R min",
+    "cover": "nyc npm -s t",
+    "check": "nyc check-coverage",
+    "build": "babel src/ -d dist/ --ignore test.js,__test__.js",
+    "travis": "run-s -s lint cover check build",
+    "precommit": "run-s -s lint test",
+    "prepublishOnly": "run-s -s travis"
+  },
+  "keywords": [],
+  "author": "Tim Davis",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thebearingedge/control-components.git"
+  },
+  "bugs": {
+    "url": "https://github.com/thebearingedge/control-components/issues"
+  },
+  "homepage": "https://github.com/thebearingedge/control-components#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-plugin-transform-react-jsx": "^6.24.1",
+    "babel-register": "^6.26.0",
+    "chai": "^4.1.2",
+    "chai-enzyme": "^1.0.0-beta.0",
+    "enzyme": "^3.1.1",
+    "enzyme-adapter-react-16": "^1.0.4",
+    "eslint": "^4.10.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-react": "^7.4.0",
+    "eslint-plugin-standard": "^3.0.1",
+    "husky": "^0.14.3",
+    "jsdom": "^11.3.0",
+    "mocha": "^4.0.1",
+    "npm-run-all": "^4.1.2",
+    "nyc": "^11.3.0",
+    "prop-types": "^15.6.0",
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0",
+    "sinon": "^4.1.1",
+    "sinon-chai": "^2.14.0"
+  },
+  "peerDependencies": {
+    "react": "^16.0.0",
+    "prop-types": "^15.6.0"
+  },
+  "dependencies": {
+    "babel-core": "^6.26.0",
+    "mkdirp": "^0.5.1"
+  }
+}
