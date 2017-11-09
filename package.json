@@ -61,9 +61,5 @@
   "peerDependencies": {
     "react": "^16.0.0",
     "prop-types": "^15.6.0"
-  },
-  "dependencies": {
-    "babel-core": "^6.26.0",
-    "mkdirp": "^0.5.1"
   }
 }
