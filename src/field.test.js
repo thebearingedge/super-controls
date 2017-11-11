@@ -8,8 +8,8 @@ import Radio from './radio'
 
 describe('field', () => {
 
-  let Text
-  let TextField
+  let Input
+  let InputField
   let Checkbox
   let CheckboxField
   let Select
@@ -18,8 +18,8 @@ describe('field', () => {
   let RadioGroupField
 
   before(() => {
-    Text = controlled('text')
-    TextField = field(Text)
+    Input = controlled('input')
+    InputField = field(Input)
     Checkbox = controlled('checkbox')
     CheckboxField = field(Checkbox)
     Select = controlled('select')
@@ -30,8 +30,8 @@ describe('field', () => {
 
   describe('reads its initial value state from props', () => {
 
-    it('Text', () => {
-      const field = mount(<TextField name='test' value='foo'/>)
+    it('Input', () => {
+      const field = mount(<InputField name='test' value='foo'/>)
       expect(field).to.have.state('value', 'foo')
     })
 
@@ -66,9 +66,9 @@ describe('field', () => {
 
   describe('renders its target', () => {
 
-    it('Text', () => {
-      const field = mount(<TextField name='test'/>)
-      expect(field).to.have.exactly(1).descendants(Text)
+    it('Input', () => {
+      const field = mount(<InputField name='test'/>)
+      expect(field).to.have.exactly(1).descendants(Input)
     })
 
     it('Checkbox', () => {
@@ -102,10 +102,10 @@ describe('field', () => {
 
   describe('passes a value prop to its target', () => {
 
-    it('Text', () => {
-      const field = mount(<TextField name='test' value='foo'/>)
-      const text = field.find(Text)
-      expect(text).to.have.value('foo')
+    it('Input', () => {
+      const field = mount(<InputField name='test' value='foo'/>)
+      const input = field.find(Input)
+      expect(input).to.have.value('foo')
     })
 
     it('Checkbox', () => {
@@ -142,12 +142,12 @@ describe('field', () => {
 
   describe('passes a change handler to its target', () => {
 
-    it('Text', () => {
-      const field = mount(<TextField name='test'/>)
-      const text = field.find(Text)
+    it('Input', () => {
+      const field = mount(<InputField name='test'/>)
+      const input = field.find(Input)
       const { onChange } = field.instance()
       expect(onChange).to.be.a('function')
-      expect(text).to.have.props({ onChange })
+      expect(input).to.have.props({ onChange })
     })
 
     it('Checkbox', () => {
@@ -190,17 +190,17 @@ describe('field', () => {
 
   describe('updates its state when changed', () => {
 
-    it('Text', done => {
-      class TestTextField extends TextField {
+    it('Input', done => {
+      class TestInputField extends InputField {
         componentDidUpdate() {
           expect(field).to.have.state('value', 'foo')
           done()
         }
       }
-      const field = mount(<TestTextField name='test'/>)
-      const text = field.find(Text)
-      const target = Object.assign(text.getDOMNode(), { value: 'foo' })
-      text.simulate('change', { target })
+      const field = mount(<TestInputField name='test'/>)
+      const input = field.find(Input)
+      const target = Object.assign(input.getDOMNode(), { value: 'foo' })
+      input.simulate('change', { target })
     })
 
     it('Checkbox', done => {
@@ -258,16 +258,16 @@ describe('field', () => {
 
   describe('updates is value state via context', () => {
 
-    it('Text', done => {
+    it('Input', done => {
       const setValue = value => {
         expect(value).to.deep.equal({ test: 'foo' })
         done()
       }
       const context = { setValue }
-      const field = mount(<TextField name='test'/>, { context })
-      const text = field.find(Text)
-      const target = Object.assign(text.getDOMNode(), { value: 'foo' })
-      text.simulate('change', { target })
+      const field = mount(<InputField name='test'/>, { context })
+      const input = field.find(Input)
+      const target = Object.assign(input.getDOMNode(), { value: 'foo' })
+      input.simulate('change', { target })
     })
 
     it('Checkbox', done => {
@@ -326,21 +326,21 @@ describe('field', () => {
 
     const message = 'Field components should not re-render the same state.'
 
-    it('Text', done => {
-      class TestText extends Text {
+    it('Input', done => {
+      class TestInput extends Input {
         componentDidUpdate() {
           throw new Error(message)
         }
       }
-      class TestField extends field(TestText) {
+      class TestField extends field(TestInput) {
         componentDidUpdate() {
           done()
         }
       }
       const testField = mount(<TestField name='test'/>)
-      const testText = testField.find(TestText)
-      const target = testText.getDOMNode()
-      testText.simulate('change', { target })
+      const testInput = testField.find(TestInput)
+      const target = testInput.getDOMNode()
+      testInput.simulate('change', { target })
     })
 
     it('Checkbox', done => {

@@ -27,10 +27,27 @@ describe('controlled', () => {
       expect(input).not.to.have.attr('type')
     })
 
+    it('is empty by default', () => {
+      const text = mount(<Input {...props}/>)
+      expect(text).to.have.value('')
+    })
+
     it('copies its name to its id when id is true', () => {
       const input = mount(<Input id {...props}/>)
       expect(input).to.have.tagName('input')
       expect(input).to.have.attr('id', 'test')
+    })
+
+    it('forwards its value prop to its element', () => {
+      const input = mount(<Input {...props} value='foo'/>)
+      expect(input).to.have.value('foo')
+    })
+
+    it('calls a change handler', () => {
+      const input = mount(<Input {...props}/>)
+      const target = input.getDOMNode()
+      input.simulate('change', { target })
+      expect(props.onChange).to.have.callCount(1)
     })
 
   })
@@ -47,39 +64,6 @@ describe('controlled', () => {
       const hidden = mount(<Hidden {...props}/>)
       expect(hidden).to.have.tagName('input')
       expect(hidden).to.have.attr('type', 'hidden')
-    })
-
-  })
-
-  describe('Text', () => {
-
-    let Text
-
-    before(() => {
-      Text = controlled('text')
-    })
-
-    it('renders a text input element', () => {
-      const text = mount(<Text {...props}/>)
-      expect(text).to.have.tagName('input')
-      expect(text).to.have.attr('type', 'text')
-    })
-
-    it('is empty by default', () => {
-      const text = mount(<Text {...props}/>)
-      expect(text).to.have.value('')
-    })
-
-    it('forwards its value prop to its element', () => {
-      const text = mount(<Text {...props} value='foo'/>)
-      expect(text).to.have.value('foo')
-    })
-
-    it('calls a change handler', () => {
-      const text = mount(<Text {...props}/>)
-      const target = text.getDOMNode()
-      text.simulate('change', { target })
-      expect(props.onChange).to.have.callCount(1)
     })
 
   })
