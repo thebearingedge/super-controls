@@ -1,21 +1,19 @@
-import Form from './form'
 import Checkbox from './checkbox'
-import TextInput from './text-input'
-import TextArea from './text-area'
-import Select from './select'
-import Option from './option'
-import RadioGroup from './radio-group'
-import Radio from './radio'
+import Form from './form'
 import Hidden from './hidden'
+import Input from './input'
+import Radio from './radio'
+import RadioGroup from './radio-group'
+import Select from './select'
+import TextArea from './text-area'
 
 export default {
-  Form,
   Checkbox,
-  TextInput,
-  TextArea,
-  Select,
-  Option,
-  RadioGroup,
+  Form,
+  Hidden,
+  Input,
   Radio,
-  Hidden
+  RadioGroup,
+  Select,
+  TextArea
 }

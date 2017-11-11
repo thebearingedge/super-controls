@@ -43,5 +43,6 @@ Form.childContextTypes = {
 }
 
 Form.defaultProps = {
-  values: {}
+  values: {},
+  onSubmit: () => {}
 }
