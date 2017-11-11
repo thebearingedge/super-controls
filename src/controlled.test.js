@@ -134,7 +134,7 @@ describe('controlled', () => {
           <Radio value='baz'/>
         </RadioGroup>
       )
-      group.find('[type="radio"]').forEach(radio => {
+      group.find('input').forEach(radio => {
         expect(radio).to.have.prop('onChange', props.onChange)
       })
     })
@@ -160,7 +160,7 @@ describe('controlled', () => {
           <Radio value='baz'/>
         </RadioGroup>
       )
-      const baz = group.find('[type="radio"][value="baz"]')
+      const baz = group.find('input[value="baz"]')
       expect(baz).to.be.checked()
     })
 

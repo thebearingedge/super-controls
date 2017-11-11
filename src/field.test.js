@@ -1,6 +1,6 @@
 import React from 'react'
-import { describe, before, it } from 'mocha'
-import { mount, expect } from './__test__'
+import { describe, before, beforeEach, it } from 'mocha'
+import { mount, expect, stub } from './__test__'
 import field from './field'
 import controlled from './controlled'
 import { RadioGroup as Group } from './radio-group'
@@ -140,6 +140,72 @@ describe('field', () => {
 
   })
 
+  describe('prefers to get its value from context', () => {
+
+    let context
+
+    beforeEach(() => {
+      context = { getValue: stub() }
+    })
+
+    it('Input', () => {
+      context.getValue.returns('bar')
+      const field = mount(<InputField name='test' value='foo'/>, { context })
+      const input = field.find(Input)
+      expect(input).to.have.value('bar')
+      expect(field).to.have.state('value', 'bar')
+      expect(context.getValue).to.have.callCount(1)
+      expect(context.getValue).to.have.been.calledWith('test')
+    })
+
+    it('Checkbox', () => {
+      context.getValue.returns(true)
+      const field = mount(<CheckboxField name='test'/>, { context })
+      const checkbox = field.find(Checkbox)
+      expect(checkbox).to.be.checked()
+      expect(field).to.have.state('value', true)
+      expect(context.getValue).to.have.callCount(1)
+      expect(context.getValue).to.have.been.calledWith('test')
+    })
+
+    it('Select', () => {
+      context.getValue.returns('baz')
+      const field = mount(
+        <SelectField name='test' value='foo'>
+          <option value='foo'>Foo</option>
+          <option value='bar'>Bar</option>
+          <option value='baz'>Baz</option>
+        </SelectField>,
+        { context }
+      )
+      const select = field.find(Select)
+      expect(select).to.have.value('baz')
+      expect(field).to.have.state('value', 'baz')
+      expect(context.getValue).to.have.callCount(1)
+      expect(context.getValue).to.have.been.calledWith('test')
+    })
+
+    it('RadioGroup', () => {
+      context.getValue.returns('baz')
+      const field = mount(
+        <RadioGroupField name='test' value='foo'>
+          <Radio value='foo'/>
+          <Radio value='bar'/>
+          <Radio value='baz'/>
+        </RadioGroupField>,
+        { context }
+      )
+
+      expect(field).to.have.state('value', 'baz')
+      expect(field.find('input[value="foo"]')).not.to.be.checked()
+      expect(field.find('input[value="bar"]')).not.to.be.checked()
+      expect(field.find('input[value="baz"]')).to.be.checked()
+      expect(context.getValue).to.have.callCount(1)
+      expect(context.getValue).to.have.been.calledWith('test')
+    })
+
+  })
+
   describe('passes a change handler to its target', () => {
 
     it('Input', () => {
@@ -249,7 +315,7 @@ describe('field', () => {
           <Radio value='baz'/>
         </TestRadioGroupField>
       )
-      const baz = field.find('[type="radio"][value="baz"]')
+      const baz = field.find('input[value="baz"]')
       const target = baz.getDOMNode()
       baz.simulate('change', { target })
     })
@@ -315,7 +381,7 @@ describe('field', () => {
         </RadioGroupField>,
         { context }
       )
-      const baz = field.find('[type="radio"][value="baz"]')
+      const baz = field.find('input[value="baz"]')
       const target = baz.getDOMNode()
       baz.simulate('change', { target })
     })
@@ -401,7 +467,7 @@ describe('field', () => {
           <Radio value='baz'/>
         </TestField>
       )
-      const baz = testField.find('[type="radio"][value="baz"]')
+      const baz = testField.find('input[value="baz"]')
       const target = baz.getDOMNode()
       baz.simulate('change', { target })
     })

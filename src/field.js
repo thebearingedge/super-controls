@@ -20,6 +20,13 @@ export default function field(Control) {
         this.context.setValue({ [target.name]: value })
       })
     }
+    componentWillMount() {
+      if (!this.context.getValue) return
+      const value = this.context.getValue(this.props.name)
+      if (typeof value !== 'undefined') {
+        this.setState({ value })
+      }
+    }
     render() {
       const { props, onChange, state: { value } } = this
       const controlProps = {
@@ -36,7 +43,8 @@ export default function field(Control) {
   }
 
   Field.contextTypes = {
-    setValue: func
+    setValue: func,
+    getValue: func
   }
 
   return Field
