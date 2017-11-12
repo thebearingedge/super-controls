@@ -16,13 +16,13 @@ export default class Form extends Component {
   getValue(name) {
     return this.state.values[name]
   }
-  setValue(value) {
+  setValue(value, callback) {
     this.setState(({ values }) => ({
       values: {
         ...values,
         ...value
       }
-    }))
+    }), callback)
   }
   handleSubmit(event) {
     event.preventDefault()

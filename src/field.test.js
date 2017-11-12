@@ -28,42 +28,6 @@ describe('field', () => {
     RadioGroupField = field(RadioGroup)()
   })
 
-  describe('reads its initial value state from props', () => {
-
-    it('Input', () => {
-      const field = mount(<InputField name='test' value='foo'/>)
-      expect(field).to.have.state('value', 'foo')
-    })
-
-    it('Checkbox', () => {
-      const field = mount(<CheckboxField name='test' checked/>)
-      expect(field).to.have.state('value', true)
-    })
-
-    it('Select', () => {
-      const field = mount(
-        <SelectField name='test' value='foo'>
-          <option value='foo'>Foo</option>
-          <option value='bar'>Bar</option>
-          <option value='baz'>Baz</option>
-        </SelectField>
-      )
-      expect(field).to.have.state('value', 'foo')
-    })
-
-    it('RadioGroup', () => {
-      const field = mount(
-        <RadioGroupField name='test' value='foo'>
-          <Radio value='foo'/>
-          <Radio value='bar'/>
-          <Radio value='baz'/>
-        </RadioGroupField>
-      )
-      expect(field).to.have.state('value', 'foo')
-    })
-
-  })
-
   describe('renders its target', () => {
 
     it('Input', () => {
@@ -153,7 +117,6 @@ describe('field', () => {
       const field = mount(<InputField name='test' value='foo'/>, { context })
       const input = field.find(Input)
       expect(input).to.have.value('bar')
-      expect(field).to.have.state('value', 'bar')
       expect(context.getValue).to.have.callCount(1)
       expect(context.getValue).to.have.been.calledWith('test')
     })
@@ -163,7 +126,6 @@ describe('field', () => {
       const field = mount(<CheckboxField name='test'/>, { context })
       const checkbox = field.find(Checkbox)
       expect(checkbox).to.be.checked()
-      expect(field).to.have.state('value', true)
       expect(context.getValue).to.have.callCount(1)
       expect(context.getValue).to.have.been.calledWith('test')
     })
@@ -180,7 +142,6 @@ describe('field', () => {
       )
       const select = field.find(Select)
       expect(select).to.have.value('baz')
-      expect(field).to.have.state('value', 'baz')
       expect(context.getValue).to.have.callCount(1)
       expect(context.getValue).to.have.been.calledWith('test')
     })
@@ -195,8 +156,6 @@ describe('field', () => {
         </RadioGroupField>,
         { context }
       )
-
-      expect(field).to.have.state('value', 'baz')
       expect(field.find('input[value="foo"]')).not.to.be.checked()
       expect(field.find('input[value="bar"]')).not.to.be.checked()
       expect(field.find('input[value="baz"]')).to.be.checked()
@@ -250,224 +209,6 @@ describe('field', () => {
       const { onChange } = field.instance()
       expect(onChange).to.be.a('function')
       expect(group).to.have.props({ onChange })
-    })
-
-  })
-
-  describe('updates its state when changed', () => {
-
-    it('Input', done => {
-      class TestInputField extends InputField {
-        componentDidUpdate() {
-          expect(field).to.have.state('value', 'foo')
-          done()
-        }
-      }
-      const field = mount(<TestInputField name='test'/>)
-      const input = field.find(Input)
-      const target = Object.assign(input.getDOMNode(), { value: 'foo' })
-      input.simulate('change', { target })
-    })
-
-    it('Checkbox', done => {
-      class TestCheckboxField extends CheckboxField {
-        componentDidUpdate() {
-          expect(field).to.have.state('value', true)
-          done()
-        }
-      }
-      const field = mount(<TestCheckboxField name='test'/>)
-      const checkbox = field.find(Checkbox)
-      const target = Object.assign(checkbox.getDOMNode(), { checked: true })
-      checkbox.simulate('change', { target })
-    })
-
-    it('Select', done => {
-      class TestSelectField extends SelectField {
-        componentDidUpdate() {
-          expect(field).to.have.state('value', 'foo')
-          done()
-        }
-      }
-      const field = mount(
-        <TestSelectField name='test'>
-          <option value='foo'>Foo</option>
-          <option value='bar'>Bar</option>
-          <option value='baz'>Baz</option>
-        </TestSelectField>
-      )
-      const select = field.find(Select)
-      const target = Object.assign(select.getDOMNode(), { value: 'foo' })
-      select.simulate('change', { target })
-    })
-
-    it('RadioGroup', done => {
-      class TestRadioGroupField extends RadioGroupField {
-        componentDidUpdate() {
-          expect(field).to.have.state('value', 'baz')
-          done()
-        }
-      }
-      const field = mount(
-        <TestRadioGroupField name='test' value='foo'>
-          <Radio value='foo'/>
-          <Radio value='bar'/>
-          <Radio value='baz'/>
-        </TestRadioGroupField>
-      )
-      const baz = field.find('input[value="baz"]')
-      const target = baz.getDOMNode()
-      baz.simulate('change', { target })
-    })
-
-  })
-
-  describe('updates is value state via context', () => {
-
-    it('Input', done => {
-      const setValue = value => {
-        expect(value).to.deep.equal({ test: 'foo' })
-        done()
-      }
-      const context = { setValue }
-      const field = mount(<InputField name='test'/>, { context })
-      const input = field.find(Input)
-      const target = Object.assign(input.getDOMNode(), { value: 'foo' })
-      input.simulate('change', { target })
-    })
-
-    it('Checkbox', done => {
-      const setValue = value => {
-        expect(value).to.deep.equal({ test: true })
-        done()
-      }
-      const context = { setValue }
-      const field = mount(<CheckboxField name='test'/>, { context })
-      const checkbox = field.find(Checkbox)
-      const target = Object.assign(checkbox.getDOMNode(), { checked: true })
-      checkbox.simulate('change', { target })
-    })
-
-    it('Select', done => {
-      const setValue = value => {
-        expect(value).to.deep.equal({ test: 'foo' })
-        done()
-      }
-      const context = { setValue }
-      const field = mount(
-        <SelectField name='test'>
-          <option value='foo'>Foo</option>
-          <option value='bar'>Bar</option>
-          <option value='baz'>Baz</option>
-        </SelectField>,
-        { context }
-      )
-      const select = field.find(Select)
-      const target = Object.assign(select.getDOMNode(), { value: 'foo' })
-      select.simulate('change', { target })
-    })
-
-    it('RadioGroup', done => {
-      const setValue = value => {
-        expect(value).to.deep.equal({ test: 'baz' })
-        done()
-      }
-      const context = { setValue }
-      const field = mount(
-        <RadioGroupField name='test' value='foo'>
-          <Radio value='foo'/>
-          <Radio value='bar'/>
-          <Radio value='baz'/>
-        </RadioGroupField>,
-        { context }
-      )
-      const baz = field.find('input[value="baz"]')
-      const target = baz.getDOMNode()
-      baz.simulate('change', { target })
-    })
-
-  })
-
-  describe('does not re-render its target with the same value', () => {
-
-    it('Input', done => {
-      class TestInput extends Input {
-        componentDidUpdate() {
-          done()
-        }
-      }
-      class TestField extends field(TestInput)() {
-        componentDidUpdate() {
-          done()
-        }
-      }
-      const testField = mount(<TestField name='test'/>)
-      const testInput = testField.find(TestInput)
-      const target = testInput.getDOMNode()
-      testInput.simulate('change', { target })
-    })
-
-    it('Checkbox', done => {
-      class TestCheckbox extends Checkbox {
-        componentDidUpdate() {
-          done()
-        }
-      }
-      class TestField extends field(TestCheckbox)() {
-        componentDidUpdate() {
-          done()
-        }
-      }
-      const testField = mount(<TestField name='test'/>)
-      const testCheckbox = testField.find(TestCheckbox)
-      const target = testCheckbox.getDOMNode()
-      testCheckbox.simulate('change', { target })
-    })
-
-    it('Select', done => {
-      class TestSelect extends Select {
-        componentDidUpdate() {
-          done()
-        }
-      }
-      class TestField extends field(TestSelect)() {
-        componentDidUpdate() {
-          done()
-        }
-      }
-      const testField = mount(
-        <TestField name='test' value='foo'>
-          <option value='foo'>Foo</option>
-          <option value='bar'>Bar</option>
-          <option value='baz'>Baz</option>
-        </TestField>
-      )
-      const testSelect = testField.find(TestSelect)
-      const target = testSelect.getDOMNode()
-      testSelect.simulate('change', { target })
-    })
-
-    it('RadioGroup', done => {
-      class TestRadioGroup extends RadioGroup {
-        componentDidUpdate() {
-          done()
-        }
-      }
-      class TestField extends field(TestRadioGroup)() {
-        componentDidUpdate() {
-          done()
-        }
-      }
-      const testField = mount(
-        <TestField name='test' value='baz'>
-          <Radio value='foo'/>
-          <Radio value='bar'/>
-          <Radio value='baz'/>
-        </TestField>
-      )
-      const baz = testField.find('input[value="baz"]')
-      const target = baz.getDOMNode()
-      baz.simulate('change', { target })
     })
 
   })

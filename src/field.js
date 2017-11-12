@@ -1,4 +1,4 @@
-import { createElement, Component } from 'react'
+import { createElement, PureComponent } from 'react'
 import { func, string } from 'prop-types'
 
 export default function field(Control) {
@@ -12,32 +12,28 @@ export default function field(Control) {
       ? 'value'
       : 'checked'
 
-    class Field extends Component {
+    class Field extends PureComponent {
       constructor(...args) {
         super(...args)
-        this.state = { value: this.props[valueKey] }
         this.onChange = this.onChange.bind(this)
       }
       onChange({ target }) {
-        const value = target[valueKey]
-        this.setState({ value }, () => {
-          this.context.setValue &&
-          this.context.setValue({ [target.name]: value })
+        this.context.setValue &&
+        this.context.setValue({ [target.name]: target[valueKey] }, () => {
+          this.forceUpdate()
         })
       }
-      componentWillMount() {
-        if (!this.context.getValue) return
-        const value = this.context.getValue(this.props.name)
-        if (typeof value !== 'undefined') {
-          this.setState({ value })
-        }
-      }
       render() {
-        const { props, onChange, state: { value } } = this
+        const { onChange } = this
+        const { getValue } = this.context
+        const { name, ...props } = this.props
         const controlProps = {
           ...props,
-          [valueKey]: value,
-          onChange
+          onChange,
+          name
+        }
+        if (getValue) {
+          controlProps[valueKey] = getValue(name)
         }
         return createElement(Control, { ...controlProps })
       }

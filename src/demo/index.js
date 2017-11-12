@@ -72,17 +72,8 @@ const handleSubmit = values => {
   console.log(JSON.stringify(values, null, 2))
 }
 
-const values = {
-  name: 'Tim Davis',
-  email: 'contact@timdav.is',
-  referral: '1',
-  role: 'engineer',
-  monad: 'A monoid in the category of endofunctors.',
-  isCandidate: false
-}
-
 const form = (
-  <Form values={values} onSubmit={handleSubmit}>
+  <Form onSubmit={handleSubmit}>
     <Input id type='text' name='name' label='Name'/>
     <Input id type='email' name='email' label='Email'/>
     <Select id name='referral' label='How did you hear about us?'>
