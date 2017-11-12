@@ -1,76 +1,119 @@
 import React from 'react'
 import { render } from 'react-dom'
 import Form from '../form'
-import Input from '../input'
-import Checkbox from '../checkbox'
-import Radio from '../radio'
-import RadioGroup from '../radio-group'
-import Select from '../select'
-import TextArea from '../text-area'
+// import Input from '../input'
+// import Checkbox from '../checkbox'
+// import Radio from '../radio'
+// import RadioGroup from '../radio-group'
+// import Select from '../select'
+// import TextArea from '../text-area'
+import field from '../field'
+import controlled from '../controlled'
+
+const Input = field(controlled(({ name, label, ...props }) =>
+  <div className='form-group'>
+    <label htmlFor={name}>{ label }</label>
+    <input name={name} className='form-control' {...props}/>
+  </div>
+))({
+  displayName: 'Input',
+  defaultProps: { value: '' }
+})
+
+const Select = field(controlled(({ name, label, children, ...props }) =>
+  <div className='form-group'>
+    <label htmlFor={name}>{ label }</label>
+    <select name={name} className='form-control' {...props}>
+      { children }
+    </select>
+  </div>
+))({
+  displayName: 'Select',
+  defaultProps: { value: '' }
+})
+
+const Radio = field(controlled(({ children, ...props }) =>
+  <div className='form-check'>
+    <label className='form-check-label'>
+      <input type='radio' className='form-check-input' {...props}/>
+      { children }
+    </label>
+  </div>
+))({
+  displayName: 'Radio',
+  defaultProps: { checked: false }
+})
+
+const TextArea = field(controlled(({ name, label, ...props }) =>
+  <div className='form-group'>
+    <label htmlFor={name}>{ label }</label>
+    <textarea id={name} name={name} className='form-control' {...props}/>
+  </div>
+))({
+  displayName: 'TextArea',
+  defaultProps: { value: '' }
+})
+
+const Checkbox = field(controlled(({ name, label, ...props }) =>
+  <div className='form-check'>
+    <label className='form-check-label'>
+      <input name={name} type='checkbox' className='form-check-input' {...props}/>
+      { label }
+    </label>
+  </div>
+))({
+  displayName: 'Checkbox',
+  defaultProps: {
+    checked: false
+  }
+})
 
 const handleSubmit = values => {
   console.log(JSON.stringify(values, null, 2))
 }
 
+const values = {
+  name: 'Tim Davis',
+  email: 'contact@timdav.is',
+  referral: '1',
+  role: 'engineer',
+  monad: 'A monoid in the category of endofunctors.',
+  isCandidate: false
+}
+
+const form = (
+  <Form values={values} onSubmit={handleSubmit}>
+    <Input id type='text' name='name' label='Name'/>
+    <Input id type='email' name='email' label='Email'/>
+    <Select id name='referral' label='How did you hear about us?'>
+      <option label='Choose one...'/>
+      <option value='1' label='Stack Overflow Careers'/>
+      <option value='2' label='Angel List'/>
+      <option value='3' label='LinkedIn'/>
+    </Select>
+    <div className='form-group'>
+      <label>What role are you interested in?</label>
+      <Radio name='role' value='engineer'>
+        Engineer
+      </Radio>
+      <Radio name='role' value='developer'>
+        Developer
+      </Radio>
+      <Radio name='role' value='designer'>
+        Designer
+      </Radio>
+    </div>
+    <TextArea id name='monad' label='What is a monad? Give examples.'/>
+    <Checkbox name='isCandidate' label='I want the job.'/>
+    <button type='submit' className='btn btn-primary'>Apply</button>
+  </Form>
+)
+
 render(
   <div className='container'>
     <div className='row'>
       <div className='col-md-4 offset-md-4'>
-        <Form onSubmit={handleSubmit}>
-          <fieldset>
-            <div className='form-group'>
-              <label htmlFor='name'>Name</label>
-              <Input id name='name' type='text' className='form-control' autoFocus/>
-            </div>
-            <div className='form-group'>
-              <label htmlFor='email'>Email</label>
-              <Input id name='email' type='email' className='form-control'/>
-            </div>
-          </fieldset>
-          <div className='form-group'>
-            <label htmlFor='referral'>How&apos;d you hear about us?</label>
-            <Select id name='referral' className='form-control'>
-              <option label='Choose one...'/>
-              <option value='1' label='Stack Overflow Careers'/>
-              <option value='2' label='Angel List'/>
-              <option value='3' label='LinkedIn'/>
-            </Select>
-          </div>
-          <div className='form-group'>
-            <label>What role are you interested in?</label>
-            <RadioGroup name='role'>
-              <div className='form-check'>
-                <label className='form-check-label'>
-                  <Radio value='engineer' className='form-check-input'/>
-                  Engineer
-                </label>
-              </div>
-              <div className='form-check'>
-                <label className='form-check-label'>
-                  <Radio value='developer' className='form-check-input'/>
-                  Developer
-                </label>
-              </div>
-              <div className='form-check'>
-                <label className='form-check-label'>
-                  <Radio value='designer' className='form-check-input'/>
-                  Designer
-                </label>
-              </div>
-            </RadioGroup>
-          </div>
-          <div className='form-group'>
-            <label htmlFor='monad'>What is a monad? Give examples.</label>
-            <TextArea id name='monad' className='form-control'/>
-          </div>
-          <div className='form-check'>
-            <label className='form-check-label'>
-              <Checkbox checked name='isCandidate' className='form-check-input'/>
-              I want the job.
-            </label>
-          </div>
-          <button type='submit' className='btn btn-primary'>Apply</button>
-        </Form>
+        { form }
       </div>
     </div>
   </div>,

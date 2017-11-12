@@ -28,4 +28,4 @@ RadioGroup.childContextTypes = {
   groupValue: string
 }
 
-export default field(controlled(RadioGroup))
+export default field(controlled(RadioGroup))()

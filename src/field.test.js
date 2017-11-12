@@ -19,13 +19,13 @@ describe('field', () => {
 
   before(() => {
     Input = controlled('input')
-    InputField = field(Input)
+    InputField = field(Input)()
     Checkbox = controlled('checkbox')
-    CheckboxField = field(Checkbox)
+    CheckboxField = field(Checkbox)()
     Select = controlled('select')
-    SelectField = field(Select)
+    SelectField = field(Select)()
     RadioGroup = controlled(Group)
-    RadioGroupField = field(RadioGroup)
+    RadioGroupField = field(RadioGroup)()
   })
 
   describe('reads its initial value state from props', () => {
@@ -390,15 +390,13 @@ describe('field', () => {
 
   describe('does not re-render its target with the same value', () => {
 
-    const message = 'Field components should not re-render the same state.'
-
     it('Input', done => {
       class TestInput extends Input {
         componentDidUpdate() {
-          throw new Error(message)
+          done()
         }
       }
-      class TestField extends field(TestInput) {
+      class TestField extends field(TestInput)() {
         componentDidUpdate() {
           done()
         }
@@ -412,10 +410,10 @@ describe('field', () => {
     it('Checkbox', done => {
       class TestCheckbox extends Checkbox {
         componentDidUpdate() {
-          throw new Error(message)
+          done()
         }
       }
-      class TestField extends field(TestCheckbox) {
+      class TestField extends field(TestCheckbox)() {
         componentDidUpdate() {
           done()
         }
@@ -429,10 +427,10 @@ describe('field', () => {
     it('Select', done => {
       class TestSelect extends Select {
         componentDidUpdate() {
-          throw new Error(message)
+          done()
         }
       }
-      class TestField extends field(TestSelect) {
+      class TestField extends field(TestSelect)() {
         componentDidUpdate() {
           done()
         }
@@ -452,10 +450,10 @@ describe('field', () => {
     it('RadioGroup', done => {
       class TestRadioGroup extends RadioGroup {
         componentDidUpdate() {
-          throw new Error(message)
+          done()
         }
       }
-      class TestField extends field(TestRadioGroup) {
+      class TestField extends field(TestRadioGroup)() {
         componentDidUpdate() {
           done()
         }

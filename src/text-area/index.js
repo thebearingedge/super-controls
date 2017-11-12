@@ -1,6 +1,7 @@
 import field from '../field'
 import controlled from '../controlled'
 
-export default Object.assign(field(controlled('textarea')), {
-  displayName: 'TextArea'
+export default field(controlled('textarea'))({
+  displayName: 'TextArea',
+  defaultProps: { value: '' }
 })
