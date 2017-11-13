@@ -6,7 +6,7 @@
   ],
   "exclude": [
     "src/demo/",
-    "src/*test*",
+    "**/*test*",
     "src/index.js"
   ],
   "reporter": [
