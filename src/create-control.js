@@ -1,5 +1,5 @@
 import { createElement, Component } from 'react'
-import { bool, func, shape, string } from 'prop-types'
+import { bool, func, string } from 'prop-types'
 import shallowEqual from 'shallow-equal/objects'
 import inputTypes from './input-types'
 
@@ -10,8 +10,8 @@ export default function createControl(type) {
   const valueKey = isCheckbox ? 'checked' : 'value'
 
   return function configureControl({
-    displayName,
     propTypes,
+    displayName,
     defaultProps
   } = {}) {
 
@@ -35,15 +35,16 @@ export default function createControl(type) {
         const value = isRadio && !checked
           ? void 0
           : this.state.value
-        this.field = this.context.form.registerField({
+        this.field = this.context.registerField({
           name,
           value
         })
         this.setState(this.field.state)
       }
-      shouldComponentUpdate(nextProps) {
+      shouldComponentUpdate(nextProps, nextState) {
         const { props, state, field } = this
-        return !shallowEqual(state, { ...field.state }) ||
+        return !shallowEqual(state, field.state) ||
+               !shallowEqual(state, nextState) ||
                !shallowEqual(props, nextProps)
       }
       render() {
@@ -82,9 +83,7 @@ export default function createControl(type) {
     }
 
     Control.contextTypes = {
-      form: shape({
-        registerField: func
-      }).isRequired
+      registerField: func.isRequired
     }
 
     Control.defaultProps = {

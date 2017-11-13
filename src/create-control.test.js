@@ -27,12 +27,8 @@ describe('createControl', () => {
   let registerField
 
   beforeEach(() => {
-    context = {
-      form: {
-        registerField: () => {}
-      }
-    }
-    registerField = stub(context.form, 'registerField')
+    context = { registerField() {} }
+    registerField = stub(context, 'registerField')
   })
 
   describe('renders its target', () => {
