@@ -11,7 +11,6 @@
     "test": "mocha -r babel-register src/*.test.js",
     "tdd": "npm -s t -- -w -R min",
     "cover": "nyc npm -s t",
-    "check": "nyc check-coverage",
     "report": "codecov",
     "build:dist": "babel src/ -d dist/ --ignore test.js,__test__.js",
     "prebuild:dist": "rimraf dist/ && mkdirp dist/",
@@ -25,7 +24,7 @@
     "watch:sync": "browser-sync start -c sync.js",
     "demo": "run-p -s watch:*",
     "predemo": "run-s -s build:demo",
-    "travis": "run-s -s lint cover check build",
+    "travis": "run-s -s lint cover build",
     "precommit": "run-s -s lint test",
     "prepublishOnly": "run-s -s travis"
   },
@@ -80,5 +79,8 @@
   "peerDependencies": {
     "react": "^16.0.0",
     "prop-types": "^15.6.0"
+  },
+  "dependencies": {
+    "shallow-equal": "^1.0.0"
   }
 }

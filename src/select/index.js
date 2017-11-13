@@ -1,6 +1,6 @@
-import field from '../field'
-import controlled from '../controlled'
+import createControl from '../create-control'
 
-export default field(controlled('select'))({
-  displayName: 'Select'
+export default createControl('select')({
+  displayName: 'Select',
+  defaultProps: { value: '' }
 })

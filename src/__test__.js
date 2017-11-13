@@ -23,4 +23,4 @@ after(() => {
 
 export const { expect } = chai
 export const { mount } = enzyme
-export const { spy, stub } = sinon
+export const { stub, spy } = sinon

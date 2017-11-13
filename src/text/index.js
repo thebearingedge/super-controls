@@ -1,6 +1,6 @@
 import createControl from '../create-control'
 
-export default createControl('input')({
-  displayName: 'Input',
+export default createControl('text')({
+  displayName: 'Text',
   defaultProps: { value: '' }
 })

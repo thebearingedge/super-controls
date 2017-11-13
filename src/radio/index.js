@@ -1,28 +1,19 @@
-import { createElement, Component } from 'react'
-import { func, string } from 'prop-types'
+import shallowEqual from 'shallow-equal/objects'
+import createControl from '../create-control'
+import { bool, string } from 'prop-types'
 
-export default class Radio extends Component {
-  render() {
-    const { name, onChange, groupValue } = this.context
-    const { value, ...props } = this.props
-    const checked = value === groupValue
-    return createElement('input', {
-      ...props,
-      type: 'radio',
-      onChange,
-      checked,
-      value,
-      name
-    })
+export default class Radio extends createControl('radio')() {
+  componentDidUpdate() {
+    !shallowEqual(this.field.state, this.state) &&
+    this.setState(this.field.state)
   }
 }
 
 Radio.propTypes = {
+  checked: bool,
   value: string.isRequired
 }
 
-Radio.contextTypes = {
-  name: string,
-  onChange: func,
-  groupValue: string
+Radio.defaultProps = {
+  checked: false
 }

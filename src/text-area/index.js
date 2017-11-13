@@ -1,7 +1,6 @@
-import field from '../field'
-import controlled from '../controlled'
+import createControl from '../create-control'
 
-export default field(controlled('textarea'))({
+export default createControl('textarea')({
   displayName: 'TextArea',
   defaultProps: { value: '' }
 })

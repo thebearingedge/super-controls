@@ -1,6 +1,6 @@
-import field from '../field'
-import controlled from '../controlled'
+import createControl from '../create-control'
 
-export default field(controlled('checkbox'))({
-  displayName: 'Checkbox'
+export default createControl('checkbox')({
+  displayName: 'Checkbox',
+  defaultProps: { checked: false }
 })
