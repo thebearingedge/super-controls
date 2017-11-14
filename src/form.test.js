@@ -1,19 +1,28 @@
 import React from 'react'
 import { describe, it } from 'mocha'
-import { mount, expect, stub } from './__test__'
+import { mount, expect } from './__test__'
 import Form from './form'
-import Input from './input'
-import TextArea from './text-area'
 import Text from './text'
-import Checkbox from './checkbox'
-import Select from './select'
-import Radio from './radio'
 
 describe('Form', () => {
 
   describe('registers descendant fields', () => {
 
-    it('Input')
+    it('Text', done => {
+      class TestForm extends Form {
+        componentDidUpdate() {
+          expect(this.fields.test)
+            .to.have.property('state')
+            .that.deep.equals({ value: 'foo' })
+          done()
+        }
+      }
+      mount(
+        <TestForm>
+          <Text name='test' value='foo'/>
+        </TestForm>
+      )
+    })
 
     it('TextArea')
 
@@ -23,7 +32,28 @@ describe('Form', () => {
 
     it('Select')
 
-    it('Radio')
+  })
+
+  describe('overrides its descendant field values', () => {
+
+    it('Text', done => {
+      class TestForm extends Form {
+        componentDidUpdate() {
+          expect(this.state.values)
+            .to.deep.equal({
+              foo: 'bar',
+              baz: 'qux'
+            })
+          done()
+        }
+      }
+      mount(
+        <TestForm values={{ baz: 'qux' }}>
+          <Text name='foo' value='bar'/>
+          <Text name='baz' value=''/>
+        </TestForm>
+      )
+    })
 
   })
 

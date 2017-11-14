@@ -6,7 +6,6 @@ import TextArea from './text-area'
 import Text from './text'
 import Checkbox from './checkbox'
 import Select from './select'
-import Radio from './radio'
 
 function mockField(value) {
   return {
@@ -91,18 +90,6 @@ describe('createControl', () => {
       expect(select.find('option[value="baz"]')).to.be.selected()
     })
 
-    it('Radio', () => {
-      registerField.returns(mockField('foo'))
-      const radio = mount(
-        <Radio name='test' value='foo'/>,
-        { context }
-      )
-      expect(radio).to.have.tagName('input')
-      expect(radio).to.have.attr('type', 'radio')
-      expect(radio).to.have.value('foo')
-      expect(radio).to.be.checked()
-    })
-
   })
 
   describe('registers itself via context', () => {
@@ -114,8 +101,7 @@ describe('createControl', () => {
         { context }
       )
       expect(registerField).to.have.been.calledWith({
-        name: 'test',
-        value: ''
+        name: 'test'
       })
       expect(input).to.have.state('value', 'foo')
     })
@@ -127,8 +113,7 @@ describe('createControl', () => {
         { context }
       )
       expect(registerField).to.have.been.calledWith({
-        name: 'test',
-        value: ''
+        name: 'test'
       })
       expect(textArea).to.have.state('value', 'foo')
     })
@@ -140,8 +125,7 @@ describe('createControl', () => {
         { context }
       )
       expect(registerField).to.have.been.calledWith({
-        name: 'test',
-        value: ''
+        name: 'test'
       })
       expect(text).to.have.state('value', 'foo')
     })
@@ -153,8 +137,7 @@ describe('createControl', () => {
         { context }
       )
       expect(registerField).to.have.been.calledWith({
-        name: 'test',
-        value: false
+        name: 'test'
       })
       expect(checkbox).to.be.checked()
     })
@@ -171,23 +154,9 @@ describe('createControl', () => {
       )
       expect(select).to.have.value('baz')
       expect(registerField).to.have.been.calledWith({
-        name: 'test',
-        value: 'foo'
+        name: 'test'
       })
       expect(select.find('option[value="baz"]')).to.be.selected()
-    })
-
-    it('Radio', () => {
-      registerField.returns(mockField('foo'))
-      const radio = mount(
-        <Radio name='test' value='foo'/>,
-        { context }
-      )
-      expect(radio).to.be.checked()
-      expect(registerField).to.have.been.calledWith({
-        name: 'test',
-        value: void 0
-      })
     })
 
   })
@@ -305,7 +274,7 @@ describe('createControl', () => {
         }
       }
       const input = mount(
-        <TestInput name='test'/>,
+        <TestInput name='test' value='foo'/>,
         { context }
       )
       const target = input.getDOMNode()

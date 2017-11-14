@@ -1,59 +1,52 @@
 import { createElement, Component } from 'react'
-import { bool, func, string } from 'prop-types'
+import { func, string } from 'prop-types'
 import shallowEqual from 'shallow-equal/objects'
-import inputTypes from './input-types'
 
-export default function createControl(type) {
-
-  const isCheckbox = type === 'checkbox'
-  const isRadio = type === 'radio'
-  const valueKey = isCheckbox ? 'checked' : 'value'
+export default function createControl(component) {
 
   return function configureControl({
+    __valueKey__ = 'value',
     propTypes,
-    displayName,
-    defaultProps
+    defaultProps,
+    displayName = component.displayName
   } = {}) {
+
+    component.displayName = displayName
 
     class Control extends Component {
       constructor(...args) {
         super(...args)
         this.field = null
-        this.state = { value: this.props[valueKey] }
+        this.state = { value: this.props[__valueKey__] }
         this.onChange = this.onChange.bind(this)
         this.setValue = this.setValue.bind(this)
       }
       onChange({ target }) {
-        this.setValue(target[valueKey])
+        this.setValue(target[__valueKey__])
       }
       setValue(value) {
         this.field.setValue(value)
         this.setState({ value })
       }
       componentWillMount() {
-        const { name, checked } = this.props
-        const value = isRadio && !checked
-          ? void 0
-          : this.state.value
-        this.field = this.context.registerField({
-          name,
-          value
-        })
-        this.setState(this.field.state)
+        const { name } = this.props
+        this.field = this.context.registerField({ name })
+        const stateValue = this.field.state.value === void 0
+          ? this.state.value
+          : this.field.state.value
+        this.setState({ value: stateValue })
+        this.field.setValue(stateValue)
       }
       shouldComponentUpdate(nextProps, nextState) {
         const { props, state, field } = this
         return !shallowEqual(state, field.state) ||
-               !shallowEqual(state, nextState) ||
-               !shallowEqual(props, nextProps)
+               !shallowEqual(props, nextProps) ||
+               !shallowEqual(state, nextState)
       }
       render() {
         const { onChange } = this
-        const { value } = this.state
         const { name, ...props } = this.props
-        const checked = isRadio
-          ? this.props.value === value
-          : void 0
+        const { value } = this.state
         const id = this.props.id === true
           ? name
           : this.props.id
@@ -61,24 +54,17 @@ export default function createControl(type) {
           ...props,
           id,
           name,
-          checked,
           onChange,
-          [valueKey]: value
-        }
-        if (typeof type === 'string') {
-          return type in inputTypes
-            ? createElement('input', { ...controlProps, type })
-            : createElement(type, controlProps)
+          [__valueKey__]: value
         }
         const { setValue } = this
         const field = { setValue }
-        return createElement(type, { ...controlProps, field })
+        return createElement(component, { ...controlProps, field })
       }
     }
 
     Control.propTypes = {
       name: string.isRequired,
-      [valueKey]: (isCheckbox ? bool : string).isRequired,
       ...propTypes
     }
 
@@ -89,8 +75,6 @@ export default function createControl(type) {
     Control.defaultProps = {
       ...defaultProps
     }
-
-    Control.displayName = displayName
 
     return Control
   }
