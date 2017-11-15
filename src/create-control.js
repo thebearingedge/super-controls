@@ -1,6 +1,6 @@
 import { createElement, Component } from 'react'
 import { func, string } from 'prop-types'
-import { pipe, pick, noop, shallowEqual } from './util'
+import { pipe, noop, shallowEqual } from './util'
 
 export default function createControl(component) {
 
@@ -23,14 +23,11 @@ export default function createControl(component) {
           value: this.props[targetKey]
         })
         this.state = { ...this.field.state }
-        this.setValue = this.setValue.bind(this)
         this.onChange = pipe(this.onChange.bind(this), this.props.onChange)
       }
       onChange(event) {
-        event && this.setValue(event.target[targetKey])
-      }
-      setValue(value) {
-        this.field.setValue(value)
+        this.field.setValue(event.target[targetKey])
+        return event
       }
       componentDidUpdate() {
         !shallowEqual(this.state, this.field.state) &&
@@ -49,12 +46,10 @@ export default function createControl(component) {
         const id = this.props.id === true
           ? name
           : this.props.id
-        const field = pick(this.field, ['setValue'])
         const props = {
           ...ownProps,
           id,
           name,
-          field,
           onChange,
           [targetKey]: value
         }
