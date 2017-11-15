@@ -6,6 +6,8 @@ import TextArea from './text-area'
 import Select from './select'
 import Text from './text'
 import Checkbox from './checkbox'
+import RadioGroup from './radio-group'
+import Radio from './radio'
 
 function stubField(value) {
   return {
@@ -90,6 +92,21 @@ describe('createControl', () => {
       expect(checkbox).to.be.checked()
     })
 
+    it('RadioGroup', () => {
+      registerField.returns(stubField('foo'))
+      const radioGroup = mount(
+        <RadioGroup name='test' value='foo'>
+          <Radio value='foo'/>
+          <Radio value='bar'/>
+        </RadioGroup>,
+        { context }
+      )
+      const foo = radioGroup.find('input[value="foo"]')
+      const bar = radioGroup.find('input[value="bar"]')
+      expect(foo).to.be.checked()
+      expect(bar).not.to.be.checked()
+    })
+
   })
 
   describe('registers itself via context', () => {
@@ -164,6 +181,25 @@ describe('createControl', () => {
       expect(checkbox).to.be.checked()
     })
 
+    it('RadioGroup', () => {
+      registerField.returns(stubField('foo'))
+      const radioGroup = mount(
+        <RadioGroup name='test'>
+          <Radio value='foo'/>
+          <Radio value='bar'/>
+        </RadioGroup>,
+        { context }
+      )
+      expect(registerField).to.have.been.calledWith({
+        name: 'test',
+        value: ''
+      })
+      const foo = radioGroup.find('input[value="foo"]')
+      const bar = radioGroup.find('input[value="bar"]')
+      expect(foo).to.be.checked()
+      expect(bar).not.to.be.checked()
+    })
+
   })
 
   describe('forwards changes to its form field', () => {
@@ -210,7 +246,6 @@ describe('createControl', () => {
       const target = Object.assign(select.getDOMNode(), { value: 'foo' })
       select.simulate('change', { target })
       expect(field.setValue).to.have.been.calledWith('foo')
-
     })
 
     it('Text', () => {
@@ -237,6 +272,23 @@ describe('createControl', () => {
       const target = Object.assign(checkbox.getDOMNode(), { checked: true })
       checkbox.simulate('change', { target })
       expect(field.setValue).to.have.been.calledWith(true)
+    })
+
+    it('RadioGroup', () => {
+      const field = stubField('foo')
+      spy(field, 'setValue')
+      registerField.returns(field)
+      const radioGroup = mount(
+        <RadioGroup name='test'>
+          <Radio value='foo'/>
+          <Radio value='bar'/>
+        </RadioGroup>,
+        { context }
+      )
+      const bar = radioGroup.find('input[value="bar"]')
+      const target = bar.getDOMNode()
+      bar.simulate('change', { target })
+      expect(field.setValue).to.have.been.calledWith('bar')
     })
 
   })

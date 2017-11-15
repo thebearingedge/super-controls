@@ -39,9 +39,11 @@ export default class Form extends Component {
     }))
   }
   registerField({ name, value }) {
-    const { fields, setValue } = this
-    fields[name] = fields[name] || modelField(this, name, value)
-    setValue(name, fields[name].state.value)
+    const { state, fields, setValue } = this
+    fields[name] = modelField(this, name, value)
+    if (state.values[name] === void 0) {
+      setValue(name, fields[name].state.value)
+    }
     return fields[name]
   }
   render() {

@@ -26,7 +26,9 @@ export default function createControl(component) {
         this.onChange = pipe(this.onChange.bind(this), this.props.onChange)
       }
       onChange(event) {
-        this.field.setValue(event.target[targetKey])
+        const value = event.target[targetKey]
+        this.setState({ value })
+        this.field.setValue(value)
         return event
       }
       componentDidUpdate() {
@@ -40,8 +42,8 @@ export default function createControl(component) {
                !shallowEqual(state, nextState)
       }
       render() {
-        const { onChange } = this
-        const { value } = this.field.state
+        const { field, onChange } = this
+        const { value } = field.state
         const { name, ...ownProps } = this.props
         const id = this.props.id === true
           ? name
@@ -50,6 +52,7 @@ export default function createControl(component) {
           ...ownProps,
           id,
           name,
+          field,
           onChange,
           [targetKey]: value
         }
