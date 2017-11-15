@@ -1,11 +1,13 @@
 import { Component } from 'react'
 import { func } from 'prop-types'
 
-function modelField(form, name) {
+function modelField(form, name, value) {
   return {
     state: {
       get value() {
-        return form.state.values[name]
+        return form.state.values[name] === void 0
+          ? value
+          : form.state.values[name]
       }
     },
     setValue(value) {
@@ -36,9 +38,11 @@ export default class Form extends Component {
       }
     }))
   }
-  registerField({ name }) {
-    this.fields[name] = this.fields[name] || modelField(this, name)
-    return this.fields[name]
+  registerField({ name, value }) {
+    const { fields, setValue } = this
+    fields[name] = fields[name] || modelField(this, name, value)
+    setValue(name, fields[name].state.value)
+    return fields[name]
   }
   render() {
     return this.props.children

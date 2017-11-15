@@ -1,41 +1,40 @@
 import { createElement, Component } from 'react'
 import { func, string } from 'prop-types'
-import shallowEqual from 'shallow-equal/objects'
+import { pipe, pick, noop, shallowEqual } from './util'
 
 export default function createControl(component) {
 
   return function configureControl({
-    __valueKey__ = 'value',
+    targetKey = 'value',
     propTypes,
-    defaultProps,
-    displayName = component.displayName
+    displayName,
+    defaultProps
   } = {}) {
 
-    component.displayName = displayName
+    component.displayName = displayName ||
+                            component.displayName ||
+                            component.name
 
     class Control extends Component {
       constructor(...args) {
         super(...args)
-        this.field = null
-        this.state = { value: this.props[__valueKey__] }
-        this.onChange = this.onChange.bind(this)
+        this.field = this.context.registerField({
+          name: this.props.name,
+          value: this.props[targetKey]
+        })
+        this.state = { ...this.field.state }
         this.setValue = this.setValue.bind(this)
+        this.onChange = pipe(this.onChange.bind(this), this.props.onChange)
       }
-      onChange({ target }) {
-        this.setValue(target[__valueKey__])
+      onChange(event) {
+        event && this.setValue(event.target[targetKey])
       }
       setValue(value) {
         this.field.setValue(value)
-        this.setState({ value })
       }
-      componentWillMount() {
-        const { name } = this.props
-        this.field = this.context.registerField({ name })
-        const stateValue = this.field.state.value === void 0
-          ? this.state.value
-          : this.field.state.value
-        this.setState({ value: stateValue })
-        this.field.setValue(stateValue)
+      componentDidUpdate() {
+        !shallowEqual(this.state, this.field.state) &&
+        this.setState(this.field.state)
       }
       shouldComponentUpdate(nextProps, nextState) {
         const { props, state, field } = this
@@ -45,21 +44,21 @@ export default function createControl(component) {
       }
       render() {
         const { onChange } = this
-        const { name, ...props } = this.props
-        const { value } = this.state
+        const { value } = this.field.state
+        const { name, ...ownProps } = this.props
         const id = this.props.id === true
           ? name
           : this.props.id
-        const controlProps = {
-          ...props,
+        const field = pick(this.field, ['setValue'])
+        const props = {
+          ...ownProps,
           id,
           name,
+          field,
           onChange,
-          [__valueKey__]: value
+          [targetKey]: value
         }
-        const { setValue } = this
-        const field = { setValue }
-        return createElement(component, { ...controlProps, field })
+        return createElement(component, props)
       }
     }
 
@@ -73,7 +72,9 @@ export default function createControl(component) {
     }
 
     Control.defaultProps = {
-      ...defaultProps
+      ...component.defaultProps,
+      ...defaultProps,
+      onChange: noop
     }
 
     return Control
