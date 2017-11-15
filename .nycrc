@@ -1,13 +1,11 @@
 {
-  "all": true,
   "include": [
     "src/**/*",
     "src/*"
   ],
   "exclude": [
     "src/demo/",
-    "**/*test*",
-    "src/index.js"
+    "**/*test*"
   ],
   "reporter": [
     "lcov",
