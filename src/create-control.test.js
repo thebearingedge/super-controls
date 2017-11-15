@@ -293,4 +293,135 @@ describe('createControl', () => {
 
   })
 
+  describe('syncronizes itself with its form field', () => {
+
+    it('Input', done => {
+      registerField.returns(stubField('foo'))
+      const input = mount(
+        <Input name='test' value='foo'/>,
+        { context }
+      )
+      stub(input.instance(), 'componentDidUpdate')
+        .callThrough()
+        .onCall(1)
+        .callsFake(() => {
+          expect(input).to.have.state('value', 'foo')
+          done()
+        })
+        .onCall(2)
+        .callsFake(() => {
+          done(new Error('cascading calls to setState detected'))
+        })
+      input.setState({ value: 'bar' })
+    })
+
+    it('TextArea', done => {
+      registerField.returns(stubField('foo'))
+      const textArea = mount(
+        <TextArea name='test' value='foo'/>,
+        { context }
+      )
+      stub(textArea.instance(), 'componentDidUpdate')
+        .callThrough()
+        .onCall(1)
+        .callsFake(() => {
+          expect(textArea).to.have.state('value', 'foo')
+          done()
+        })
+        .onCall(2)
+        .callsFake(() => {
+          done(new Error('cascading calls to setState detected'))
+        })
+      textArea.setState({ value: 'bar' })
+    })
+
+    it('Select', done => {
+      registerField.returns(stubField('baz'))
+      const select = mount(
+        <Select name='test' value='baz'>
+          <option value='foo'></option>
+          <option value='bar'></option>
+          <option value='baz'></option>
+        </Select>,
+        { context }
+      )
+      stub(select.instance(), 'componentDidUpdate')
+        .callThrough()
+        .onCall(1)
+        .callsFake(() => {
+          expect(select).to.have.state('value', 'baz')
+          done()
+        })
+        .onCall(2)
+        .callsFake(() => {
+          done(new Error('cascading calls to setState detected'))
+        })
+      select.setState({ value: 'bar' })
+    })
+
+    it('Text', done => {
+      registerField.returns(stubField('foo'))
+      const text = mount(
+        <Text name='test' value='foo'/>,
+        { context }
+      )
+      stub(text.instance(), 'componentDidUpdate')
+        .callThrough()
+        .onCall(1)
+        .callsFake(() => {
+          expect(text).to.have.state('value', 'foo')
+          done()
+        })
+        .onCall(2)
+        .callsFake(() => {
+          done(new Error('cascading calls to setState detected'))
+        })
+      text.setState({ value: 'bar' })
+    })
+
+    it('Checkbox', done => {
+      registerField.returns(stubField(false))
+      const checkbox = mount(
+        <Checkbox name='test'/>,
+        { context }
+      )
+      stub(checkbox.instance(), 'componentDidUpdate')
+        .callThrough()
+        .onCall(1)
+        .callsFake(() => {
+          expect(checkbox).to.have.state('value', false)
+          done()
+        })
+        .onCall(2)
+        .callsFake(() => {
+          done(new Error('cascading calls to setState detected'))
+        })
+      checkbox.setState({ value: true })
+    })
+
+    it('RadioGroup', done => {
+      registerField.returns(stubField('foo'))
+      const radioGroup = mount(
+        <RadioGroup name='test'>
+          <Radio value='foo'/>
+          <Radio value='bar'/>
+        </RadioGroup>,
+        { context }
+      )
+      stub(radioGroup.instance(), 'componentDidUpdate')
+        .callThrough()
+        .onCall(1)
+        .callsFake(() => {
+          expect(radioGroup).to.have.state('value', 'foo')
+          done()
+        })
+        .onCall(2)
+        .callsFake(() => {
+          done(new Error('cascading calls to setState detected'))
+        })
+      radioGroup.setState({ value: 'bar' })
+    })
+
+  })
+
 })
