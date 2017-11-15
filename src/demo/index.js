@@ -42,6 +42,7 @@ render(
           <Text id name='corge' className='form-control'/>
         </div>
         <button type='submit' className='btn btn-primary'>Submit</button>
+        <button type='reset' className='btn btn-outline-secondary'>Reset</button>
       </div>
     </div>
   </Form>,

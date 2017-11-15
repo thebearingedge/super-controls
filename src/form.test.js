@@ -1,6 +1,6 @@
 import React from 'react'
 import { describe, it } from 'mocha'
-import { mount, expect } from './__test__'
+import { mount, expect, stub } from './__test__'
 import Form from './form'
 import Input from './input'
 import TextArea from './text-area'
@@ -460,6 +460,46 @@ describe('Form', () => {
       const bar = form.find('input[value="bar"]')
       const target = bar.getDOMNode()
       bar.simulate('change', { target })
+    })
+
+  })
+
+  describe('resets to its initial state', () => {
+
+    it('', done => {
+      class TestForm extends Form {
+        componentDidUpdate() {}
+      }
+      const form = mount(
+        <TestForm values={{ test: 'foo' }}/>
+      )
+      stub(form.instance(), 'componentDidUpdate')
+        .callThrough()
+        .onCall(1)
+        .callsFake(() => {
+          expect(form)
+            .to.have.state('values')
+            .that.deep.equals({ test: 'foo' })
+          done()
+        })
+      form.setState({ values: { test: 'bar' } }, () => {
+        form.simulate('reset')
+      })
+    })
+
+  })
+
+  describe('calls an onSubmit prop with its values', () => {
+
+    it('', () => {
+      const onSubmit = stub()
+      const form = mount(
+        <Form values={{ test: 'foo' }} onSubmit={onSubmit}/>
+      )
+      form.simulate('submit')
+      expect(onSubmit).to.have.been.calledWith({
+        test: 'foo'
+      })
     })
 
   })

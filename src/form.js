@@ -24,8 +24,9 @@ export default class Form extends Component {
       values: this.props.values
     }
     this.fields = {}
-    this.setValue = this.setValue.bind(this)
+    this.onReset = this.onReset.bind(this)
     this.onSubmit = this.onSubmit.bind(this)
+    this.setValue = this.setValue.bind(this)
     this.registerField = this.registerField.bind(this)
   }
   getChildContext() {
@@ -52,9 +53,13 @@ export default class Form extends Component {
     event.preventDefault()
     this.props.onSubmit(this.state.values)
   }
+  onReset(event) {
+    event.preventDefault()
+    this.setState({ values: this.props.values })
+  }
   render() {
-    const { props, onSubmit } = this
-    return createElement('form', { ...props, onSubmit })
+    const { props, onReset, onSubmit } = this
+    return createElement('form', { ...props, onReset, onSubmit })
   }
 }
 
