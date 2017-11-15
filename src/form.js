@@ -1,5 +1,6 @@
-import { Component } from 'react'
+import { Component, createElement } from 'react'
 import { func } from 'prop-types'
+import { noop } from './util'
 
 function modelField(form, name, value) {
   return {
@@ -24,6 +25,7 @@ export default class Form extends Component {
     }
     this.fields = {}
     this.setValue = this.setValue.bind(this)
+    this.onSubmit = this.onSubmit.bind(this)
     this.registerField = this.registerField.bind(this)
   }
   getChildContext() {
@@ -46,8 +48,13 @@ export default class Form extends Component {
     }
     return fields[name]
   }
+  onSubmit(event) {
+    event.preventDefault()
+    this.props.onSubmit(this.state.values)
+  }
   render() {
-    return this.props.children
+    const { props, onSubmit } = this
+    return createElement('form', { ...props, onSubmit })
   }
 }
 
@@ -57,5 +64,6 @@ Form.childContextTypes = {
 
 Form.defaultProps = {
   values: {},
-  children: []
+  children: [],
+  onSubmit: noop
 }

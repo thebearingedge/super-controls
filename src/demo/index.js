@@ -5,8 +5,13 @@ import Text from '../text'
 import Radio from '../radio'
 import RadioGroup from '../radio-group'
 
+const handleSubmit = values =>
+  console.log(JSON.stringify(values, null, 2))
+
+const initialValues = { foo: 'bar', corge: 'grault' }
+
 render(
-  <Form values={{ foo: 'bar', corge: 'grault' }} className='container'>
+  <Form onSubmit={handleSubmit} values={initialValues} className='container'>
     <div className='row'>
       <div className='col-md-6 offset-md-3'>
         <fieldset className='form-group'>
@@ -36,6 +41,7 @@ render(
           <label htmlFor='corge'>My Bootstrap Input</label>
           <Text id name='corge' className='form-control'/>
         </div>
+        <button type='submit' className='btn btn-primary'>Submit</button>
       </div>
     </div>
   </Form>,

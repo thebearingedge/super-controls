@@ -1,5 +1,5 @@
 {
-  "name": "controlled",
+  "name": "controlled-components",
   "version": "1.0.0-alpha.1",
   "description": "Streamlined form controls for React.",
   "main": "dist/index.js",
