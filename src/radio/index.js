@@ -3,11 +3,12 @@ import { func, string } from 'prop-types'
 
 export default class Radio extends Component {
   render() {
-    const { groupValue, onChange } = this.context
+    const { groupValue, onChange, onBlur } = this.context
     const { value, ...props } = this.props
     return createElement('input', {
       ...props,
       value,
+      onBlur,
       onChange,
       type: 'radio',
       checked: value === groupValue

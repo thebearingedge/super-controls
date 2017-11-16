@@ -9,10 +9,16 @@ function modelField(form, name, value) {
         return form.state.values[name] === void 0
           ? value
           : form.state.values[name]
+      },
+      get isTouched() {
+        return form.state.touched[name] || false
       }
     },
     setValue(value) {
       form.setValue(name, value)
+    },
+    setTouched() {
+      form.setTouched(name)
     }
   }
 }
@@ -21,12 +27,14 @@ export default class Form extends Component {
   constructor(...args) {
     super(...args)
     this.state = {
-      values: this.props.values
+      values: this.props.values,
+      touched: {}
     }
     this.fields = {}
     this.onReset = this.onReset.bind(this)
     this.onSubmit = this.onSubmit.bind(this)
     this.setValue = this.setValue.bind(this)
+    this.setTouched = this.setTouched.bind(this)
     this.registerField = this.registerField.bind(this)
   }
   getChildContext() {
@@ -38,6 +46,14 @@ export default class Form extends Component {
       values: {
         ...values,
         [name]: value
+      }
+    }))
+  }
+  setTouched(name) {
+    this.setState(({ touched }) => ({
+      touched: {
+        ...touched,
+        [name]: true
       }
     }))
   }
@@ -55,7 +71,10 @@ export default class Form extends Component {
   }
   onReset(event) {
     event.preventDefault()
-    this.setState({ values: this.props.values })
+    this.setState({
+      touched: {},
+      values: this.props.values
+    })
   }
   render() {
     const { props, onReset, onSubmit } = this

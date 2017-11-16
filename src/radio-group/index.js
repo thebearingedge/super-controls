@@ -3,9 +3,18 @@ import { func, string } from 'prop-types'
 import createControl from '../create-control'
 
 class RadioGroup extends Component {
+  constructor(...args) {
+    super(...args)
+    this.onChange = this.onChange.bind(this)
+  }
   getChildContext() {
-    const { value: groupValue, onChange } = this.props
+    const { onChange } = this
+    const { value: groupValue } = this.props
     return { groupValue, onChange }
+  }
+  onChange(event) {
+    this.props.onChange(event)
+    this.props.onBlur(event)
   }
   render() {
     return this.props.children
@@ -14,7 +23,8 @@ class RadioGroup extends Component {
 
 RadioGroup.childContextTypes = {
   groupValue: string,
-  onChange: func
+  onChange: func,
+  onBlur: func
 }
 
 export default createControl(RadioGroup)({

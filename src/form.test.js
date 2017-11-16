@@ -19,7 +19,7 @@ describe('Form', () => {
         componentDidMount() {
           expect(this.fields.test)
             .to.have.property('state')
-            .that.deep.equals({ value: '' })
+            .that.deep.equals({ value: '', isTouched: false })
           done()
         }
       }
@@ -35,7 +35,7 @@ describe('Form', () => {
         componentDidMount() {
           expect(this.fields.test)
             .to.have.property('state')
-            .that.deep.equals({ value: '' })
+            .that.deep.equals({ value: '', isTouched: false })
           done()
         }
       }
@@ -51,7 +51,7 @@ describe('Form', () => {
         componentDidMount() {
           expect(this.fields.test)
             .to.have.property('state')
-            .that.deep.equals({ value: '' })
+            .that.deep.equals({ value: '', isTouched: false })
           done()
         }
       }
@@ -67,7 +67,7 @@ describe('Form', () => {
         componentDidMount() {
           expect(this.fields.test)
             .to.have.property('state')
-            .that.deep.equals({ value: '' })
+            .that.deep.equals({ value: '', isTouched: false })
           done()
         }
       }
@@ -83,7 +83,7 @@ describe('Form', () => {
         componentDidMount() {
           expect(this.fields.test)
             .to.have.property('state')
-            .that.deep.equals({ value: false })
+            .that.deep.equals({ value: false, isTouched: false })
           done()
         }
       }
@@ -99,7 +99,7 @@ describe('Form', () => {
         componentDidMount() {
           expect(this.fields.test)
             .to.have.property('state')
-            .that.deep.equals({ value: '' })
+            .that.deep.equals({ value: '', isTouched: false })
           done()
         }
       }
@@ -339,7 +339,7 @@ describe('Form', () => {
 
   })
 
-  describe('receives state updates from its descendants', () => {
+  describe('receives value updates from its descendants', () => {
 
     it('Input', done => {
       class TestForm extends Form {
@@ -460,6 +460,119 @@ describe('Form', () => {
       const bar = form.find('input[value="bar"]')
       const target = bar.getDOMNode()
       bar.simulate('change', { target })
+    })
+
+  })
+
+  describe('receives touch updates from its descendants', () => {
+
+    it('Input', done => {
+      class TestForm extends Form {
+        componentDidUpdate() {
+          expect(this.state.touched).to.deep.equal({
+            test: true
+          })
+          done()
+        }
+      }
+      const form = mount(
+        <TestForm values={{ test: '' }}>
+          <Input name='test'/>
+        </TestForm>
+      )
+      form.find(Input).simulate('blur')
+    })
+
+    it('TextArea', done => {
+      class TestForm extends Form {
+        componentDidUpdate() {
+          expect(this.state.touched).to.deep.equal({
+            test: true
+          })
+          done()
+        }
+      }
+      const form = mount(
+        <TestForm values={{ test: '' }}>
+          <TextArea name='test'/>
+        </TestForm>
+      )
+      form.find(TextArea).simulate('blur')
+    })
+
+    it('Select', done => {
+      class TestForm extends Form {
+        componentDidUpdate() {
+          expect(this.state.touched).to.deep.equal({
+            test: true
+          })
+          done()
+        }
+      }
+      const form = mount(
+        <TestForm values={{ test: '' }}>
+          <Select name='test'>
+            <option value='foo'></option>
+            <option value='bar'></option>
+            <option value='baz'></option>
+          </Select>
+        </TestForm>
+      )
+      form.find(Select).simulate('blur')
+    })
+
+    it('Text', done => {
+      class TestForm extends Form {
+        componentDidUpdate() {
+          expect(this.state.touched).to.deep.equal({
+            test: true
+          })
+          done()
+        }
+      }
+      const form = mount(
+        <TestForm values={{ test: '' }}>
+          <Text name='test'/>
+        </TestForm>
+      )
+      form.find(Text).simulate('blur')
+    })
+
+    it('Checkbox', done => {
+      class TestForm extends Form {
+        componentDidUpdate() {
+          expect(this.state.touched).to.deep.equal({
+            test: true
+          })
+          done()
+        }
+      }
+      const form = mount(
+        <TestForm values={{ test: false }}>
+          <Checkbox name='test'/>
+        </TestForm>
+      )
+      form.find(Checkbox).simulate('blur')
+    })
+
+    it('RadioGroup', done => {
+      class TestForm extends Form {
+        componentDidUpdate() {
+          expect(this.state.touched).to.deep.equal({
+            test: true
+          })
+          done()
+        }
+      }
+      const form = mount(
+        <TestForm values={{ test: 'foo' }}>
+          <RadioGroup name='test' value='foo'>
+            <Radio value='foo'/>
+            <Radio value='bar'/>
+          </RadioGroup>
+        </TestForm>
+      )
+      form.find('input[value="bar"]').simulate('change')
     })
 
   })

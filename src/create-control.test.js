@@ -18,7 +18,8 @@ function stubField(value) {
     },
     setValue(_value) {
       value = _value
-    }
+    },
+    setTouched() {}
   }
 }
 
@@ -202,7 +203,7 @@ describe('createControl', () => {
 
   })
 
-  describe('forwards changes to its form field', () => {
+  describe('forwards value changes to its form field', () => {
 
     it('Input', () => {
       const field = stubField('')
@@ -215,7 +216,6 @@ describe('createControl', () => {
       const target = Object.assign(input.getDOMNode(), { value: 'foo' })
       input.simulate('change', { target })
       expect(field.setValue).to.have.been.calledWith('foo')
-
     })
 
     it('TextArea', () => {
@@ -289,6 +289,90 @@ describe('createControl', () => {
       const target = bar.getDOMNode()
       bar.simulate('change', { target })
       expect(field.setValue).to.have.been.calledWith('bar')
+    })
+
+  })
+
+  describe('forwards touch changes to its form field', () => {
+
+    it('Input', () => {
+      const field = stubField('')
+      spy(field, 'setTouched')
+      registerField.returns(field)
+      const input = mount(
+        <Input name='test'/>,
+        { context }
+      )
+      input.simulate('blur')
+      expect(field.setTouched).to.have.callCount(1)
+    })
+
+    it('TextArea', () => {
+      const field = stubField('')
+      spy(field, 'setTouched')
+      registerField.returns(field)
+      const textArea = mount(
+        <TextArea name='test'/>,
+        { context }
+      )
+      textArea.simulate('blur')
+      expect(field.setTouched).to.have.callCount(1)
+    })
+
+    it('Select', () => {
+      const field = stubField('')
+      spy(field, 'setTouched')
+      registerField.returns(field)
+      const select = mount(
+        <Select name='test'>
+          <option value='foo'></option>
+          <option value='bar'></option>
+          <option value='baz'></option>
+        </Select>,
+        { context }
+      )
+      select.simulate('blur')
+      expect(field.setTouched).to.have.callCount(1)
+    })
+
+    it('Text', () => {
+      const field = stubField('')
+      spy(field, 'setTouched')
+      registerField.returns(field)
+      const text = mount(
+        <Text name='test'/>,
+        { context }
+      )
+      text.simulate('blur')
+      expect(field.setTouched).to.have.callCount(1)
+    })
+
+    it('Checkbox', () => {
+      const field = stubField(false)
+      spy(field, 'setTouched')
+      registerField.returns(field)
+      const checkbox = mount(
+        <Checkbox name='test'/>,
+        { context }
+      )
+      checkbox.simulate('blur')
+      expect(field.setTouched).to.have.callCount(1)
+    })
+
+    it('RadioGroup', () => {
+      const field = stubField('')
+      spy(field, 'setTouched')
+      registerField.returns(field)
+      const radioGroup = mount(
+        <RadioGroup name='test'>
+          <Radio value='foo'/>
+          <Radio value='bar'/>
+        </RadioGroup>,
+        { context }
+      )
+      const bar = radioGroup.find('input[value="bar"]')
+      bar.simulate('change')
+      expect(field.setTouched).to.have.callCount(1)
     })
 
   })

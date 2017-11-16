@@ -23,12 +23,17 @@ export default function createControl(component) {
           value: this.props[targetKey]
         })
         this.state = { ...this.field.state }
+        this.onBlur = pipe(this.onBlur.bind(this), this.props.onBlur)
         this.onChange = pipe(this.onChange.bind(this), this.props.onChange)
       }
       onChange(event) {
         const value = event.target[targetKey]
         this.setState({ value })
         this.field.setValue(value)
+        return event
+      }
+      onBlur(event) {
+        this.field.setTouched()
         return event
       }
       componentDidUpdate() {
@@ -42,7 +47,7 @@ export default function createControl(component) {
                !shallowEqual(state, nextState)
       }
       render() {
-        const { field, onChange } = this
+        const { field, onBlur, onChange } = this
         const { value } = field.state
         const { name, ...ownProps } = this.props
         const id = this.props.id === true
@@ -53,6 +58,7 @@ export default function createControl(component) {
           id,
           name,
           field,
+          onBlur,
           onChange,
           [targetKey]: value
         }
@@ -72,7 +78,8 @@ export default function createControl(component) {
     Control.defaultProps = {
       ...component.defaultProps,
       ...defaultProps,
-      onChange: noop
+      onChange: noop,
+      onBlur: noop
     }
 
     return Control
