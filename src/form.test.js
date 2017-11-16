@@ -572,7 +572,7 @@ describe('Form', () => {
           </RadioGroup>
         </TestForm>
       )
-      form.find('input[value="bar"]').simulate('change')
+      form.find('input[value="bar"]').simulate('blur')
     })
 
   })

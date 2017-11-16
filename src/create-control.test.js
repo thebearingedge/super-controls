@@ -295,33 +295,34 @@ describe('createControl', () => {
 
   describe('forwards touch changes to its form field', () => {
 
-    it('Input', () => {
+    it('Input', done => {
       const field = stubField('')
-      spy(field, 'setTouched')
+      stub(field, 'setTouched')
+        .callsFake(done)
       registerField.returns(field)
       const input = mount(
         <Input name='test'/>,
         { context }
       )
       input.simulate('blur')
-      expect(field.setTouched).to.have.callCount(1)
     })
 
-    it('TextArea', () => {
+    it('TextArea', done => {
       const field = stubField('')
-      spy(field, 'setTouched')
+      stub(field, 'setTouched')
+        .callsFake(done)
       registerField.returns(field)
       const textArea = mount(
         <TextArea name='test'/>,
         { context }
       )
       textArea.simulate('blur')
-      expect(field.setTouched).to.have.callCount(1)
     })
 
-    it('Select', () => {
+    it('Select', done => {
       const field = stubField('')
-      spy(field, 'setTouched')
+      stub(field, 'setTouched')
+        .callsFake(done)
       registerField.returns(field)
       const select = mount(
         <Select name='test'>
@@ -332,36 +333,36 @@ describe('createControl', () => {
         { context }
       )
       select.simulate('blur')
-      expect(field.setTouched).to.have.callCount(1)
     })
 
-    it('Text', () => {
+    it('Text', done => {
       const field = stubField('')
-      spy(field, 'setTouched')
+      stub(field, 'setTouched')
+        .callsFake(done)
       registerField.returns(field)
       const text = mount(
         <Text name='test'/>,
         { context }
       )
       text.simulate('blur')
-      expect(field.setTouched).to.have.callCount(1)
     })
 
-    it('Checkbox', () => {
+    it('Checkbox', done => {
       const field = stubField(false)
-      spy(field, 'setTouched')
+      stub(field, 'setTouched')
+        .callsFake(done)
       registerField.returns(field)
       const checkbox = mount(
         <Checkbox name='test'/>,
         { context }
       )
       checkbox.simulate('blur')
-      expect(field.setTouched).to.have.callCount(1)
     })
 
-    it('RadioGroup', () => {
+    it('RadioGroup', done => {
       const field = stubField('')
-      spy(field, 'setTouched')
+      stub(field, 'setTouched')
+        .callsFake(done)
       registerField.returns(field)
       const radioGroup = mount(
         <RadioGroup name='test'>
@@ -371,8 +372,7 @@ describe('createControl', () => {
         { context }
       )
       const bar = radioGroup.find('input[value="bar"]')
-      bar.simulate('change')
-      expect(field.setTouched).to.have.callCount(1)
+      bar.simulate('blur')
     })
 
   })

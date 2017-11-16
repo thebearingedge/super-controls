@@ -33,7 +33,7 @@ export default function createControl(component) {
         return event
       }
       onBlur(event) {
-        this.field.setTouched()
+        setTimeout(() => this.field.setTouched())
         return event
       }
       componentDidUpdate() {

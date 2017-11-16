@@ -18,6 +18,7 @@ function modelField(form, name, value) {
       form.setValue(name, value)
     },
     setTouched() {
+      !form.state.touched[name] &&
       form.setTouched(name)
     }
   }
