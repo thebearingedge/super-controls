@@ -1,6 +1,6 @@
 import { createElement, Component } from 'react'
 import { func, string } from 'prop-types'
-import { shallowEqual } from './util'
+import { shallowEqual } from '../util'
 
 export default function createControl(component) {
 

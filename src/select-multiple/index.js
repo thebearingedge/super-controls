@@ -7,8 +7,8 @@ class SelectMultiple extends Component {
     super(...args)
     this.onChange = this.onChange.bind(this)
   }
-  onChange(event) {
-    const value = [...event.target.querySelectorAll('option:checked')]
+  onChange({ target }) {
+    const value = [...target.querySelectorAll('option:checked')]
       .map($option => $option.value)
     this.props.control.onChange({ target: { value } })
   }

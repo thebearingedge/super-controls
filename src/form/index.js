@@ -1,6 +1,6 @@
 import { Component, createElement } from 'react'
 import { object, func } from 'prop-types'
-import { noop } from './util'
+import { noop } from '../util'
 
 export default class Form extends Component {
   constructor(...args) {

@@ -24,3 +24,17 @@ after(() => {
 export const { expect } = chai
 export const { mount } = enzyme
 export const { stub, spy } = sinon
+export const mockField = value => {
+  let isTouched
+  return {
+    state: {
+      get value() {
+        return value
+      },
+      get isTouched() {
+        return !!isTouched
+      }
+    },
+    update() {}
+  }
+}

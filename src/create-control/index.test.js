@@ -1,7 +1,7 @@
 import React from 'react'
 import { describe, beforeEach, it } from 'mocha'
-import { mount, expect, stub, spy } from './__test__'
-import createControl from './create-control'
+import { mount, expect, stub, spy } from '../__test__'
+import createControl from '.'
 
 describe('createControl', () => {
 
@@ -43,7 +43,7 @@ describe('createControl', () => {
     }
   }
 
-  it('renders its target', () => {
+  it('renders a component', () => {
     registerField.returns(mockField(''))
     const Input = createControl(({ control }) =>
       <input {...control}/>
@@ -68,7 +68,7 @@ describe('createControl', () => {
       .that.is.a('function')
   })
 
-  it('forwards props to its target', () => {
+  it('forwards props to its component', () => {
     registerField.returns(mockField(''))
     const Input = createControl(({ control, ...props }) =>
       <input {...props} {...control}/>
@@ -91,10 +91,10 @@ describe('createControl', () => {
       <Input name='test' type='checkbox'/>,
       { context }
     )
-    expect(wrapper.find('input')).to.be.checked()
+    expect(wrapper.find('input[type="checkbox"]')).to.be.checked()
   })
 
-  it('registers change events from its target', () => {
+  it('receives change events from its component', () => {
     const field = mockField('')
     spy(field, 'update')
     registerField.returns(field)
@@ -111,7 +111,7 @@ describe('createControl', () => {
     expect(field.update).to.have.been.calledWith({ value: 'foo' })
   })
 
-  it('registers blur events from its target', () => {
+  it('receives blur events from its component', () => {
     const field = mockField('')
     spy(field, 'update')
     registerField.returns(field)
@@ -126,7 +126,7 @@ describe('createControl', () => {
     expect(field.update).to.have.been.calledWith({ isTouched: true })
   })
 
-  it('syncs its local state with its field model', done => {
+  it('syncs its local state with its field state', done => {
     registerField.returns(mockField('foo'))
     const Input = createControl(({ field, control }) =>
       <input {...control}/>

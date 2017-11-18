@@ -1,8 +1,8 @@
 import React from 'react'
 import { describe, it } from 'mocha'
-import { mount, expect, spy, stub } from './__test__'
-import createControl from './create-control'
-import Form from './form'
+import { mount, expect, spy, stub } from '../__test__'
+import createControl from '../create-control'
+import Form from '.'
 
 describe('Form', () => {
 
