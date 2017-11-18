@@ -1,26 +1,23 @@
-import { createElement, Component } from 'react'
+import { createElement } from 'react'
 import { func, string } from 'prop-types'
 
-export default class Radio extends Component {
-  render() {
-    const { groupValue, onBlur, onChange } = this.context
-    const { value, ...props } = this.props
-    return createElement('input', {
-      ...props,
-      value,
-      onBlur,
-      onChange,
-      type: 'radio',
-      checked: value === groupValue,
-      ref: this.context.registerRadio
-    })
-  }
+export default function Radio(props, context) {
+  const { group, onBlur, onChange } = context
+  const { value, ...ownProps } = props
+  return createElement('input', {
+    ...ownProps,
+    value,
+    onBlur,
+    onChange,
+    type: 'radio',
+    checked: value === group
+  })
 }
 
 Radio.contextTypes = {
-  groupValue: string.isRequired,
-  onBlur: func.isRequired,
-  onChange: func.isRequired
+  group: string.isRequired,
+  onChange: func.isRequired,
+  onBlur: func.isRequired
 }
 
 Radio.propTypes = {

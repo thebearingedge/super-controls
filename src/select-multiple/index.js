@@ -1,4 +1,5 @@
 import { Component, createElement } from 'react'
+import { func, object, array } from 'prop-types'
 import createControl from '../create-control'
 
 class SelectMultiple extends Component {
@@ -9,24 +10,31 @@ class SelectMultiple extends Component {
   onChange(event) {
     const value = [...event.target.querySelectorAll('option:checked')]
       .map($option => $option.value)
-    this.props.field.setValue(value)
-    return event
+    this.props.control.onChange({ target: { value } })
   }
   render() {
-    const { field, value, children, ...ownProps } = this.props
+    const { field, control, ...ownProps } = this.props
     const { onChange } = this
     const props = {
       ...ownProps,
-      multiple: true,
+      ...control,
       onChange,
-      value
+      multiple: true
     }
-    return createElement('select', props, children)
+    return createElement('select', props)
   }
 }
 
-export default createControl(SelectMultiple)({
-  defaultProps: {
-    value: []
-  }
-})
+SelectMultiple.propTypes = {
+  field: object,
+  control: object,
+  onChange: func,
+  value: array
+}
+
+SelectMultiple.defaultProps = {
+  value: [],
+  multiple: true
+}
+
+export default createControl(SelectMultiple)()

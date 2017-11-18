@@ -9,18 +9,28 @@ import SelectMultiple from '../select-multiple'
 const handleSubmit = values =>
   console.log(JSON.stringify(values, null, 2))
 
-const initialValues = { foo: 'bar', corge: 'grault', waldo: [] }
+const initialValues = {
+  radioButtons: 'bar',
+  textInput: 'grault',
+  selectMultiple: ['maybe']
+}
 
 render(
   <Form onSubmit={handleSubmit} values={initialValues} className='container'>
     <div className='row'>
       <div className='col-md-6 offset-md-3'>
         <fieldset className='form-group'>
-          <RadioGroup name='foo'>
-            <legend>Radio Group Lives Again</legend>
+          <RadioGroup name='radioButtons'>
+            <legend><small>Radio Group Lives Again</small></legend>
             <div className='form-check'>
               <label className='form-check-label'>
-                <Radio value='bar' className='form-check-input' />
+                <Radio value='foo' className='form-check-input' />
+                Foo
+              </label>
+            </div>
+            <div className='form-check'>
+              <label className='form-check-label'>
+                <Radio value='bar' className='form-check-input'/>
                 Bar
               </label>
             </div>
@@ -30,21 +40,15 @@ render(
                 Baz
               </label>
             </div>
-            <div className='form-check'>
-              <label className='form-check-label'>
-                <Radio value='qux' className='form-check-input'/>
-                Qux
-              </label>
-            </div>
           </RadioGroup>
         </fieldset>
         <div className='form-group'>
-          <label htmlFor='corge'>My Bootstrap Input</label>
-          <Text id name='corge' className='form-control'/>
+          <label htmlFor='textInput'>My Bootstrap Input</label>
+          <Text id name='textInput' className='form-control'/>
         </div>
         <div className='form-group'>
-          <label htmlFor='waldo'>Monads</label>
-          <SelectMultiple id name='waldo' className='form-control'>
+          <label htmlFor='selectMultiple'>Monads</label>
+          <SelectMultiple id name='selectMultiple' className='form-control'>
             <option value="io">IO</option>
             <option value="list">List</option>
             <option value="maybe">Maybe</option>

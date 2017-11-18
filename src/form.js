@@ -1,28 +1,6 @@
 import { Component, createElement } from 'react'
-import { func } from 'prop-types'
+import { object, func } from 'prop-types'
 import { noop } from './util'
-
-function modelField(form, name, value) {
-  return {
-    state: {
-      get value() {
-        return form.state.values[name] === void 0
-          ? value
-          : form.state.values[name]
-      },
-      get isTouched() {
-        return form.state.touched[name] || false
-      }
-    },
-    setValue(value) {
-      form.setValue(name, value)
-    },
-    setTouched() {
-      !form.state.touched[name] &&
-      form.setTouched(name)
-    }
-  }
-}
 
 export default class Form extends Component {
   constructor(...args) {
@@ -32,39 +10,32 @@ export default class Form extends Component {
       touched: {}
     }
     this.fields = {}
+    this.update = this.update.bind(this)
     this.onReset = this.onReset.bind(this)
     this.onSubmit = this.onSubmit.bind(this)
-    this.setValue = this.setValue.bind(this)
-    this.setTouched = this.setTouched.bind(this)
     this.registerField = this.registerField.bind(this)
   }
   getChildContext() {
     const { registerField } = this
     return { registerField }
   }
-  setValue(name, value) {
-    this.setState(({ values }) => ({
-      values: {
-        ...values,
-        [name]: value
-      }
-    }))
-  }
-  setTouched(name) {
-    this.setState(({ touched }) => ({
-      touched: {
-        ...touched,
-        [name]: true
-      }
-    }))
-  }
   registerField({ name, value }) {
-    const { state, fields, setValue } = this
-    fields[name] = modelField(this, name, value)
-    if (state.values[name] === void 0) {
-      setValue(name, fields[name].state.value)
-    }
+    const { fields } = this
+    fields[name] = this.constructor.modelField(this, name, value)
+    this.update(name, { ...fields[name].state })
     return fields[name]
+  }
+  update(name, state) {
+    this.setState(({ values, touched }) => {
+      const nextState = { values, touched }
+      switch (true) {
+        case 'value' in state:
+          nextState.values = { ...values, [name]: state.value }
+        case 'isTouched' in state:
+          nextState.touched = { ...touched, [name]: !!state.isTouched }
+      }
+      return nextState
+    })
   }
   onSubmit(event) {
     event.preventDefault()
@@ -72,10 +43,37 @@ export default class Form extends Component {
   }
   onReset(event) {
     event.preventDefault()
+    const { values } = this.props
     this.setState({
-      touched: {},
-      values: this.props.values
+      values: values,
+      touched: Object.keys(values).reduce((touched, name) => ({
+        ...touched,
+        [name]: false
+      }), {})
     })
+  }
+  static modelField(form, name, value) {
+    return {
+      state: {
+        get init() {
+          return value
+        },
+        get value() {
+          return name in form.state.values
+            ? form.state.values[name]
+            : value
+        },
+        get isTouched() {
+          return !!form.state.touched[name]
+        },
+        get isDirty() {
+          return this.value !== this.init
+        }
+      },
+      update(state) {
+        form.update(name, state)
+      }
+    }
   }
   render() {
     const { props, onReset, onSubmit } = this
@@ -85,6 +83,11 @@ export default class Form extends Component {
 
 Form.childContextTypes = {
   registerField: func
+}
+
+Form.propTypes = {
+  values: object,
+  onSubmit: func
 }
 
 Form.defaultProps = {

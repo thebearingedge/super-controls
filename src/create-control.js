@@ -1,14 +1,14 @@
 import { createElement, Component } from 'react'
 import { func, string } from 'prop-types'
-import { pipe, noop, shallowEqual } from './util'
+import { shallowEqual } from './util'
 
 export default function createControl(component) {
 
   return function configureControl({
-    targetKey = 'value',
     propTypes,
     displayName,
-    defaultProps
+    defaultProps,
+    valueKey = 'value'
   } = {}) {
 
     component.displayName = displayName ||
@@ -20,67 +20,55 @@ export default function createControl(component) {
         super(...args)
         this.field = this.context.registerField({
           name: this.props.name,
-          value: this.props[targetKey]
+          value: this.props[valueKey]
         })
         this.state = { ...this.field.state }
-        this.onBlur = pipe(this.onBlur.bind(this), this.props.onBlur)
-        this.onChange = pipe(this.onChange.bind(this), this.props.onChange)
+        this.onBlur = this.onBlur.bind(this)
+        this.onChange = this.onChange.bind(this)
       }
-      onChange(event) {
-        const value = event.target[targetKey]
-        this.setState({ value })
-        this.field.setValue(value)
-        return event
+      onChange({ target }) {
+        this.field.update({ value: target[valueKey] })
       }
-      onBlur(event) {
-        setTimeout(() => this.field.setTouched())
-        return event
+      onBlur() {
+        this.field.state.isTouched ||
+        this.field.update({ isTouched: true })
       }
       componentDidUpdate() {
-        !shallowEqual(this.state, this.field.state) &&
         this.setState(this.field.state)
       }
       shouldComponentUpdate(nextProps, nextState) {
-        const { props, state, field } = this
-        return !shallowEqual(state, field.state) ||
-               !shallowEqual(props, nextProps) ||
-               !shallowEqual(state, nextState)
+        return !shallowEqual(this.field.state, nextState) ||
+               !shallowEqual(this.props, nextProps)
       }
       render() {
+        const { id: _id, name, ...ownProps } = this.props
         const { field, onBlur, onChange } = this
-        const { value } = field.state
-        const { name, ...ownProps } = this.props
-        const id = this.props.id === true
-          ? name
-          : this.props.id
+        const id = _id === true ? name : _id
         const props = {
           ...ownProps,
-          id,
-          name,
           field,
-          onBlur,
-          onChange,
-          [targetKey]: value
+          control: {
+            id,
+            name,
+            onBlur,
+            onChange,
+            [valueKey]: field.state.value
+          }
         }
         return createElement(component, props)
       }
     }
 
     Control.propTypes = {
-      name: string.isRequired,
-      ...propTypes
+      ...propTypes,
+      name: string.isRequired
     }
 
     Control.contextTypes = {
       registerField: func.isRequired
     }
 
-    Control.defaultProps = {
-      ...component.defaultProps,
-      ...defaultProps,
-      onChange: noop,
-      onBlur: noop
-    }
+    Control.defaultProps = defaultProps
 
     return Control
   }
