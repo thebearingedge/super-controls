@@ -40,8 +40,8 @@ RadioGroup.propTypes = {
   value: string
 }
 
-RadioGroup.defaultProps = {
-  value: ''
-}
-
-export default createControl(RadioGroup)()
+export default createControl(RadioGroup)({
+  defaultProps: {
+    value: ''
+  }
+})

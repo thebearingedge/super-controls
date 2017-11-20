@@ -1,6 +1,6 @@
 import { Component, createElement } from 'react'
 import { object, func } from 'prop-types'
-import { noop } from '../util'
+import { noop, expand } from '../util'
 
 export default class Form extends Component {
   constructor(...args) {
@@ -39,7 +39,7 @@ export default class Form extends Component {
   }
   onSubmit(event) {
     event.preventDefault()
-    this.props.onSubmit(this.state.values)
+    this.props.onSubmit(expand(this.state.values))
   }
   onReset(event) {
     event.preventDefault()

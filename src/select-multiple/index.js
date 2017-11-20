@@ -32,9 +32,8 @@ SelectMultiple.propTypes = {
   value: array
 }
 
-SelectMultiple.defaultProps = {
-  value: [],
-  multiple: true
-}
-
-export default createControl(SelectMultiple)()
+export default createControl(SelectMultiple)({
+  defaultProps: {
+    value: []
+  }
+})
