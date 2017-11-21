@@ -6,7 +6,7 @@ export const shallowEqual = (a, b) => {
          aKeys.every(key => a[key] === b[key])
 }
 
-const set = (target, [ key, ...path ], value) => {
+export const set = (target, [ key, ...path ], value) => {
   if (!path.length) return { ...target, [key]: value }
   target[key] = target[key] || {}
   return {
@@ -22,3 +22,17 @@ export const expand = target =>
   Object
     .keys(target)
     .reduce((expanded, key) => set(expanded, key.split('.'), target[key]), {})
+
+export const isObject = value =>
+  Object.prototype.toString.call(value) === '[object Object]'
+
+export const collapse = (target, path = '') => {
+  return Object
+    .keys(target)
+    .reduce((collapsed, key) => {
+      const keyPath = `${path}${path && '.'}${key}`
+      return isObject(target[key])
+        ? { ...collapsed, ...collapse(target[key], keyPath) }
+        : { ...collapsed, [keyPath]: target[key] }
+    }, {})
+}

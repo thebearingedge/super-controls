@@ -1,14 +1,18 @@
 import { Component, createElement } from 'react'
 import { object, func } from 'prop-types'
-import { noop, expand } from '../util'
+import { noop, expand, collapse } from '../util'
 
 export default class Form extends Component {
   constructor(...args) {
     super(...args)
-    this.state = {
-      values: this.props.values,
-      touched: {}
-    }
+    const values = collapse(this.props.values)
+    const touched = Object
+      .keys(values)
+      .reduce((touched, key) => ({
+        ...touched,
+        [key]: false
+      }), {})
+    this.state = { values, touched }
     this.fields = {}
     this.update = this.update.bind(this)
     this.onReset = this.onReset.bind(this)
@@ -20,10 +24,9 @@ export default class Form extends Component {
     return { registerField }
   }
   registerField({ name, value }) {
-    const { fields } = this
-    fields[name] = this.constructor.modelField(this, name, value)
-    this.update(name, { ...fields[name].state })
-    return fields[name]
+    let field = this.fields[name] = this.constructor.modelField(this, name, value)
+    this.update(name, { ...field.state })
+    return field
   }
   update(name, state) {
     this.setState(({ values, touched }) => {
@@ -43,13 +46,16 @@ export default class Form extends Component {
   }
   onReset(event) {
     event.preventDefault()
-    const { values } = this.props
-    this.setState({
-      values: values,
-      touched: Object.keys(values).reduce((touched, name) => ({
+    const values = collapse(this.props.values)
+    const touched = Object
+      .keys(values)
+      .reduce((touched, key) => ({
         ...touched,
-        [name]: false
+        [key]: false
       }), {})
+    this.setState({
+      values,
+      touched
     })
   }
   static modelField(form, name, value) {
@@ -92,6 +98,5 @@ Form.propTypes = {
 
 Form.defaultProps = {
   values: {},
-  children: [],
   onSubmit: noop
 }

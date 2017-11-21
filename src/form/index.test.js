@@ -3,16 +3,21 @@ import { describe, it } from 'mocha'
 import { mount, expect, spy, stub } from '../__test__'
 import createControl from '../create-control'
 import Form from '.'
+import FieldSet from '../field-set'
 
 describe('Form', () => {
 
   it('calls a submit handler', () => {
     const handleSubmit = spy()
     const wrapper = mount(
-      <Form values={{ test: 'foo' }} onSubmit={handleSubmit}/>
+      <Form values={{ test: { test: 'foo' } }} onSubmit={handleSubmit}/>
     )
     wrapper.find('form').simulate('submit')
-    expect(handleSubmit).to.have.been.calledWith({ test: 'foo' })
+    expect(handleSubmit).to.have.been.calledWith({
+      test: {
+        test: 'foo'
+      }
+    })
   })
 
   it('registers a reset handler', () => {
@@ -50,14 +55,6 @@ describe('Form', () => {
     )()
     class TestForm extends Form {
       componentDidUpdate() {
-        expect(this.fields.test)
-          .to.have.property('state')
-          .that.deep.equals({
-            init: 'foo',
-            value: 'foo',
-            isDirty: false,
-            isTouched: false
-          })
         expect(this.state).to.deep.equal({
           values: { test: 'foo' },
           touched: { test: false }
@@ -72,4 +69,26 @@ describe('Form', () => {
     )
   })
 
+  it('hydrates from a values prop', done => {
+    const Input = createControl(({ field, control }) =>
+      <input {...control}/>
+    )()
+    class TestForm extends Form {
+      componentDidUpdate() {
+        expect(this.state)
+          .to.deep.equal({
+            values: { 'test.test': 'foo' },
+            touched: { 'test.test': false }
+          })
+        done()
+      }
+    }
+    mount(
+      <TestForm values={{ test: { test: 'foo' } }}>
+        <FieldSet name='test'>
+          <Input name='test'/>
+        </FieldSet>
+      </TestForm>
+    )
+  })
 })
