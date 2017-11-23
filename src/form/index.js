@@ -8,10 +8,7 @@ export default class Form extends Component {
     const values = collapse(this.props.values)
     const touched = Object
       .keys(values)
-      .reduce((touched, key) => ({
-        ...touched,
-        [key]: false
-      }), {})
+      .reduce((touched, key) => ({ ...touched, [key]: false }), {})
     this.state = { values, touched }
     this.fields = {}
     this.update = this.update.bind(this)

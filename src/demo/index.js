@@ -6,6 +6,7 @@ import Radio from '../radio'
 import RadioGroup from '../radio-group'
 import SelectMultiple from '../select-multiple'
 import FieldSet from '../field-set'
+import FieldArray from '../field-array'
 
 const handleSubmit = values =>
   console.log(JSON.stringify(values, null, 2))
@@ -19,7 +20,12 @@ const values = {
         'io',
         'maybe'
       ]
-    }
+    },
+    fieldArray: [
+      { name: 'clive' },
+      { name: 'nutmeg' },
+      { name: 'briscoe' }
+    ]
   }
 }
 
@@ -29,7 +35,7 @@ render(
       <div className='col-md-6 offset-md-3'>
         <div className='form-group'>
           <RadioGroup name='radioButtons'>
-            <legend><small>Radio Group Lives Again</small></legend>
+            <label>Radio Group Lives Again</label>
             <div className='form-check'>
               <label className='form-check-label'>
                 <Radio value='foo' className='form-check-input' />
@@ -66,6 +72,25 @@ render(
               </SelectMultiple>
             </FieldSet>
           </div>
+          <FieldArray name='fieldArray'>
+            { pets =>
+              <div className='form-group'>
+                <label>List Your Pets</label>
+                { pets.map((pet, i) =>
+                  <FieldSet name={i} key={i}>
+                    <div className='form-group'>
+                      <Text
+                        id={`pets.${i}`}
+                        name='name'
+                        value={pet.name}
+                        className='form-control'
+                        placeholder='Name'/>
+                    </div>
+                  </FieldSet>
+                )}
+              </div>
+            }
+          </FieldArray>
         </FieldSet>
         <button type='submit' className='btn btn-primary'>Submit</button>
         <button type='reset' className='btn btn-outline-secondary'>Reset</button>
