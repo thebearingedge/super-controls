@@ -41,21 +41,24 @@ export default function createControl(component) {
                !shallowEqual(this.props, nextProps)
       }
       render() {
-        const { id: _id, name, ...ownProps } = this.props
+        const { id, name, ...props } = this.props
         const { field, onBlur, onChange } = this
-        const id = _id === true ? name : _id
-        const props = {
-          ...ownProps,
-          field,
-          control: {
-            id,
-            name,
-            onBlur,
-            onChange,
-            [valueKey]: field.state.value
-          }
+        const control = {
+          name,
+          onBlur,
+          onChange,
+          [valueKey]: field.state.value
         }
-        return createElement(component, props)
+        if (id !== void 0) {
+          control.id = id === true
+            ? name
+            : id
+        }
+        return createElement(component, {
+          ...props,
+          field,
+          control
+        })
       }
     }
 

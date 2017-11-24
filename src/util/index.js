@@ -36,3 +36,13 @@ export const collapse = (target, path = '') => {
         : { ...collapsed, [keyPath]: target[key] }
     }, {})
 }
+
+export const createKey = () => Math.random().toString(36).substr(2, 10)
+
+export const omit = (source, keys) =>
+  Object.keys(source)
+    .filter(key => !keys.includes(key))
+    .reduce((omitted, key) => ({
+      ...omitted,
+      [key]: source[key]
+    }), {})

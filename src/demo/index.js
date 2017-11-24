@@ -32,7 +32,7 @@ const values = {
 render(
   <Form onSubmit={handleSubmit} values={values} className='container'>
     <div className='row'>
-      <div className='col-md-6 offset-md-3'>
+      <div className='col-md-8 offset-md-2'>
         <div className='form-group'>
           <RadioGroup name='radioButtons'>
             <label>Radio Group Lives Again</label>
@@ -76,23 +76,54 @@ render(
             { pets =>
               <div className='form-group'>
                 <label>List Your Pets</label>
-                { pets.map((pet, i) =>
-                  <FieldSet name={i} key={i}>
+                <div className='form-group'>
+                  { !!pets.length &&
+                    <button
+                      type='button'
+                      className='btn btn-secondary'
+                      onClick={() => pets.shift()}>
+                      Shift
+                    </button>
+                  }
+                  { ' ' }
+                  <button
+                    type='button'
+                    className='btn btn-success'
+                    onClick={() => pets.unshift({ name: '' })}>
+                    Unshift
+                  </button>
+                </div>
+                { pets.map((pet, index, key) =>
+                  <FieldSet name={index} key={key}>
                     <div className='form-group'>
                       <Text
-                        id={`pets.${i}`}
                         name='name'
-                        value={pet.name}
                         className='form-control'
                         placeholder='Name'/>
                     </div>
                   </FieldSet>
                 )}
+                { !!pets.length &&
+                  <button
+                    type='button'
+                    className='btn btn-secondary'
+                    onClick={() => pets.pop()}>
+                    Pop
+                  </button>
+                }
+                { ' ' }
+                <button
+                  type='button'
+                  className='btn btn-success'
+                  onClick={() => pets.push({ name: '' })}>
+                  Push
+                </button>
               </div>
             }
           </FieldArray>
         </FieldSet>
         <button type='submit' className='btn btn-primary'>Submit</button>
+        { ' ' }
         <button type='reset' className='btn btn-outline-secondary'>Reset</button>
       </div>
     </div>

@@ -56,15 +56,18 @@ export default class Form extends Component {
     })
   }
   static modelField(form, name, value) {
+    const init = name in form.state.values
+      ? form.state.values[name]
+      : value
     return {
       state: {
         get init() {
-          return value
+          return init
         },
         get value() {
           return name in form.state.values
             ? form.state.values[name]
-            : value
+            : this.init
         },
         get isTouched() {
           return !!form.state.touched[name]

@@ -1,6 +1,6 @@
 import React from 'react'
 import { describe, beforeEach, it } from 'mocha'
-import { mount, expect, stub, mockField } from '../__test__'
+import { mount, expect, stub, spy, mockField } from '../__test__'
 import createControl from '../create-control'
 import FieldArray from '.'
 import FieldSet from '../field-set'
@@ -54,6 +54,123 @@ describe('FieldArray', () => {
     })
   })
 
+  it('models a field for each value in its own field', () => {
+    registerField
+      .returns(mockField([
+        { type: 'cat', name: 'clive' },
+        { type: 'rat', name: 'nutmeg' }
+      ]))
+    const fieldArray = mount(
+      <FieldArray name='test'/>,
+      { context }
+    )
+    const { fieldSets: [ first, second ] } = fieldArray.instance()
+    expect(first.type)
+      .to.have.property('state')
+      .that.deep.equals({
+        isTouched: false, isDirty: false, value: 'cat', init: 'cat'
+      })
+    expect(first.name)
+      .to.have.property('state')
+      .that.deep.equals({
+        isTouched: false, isDirty: false, value: 'clive', init: 'clive'
+      })
+    expect(second.type)
+      .to.have.property('state')
+      .that.deep.equals({
+        isTouched: false, isDirty: false, value: 'rat', init: 'rat'
+      })
+    expect(second.name)
+      .to.have.property('state')
+      .that.deep.equals({
+        isTouched: false, isDirty: false, value: 'nutmeg', init: 'nutmeg'
+      })
+  })
+
+  it('pushes a fieldSet model into its fieldSets', () => {
+    const field = mockField([
+      { type: 'cat', name: 'clive' },
+      { type: 'rat', name: 'nutmeg' }
+    ])
+    registerField.returns(field)
+    const fieldArray = mount(
+      <FieldArray name='test'/>,
+      { context }
+    )
+    const update = spy(field, 'update')
+    const { array, fieldSets } = fieldArray.instance()
+    array.push({ type: 'dog', name: 'briscoe' })
+    expect(fieldSets).to.have.lengthOf(3)
+    expect(update).to.have.been.calledWith({
+      value: [
+        { type: 'cat', name: 'clive' },
+        { type: 'rat', name: 'nutmeg' },
+        { type: 'dog', name: 'briscoe' }
+      ]
+    })
+  })
+
+  it('pops a fieldSet model from its fieldSets', () => {
+    const field = mockField([
+      { type: 'cat', name: 'clive' },
+      { type: 'rat', name: 'nutmeg' }
+    ])
+    registerField.returns(field)
+    const fieldArray = mount(
+      <FieldArray name='test'/>,
+      { context }
+    )
+    const update = spy(field, 'update')
+    const { array, fieldSets } = fieldArray.instance()
+    array.pop()
+    expect(fieldSets).to.have.lengthOf(1)
+    expect(update).to.have.been.calledWith({
+      value: [{ type: 'cat', name: 'clive' }]
+    })
+  })
+
+  it('unshifts a fieldSet model into its fieldSets', () => {
+    const field = mockField([
+      { type: 'cat', name: 'clive' },
+      { type: 'rat', name: 'nutmeg' }
+    ])
+    registerField.returns(field)
+    const fieldArray = mount(
+      <FieldArray name='test'/>,
+      { context }
+    )
+    const update = spy(field, 'update')
+    const { array, fieldSets } = fieldArray.instance()
+    array.unshift({ type: 'dog', name: 'briscoe' })
+    expect(fieldSets).to.have.lengthOf(3)
+    expect(update).to.have.been.calledWith({
+      value: [
+        { type: 'dog', name: 'briscoe' },
+        { type: 'cat', name: 'clive' },
+        { type: 'rat', name: 'nutmeg' }
+      ]
+    })
+  })
+
+  it('shifts a fieldSet model from its fieldSets', () => {
+    const field = mockField([
+      { type: 'cat', name: 'clive' },
+      { type: 'rat', name: 'nutmeg' }
+    ])
+    registerField.returns(field)
+    const fieldArray = mount(
+      <FieldArray name='test'/>,
+      { context }
+    )
+    const update = spy(field, 'update')
+    const { array, fieldSets } = fieldArray.instance()
+    array.shift()
+    expect(fieldSets).to.have.lengthOf(1)
+    expect(update).to.have.been.calledWith({
+      value: [{ type: 'rat', name: 'nutmeg' }]
+    })
+  })
+
   it('renders an array of FieldSets', () => {
     registerField
       .returns(mockField([
@@ -63,9 +180,7 @@ describe('FieldArray', () => {
     const wrapper = mount(
       <FieldArray name='test'>
         { pets =>
-          pets.map((_, index) =>
-            <FieldSet name={index} key={index}></FieldSet>
-          )
+          pets.map((pet, index, key) => <FieldSet name={index} key={key}/>)
         }
       </FieldArray>,
       { context }
