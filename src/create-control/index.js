@@ -8,7 +8,8 @@ export default function createControl(component) {
     propTypes,
     displayName,
     defaultProps,
-    valueKey = 'value'
+    valueKey = 'value',
+    injectField = false
   } = {}) {
 
     component.displayName = displayName ||
@@ -49,14 +50,13 @@ export default function createControl(component) {
           onChange,
           [valueKey]: field.state.value
         }
-        if (id !== void 0) {
-          control.id = id === true ? name : id
-        }
-        return createElement(component, {
+        if (id !== void 0) control.id = id === true ? name : id
+        const componentProps = {
           ...props,
-          field,
           control
-        })
+        }
+        if (injectField) componentProps.field = field
+        return createElement(component, componentProps)
       }
     }
 

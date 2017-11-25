@@ -41,6 +41,7 @@ RadioGroup.propTypes = {
 }
 
 export default createControl(RadioGroup)({
+  injectField: true,
   defaultProps: {
     value: ''
   }

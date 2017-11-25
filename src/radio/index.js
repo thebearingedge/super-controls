@@ -1,11 +1,10 @@
 import { createElement } from 'react'
 import { func, string } from 'prop-types'
 
-export default function Radio(props, context) {
+export default function Radio({ value, ...props }, context) {
   const { group, onBlur, onChange } = context
-  const { value, ...ownProps } = props
   return createElement('input', {
-    ...ownProps,
+    ...props,
     value,
     onBlur,
     onChange,

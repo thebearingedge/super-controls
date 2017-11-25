@@ -13,15 +13,14 @@ class SelectMultiple extends Component {
     this.props.control.onChange({ target: { value } })
   }
   render() {
-    const { field, control, ...ownProps } = this.props
+    const { control, ...props } = this.props
     const { onChange } = this
-    const props = {
-      ...ownProps,
+    return createElement('select', {
+      ...props,
       ...control,
       onChange,
       multiple: true
-    }
-    return createElement('select', props)
+    })
   }
 }
 
