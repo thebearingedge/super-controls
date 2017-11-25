@@ -9,7 +9,7 @@ export default class FieldArray extends Component {
       name: this.props.name,
       value: this.props.value
     })
-    this.state = { ...this.field.state }
+    this.state = { ...this.field }
     this.update = this.update.bind(this)
     this.modelFieldSet = this.modelFieldSet.bind(this)
     this.registerField = this.registerField.bind(this)
@@ -21,41 +21,46 @@ export default class FieldArray extends Component {
     const name = path.replace(/\d+\./, '')
     return this.fieldSets[index][name]
   }
-  modelField(fieldArray, index, name, value) {
-    return {
-      state: {
-        get init() {
-          return value
-        },
-        get value() {
-          return fieldArray.field.state.value[index][name]
-        },
-        get isDirty() {
-          return this.value !== this.init
-        },
-        get isTouched() {
-          return fieldArray.field.state.isTouched
-        }
+  modelField(index, name, value) {
+    const self = this
+    const field = {
+      get init() {
+        return value
       },
-      update(state) {
-        fieldArray.update(index, name, state)
+      get value() {
+        return self.field.value[index][name]
       },
-      setIndex(_index) {
-        index = _index
+      get isDirty() {
+        return this.value !== this.init
+      },
+      get isTouched() {
+        return self.field.isTouched
       }
     }
+    return Object.defineProperties(field, {
+      update: {
+        enumerable: false,
+        value: state => self.update(index, name, state)
+      },
+      setIndex: {
+        enumerable: false,
+        value(_index) {
+          index = _index
+        }
+      }
+    })
   }
   componentWillUpdate() {
     const { field, fieldSets, modelFieldSet } = this
-    if (field.state.value.length !== fieldSets.length) {
-      this.fieldSets = field.state.value.map(modelFieldSet)
+    if (field.value.length !== fieldSets.length) {
+      this.fieldSets = field.value.map(modelFieldSet)
     }
   }
   componentDidUpdate() {
-    this.setState(this.field.state)
+    this.setState({ ...this.field })
   }
   shouldComponentUpdate(nextProps, nextState) {
-    return !equalState(this.field.state, nextState) ||
+    return !equalState(this.field, nextState) ||
            !equalProps(this.props, nextProps)
   }
   getChildContext() {
@@ -63,17 +68,21 @@ export default class FieldArray extends Component {
     return { registerField }
   }
   modelFieldSet(values, index) {
-    const model = mapObject(values, (key, value) =>
-      this.modelField(this, index, key, value)
+    const fieldSet = mapObject(values, (key, value) =>
+      this.modelField(index, key, value)
     )
-    return Object.defineProperties(model, {
-      __FIELD_SET_KEY__: {
-        enumarable: false,
+    return Object.defineProperties(fieldSet, {
+      init: {
+        enumerable: false,
+        value: values
+      },
+      key: {
+        enumerable: false,
         value: createKey()
       },
       setIndex: {
-        enumarable: false,
-        value: function (index) {
+        enumerable: false,
+        value(index) {
           Object.keys(this).forEach(key => this[key].setIndex(index))
         }
       }
@@ -83,11 +92,11 @@ export default class FieldArray extends Component {
     const self = this
     return {
       get length() {
-        return self.field.state.value.length
+        return self.field.value.length
       },
       map(transform) {
-        return self.field.state.value.map((values, i) =>
-          transform(values, i, self.fieldSets[i].__FIELD_SET_KEY__)
+        return self.field.value.map((values, i) =>
+          transform(values, i, self.fieldSets[i].key)
         )
       },
       pop() {
@@ -106,7 +115,7 @@ export default class FieldArray extends Component {
         self.fieldSets.slice(index).forEach((fieldSet, i) =>
           fieldSet.setIndex(i + index + 1)
         )
-        const value = [...self.field.state.value]
+        const value = [...self.field.value]
         self.fieldSets.splice(index, 0, self.modelFieldSet(values, index))
         value.splice(index, 0, values)
         self.field.update({ value })
@@ -115,7 +124,7 @@ export default class FieldArray extends Component {
         self.fieldSets.slice(index + 1).forEach((fieldSet, i) =>
           fieldSet.setIndex(i + index)
         )
-        const value = [...self.field.state.value]
+        const value = [...self.field.value]
         self.fieldSets.splice(index, 1)
         value.splice(index, 1)
         self.field.update({ value })
@@ -123,7 +132,7 @@ export default class FieldArray extends Component {
     }
   }
   update(index, name, state) {
-    const { value, isTouched } = this.field.state
+    const { value, isTouched } = this.field
     const updates = { value, isTouched }
     if ('value' in state) {
       updates.value = [

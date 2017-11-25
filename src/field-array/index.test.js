@@ -64,27 +64,19 @@ describe('FieldArray', () => {
       <FieldArray name='test'/>,
       { context }
     )
-    const { fieldSets: [ first, second ] } = fieldArray.instance()
-    expect(first.type)
-      .to.have.property('state')
-      .that.deep.equals({
-        isTouched: false, isDirty: false, value: 'cat', init: 'cat'
-      })
-    expect(first.name)
-      .to.have.property('state')
-      .that.deep.equals({
-        isTouched: false, isDirty: false, value: 'clive', init: 'clive'
-      })
-    expect(second.type)
-      .to.have.property('state')
-      .that.deep.equals({
-        isTouched: false, isDirty: false, value: 'rat', init: 'rat'
-      })
-    expect(second.name)
-      .to.have.property('state')
-      .that.deep.equals({
-        isTouched: false, isDirty: false, value: 'nutmeg', init: 'nutmeg'
-      })
+    const { fieldSets: [ clive, nutmeg ] } = fieldArray.instance()
+    expect(clive.type).to.deep.equal({
+      isTouched: false, isDirty: false, value: 'cat', init: 'cat'
+    })
+    expect(clive.name).to.deep.equal({
+      isTouched: false, isDirty: false, value: 'clive', init: 'clive'
+    })
+    expect(nutmeg.type).to.deep.equal({
+      isTouched: false, isDirty: false, value: 'rat', init: 'rat'
+    })
+    expect(nutmeg.name).to.deep.equal({
+      isTouched: false, isDirty: false, value: 'nutmeg', init: 'nutmeg'
+    })
   })
 
   it('pushes a fieldSet model into its fieldSets', () => {

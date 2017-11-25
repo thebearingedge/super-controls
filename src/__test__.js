@@ -26,15 +26,17 @@ export const { mount } = enzyme
 export const { stub, spy } = sinon
 export const mockField = value => {
   let isTouched
-  return {
-    state: {
-      get value() {
-        return value
-      },
-      get isTouched() {
-        return !!isTouched
-      }
+  const field = {
+    get value() {
+      return value
     },
-    update() {}
+    get isTouched() {
+      return !!isTouched
+    }
   }
+  return Object.defineProperty(field, 'update', {
+    configurable: true,
+    enumerable: false,
+    value() {}
+  })
 }

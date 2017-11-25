@@ -18,8 +18,8 @@ export default class Form extends Component {
     return { registerField }
   }
   registerField({ name, value }) {
-    const field = this.constructor.modelField(this, name, value)
-    this.update(name, { ...field.state })
+    const field = this.modelField(name, value)
+    this.update(name, { ...field })
     return field
   }
   update(name, state) {
@@ -44,31 +44,31 @@ export default class Form extends Component {
     const touched = mapObject(values, _ => false)
     this.setState({ values, touched })
   }
-  static modelField(form, name, value) {
-    const init = name in form.state.values
-      ? form.state.values[name]
+  modelField(name, value) {
+    const self = this
+    const init = name in self.state.values
+      ? self.state.values[name]
       : value
-    return {
-      state: {
-        get init() {
-          return init
-        },
-        get value() {
-          return name in form.state.values
-            ? form.state.values[name]
-            : this.init
-        },
-        get isTouched() {
-          return !!form.state.touched[name]
-        },
-        get isDirty() {
-          return this.value !== this.init
-        }
+    const field = {
+      get init() {
+        return init
       },
-      update(state) {
-        form.update(name, state)
+      get value() {
+        return name in self.state.values
+          ? self.state.values[name]
+          : this.init
+      },
+      get isTouched() {
+        return !!self.state.touched[name]
+      },
+      get isDirty() {
+        return this.value !== this.init
       }
     }
+    return Object.defineProperty(field, 'update', {
+      enumerable: false,
+      value: state => self.update(name, state)
+    })
   }
   render() {
     const { props, onReset, onSubmit } = this

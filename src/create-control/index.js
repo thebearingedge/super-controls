@@ -23,7 +23,7 @@ export default function createControl(component) {
           name: this.props.name,
           value: this.props[valueKey]
         })
-        this.state = { ...this.field.state }
+        this.state = { ...this.field }
         this.onBlur = this.onBlur.bind(this)
         this.onChange = this.onChange.bind(this)
       }
@@ -31,14 +31,14 @@ export default function createControl(component) {
         this.field.update({ value: target[valueKey] })
       }
       onBlur() {
-        this.field.state.isTouched ||
+        this.field.isTouched ||
         this.field.update({ isTouched: true })
       }
       componentDidUpdate() {
-        this.setState(this.field.state)
+        this.setState({ ...this.field })
       }
       shouldComponentUpdate(nextProps, nextState) {
-        return !equalState(this.field.state, nextState) ||
+        return !equalState(this.field, nextState) ||
                !equalProps(this.props, nextProps)
       }
       render() {
@@ -48,7 +48,7 @@ export default function createControl(component) {
           name,
           onBlur,
           onChange,
-          [valueKey]: field.state.value
+          [valueKey]: field.value
         }
         if (id !== void 0) control.id = id === true ? name : id
         const componentProps = {

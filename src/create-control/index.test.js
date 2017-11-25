@@ -1,6 +1,6 @@
 import React from 'react'
 import { describe, beforeEach, it } from 'mocha'
-import { mount, expect, stub, spy } from '../__test__'
+import { mount, expect, stub, spy, mockField } from '../__test__'
 import createControl from '.'
 
 describe('createControl', () => {
@@ -27,21 +27,6 @@ describe('createControl', () => {
     context = { registerField() {} }
     registerField = stub(context, 'registerField')
   })
-
-  function mockField(value) {
-    let isTouched
-    return {
-      state: {
-        get value() {
-          return value
-        },
-        get isTouched() {
-          return !!isTouched
-        }
-      },
-      update() {}
-    }
-  }
 
   it('renders a component', () => {
     registerField.returns(mockField(''))
@@ -82,7 +67,7 @@ describe('createControl', () => {
 
   it('accepts a custom valueKey', () => {
     registerField.returns(mockField(true))
-    const Input = createControl(({ field, control, ...props }) =>
+    const Input = createControl(({ control, ...props }) =>
       <input {...props} {...control}/>
     )({
       valueKey: 'checked'
@@ -98,7 +83,7 @@ describe('createControl', () => {
     const field = mockField('')
     spy(field, 'update')
     registerField.returns(field)
-    const Input = createControl(({ field, control }) =>
+    const Input = createControl(({ control }) =>
       <input {...control}/>
     )()
     const wrapper = mount(
@@ -115,7 +100,7 @@ describe('createControl', () => {
     const field = mockField('')
     spy(field, 'update')
     registerField.returns(field)
-    const Input = createControl(({ field, control }) =>
+    const Input = createControl(({ control }) =>
       <input {...control}/>
     )()
     const wrapper = mount(
@@ -128,7 +113,7 @@ describe('createControl', () => {
 
   it('syncs its local state with its field state', done => {
     registerField.returns(mockField('foo'))
-    const Input = createControl(({ field, control }) =>
+    const Input = createControl(({ control }) =>
       <input {...control}/>
     )()
     stub(Input.prototype, 'componentDidUpdate')

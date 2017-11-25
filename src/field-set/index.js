@@ -17,7 +17,7 @@ export default class FieldSet extends Component {
   }
   componentDidUpdate() {
     this.fieldState = mapObject(this.fields, key => ({
-      ...this.fields[key].state
+      ...this.fields[key]
     }))
   }
   shouldComponentUpdate(nextProps) {
@@ -25,7 +25,7 @@ export default class FieldSet extends Component {
     return !equalProps(props, nextProps) ||
            Object
              .keys(fields)
-             .some(key => !equalState(fields[key].state, fieldState[key]))
+             .some(key => !equalState(fields[key], fieldState[key]))
   }
   registerField({ name, value }) {
     const field = this.context.registerField({
@@ -33,7 +33,7 @@ export default class FieldSet extends Component {
       value
     })
     this.fields[name] = field
-    this.fieldState[name] = { ...field.state }
+    this.fieldState[name] = { ...field }
     return field
   }
   render() {
