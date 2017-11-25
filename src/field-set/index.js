@@ -1,5 +1,5 @@
 import { Component, createElement } from 'react'
-import { func, string } from 'prop-types'
+import { func, string, number, oneOfType } from 'prop-types'
 import { equalExcept, equalState } from '../util'
 
 const equalProps = equalExcept('name', 'children')
@@ -45,7 +45,7 @@ export default class FieldSet extends Component {
 }
 
 FieldSet.propTypes = {
-  name: string.isRequired
+  name: oneOfType([string, number]).isRequired
 }
 
 FieldSet.contextTypes = {

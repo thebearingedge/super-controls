@@ -82,7 +82,7 @@ export default class FieldArray extends Component {
       },
       map(transform) {
         return self.field.state.value.map((values, i) =>
-          transform(values, String(i), self.fieldSets[i].__FIELD_SET_KEY__)
+          transform(values, i, self.fieldSets[i].__FIELD_SET_KEY__)
         )
       },
       pop() {
