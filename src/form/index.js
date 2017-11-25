@@ -1,14 +1,12 @@
 import { Component, createElement } from 'react'
 import { object, func } from 'prop-types'
-import { noop, expand, collapse } from '../util'
+import { noop, expand, collapse, mapObject } from '../util'
 
 export default class Form extends Component {
   constructor(...args) {
     super(...args)
     const values = collapse(this.props.values)
-    const touched = Object
-      .keys(values)
-      .reduce((touched, key) => ({ ...touched, [key]: false }), {})
+    const touched = mapObject(values, _ => false)
     this.state = { values, touched }
     this.update = this.update.bind(this)
     this.onReset = this.onReset.bind(this)
@@ -43,13 +41,8 @@ export default class Form extends Component {
   onReset(event) {
     event.preventDefault()
     const values = collapse(this.props.values)
-    const touched = Object
-      .keys(values)
-      .reduce((touched, key) => ({ ...touched, [key]: false }), {})
-    this.setState({
-      values,
-      touched
-    })
+    const touched = mapObject(values, _ => false)
+    this.setState({ values, touched })
   }
   static modelField(form, name, value) {
     const init = name in form.state.values

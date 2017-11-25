@@ -1,6 +1,6 @@
 import { Component, createElement } from 'react'
 import { func, string, number, oneOfType } from 'prop-types'
-import { equalExcept, equalState } from '../util'
+import { equalExcept, equalState, mapObject } from '../util'
 
 const equalProps = equalExcept('name', 'children')
 
@@ -16,12 +16,9 @@ export default class FieldSet extends Component {
     return { registerField }
   }
   componentDidUpdate() {
-    this.fieldState = Object
-      .keys(this.fields)
-      .reduce((fieldState, name) => ({
-        ...fieldState,
-        [name]: { ...this.fields[name].state }
-      }), {})
+    this.fieldState = mapObject(this.fields, key => ({
+      ...this.fields[key].state
+    }))
   }
   shouldComponentUpdate(nextProps) {
     const { props, fields, fieldState } = this

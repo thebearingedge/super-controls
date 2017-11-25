@@ -42,3 +42,11 @@ export const collapse = (target, path = '') => {
 }
 
 export const createKey = () => Math.random().toString(36).substr(2, 10)
+
+export const mapObject = (source, transform) =>
+  Object
+    .keys(source)
+    .reduce((mapped, key) => ({
+      ...mapped,
+      [key]: transform(key, source[key])
+    }), {})

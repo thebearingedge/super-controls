@@ -1,6 +1,6 @@
 import { Component } from 'react'
 import { func, array, string } from 'prop-types'
-import { equalProps, equalState, createKey } from '../util'
+import { equalProps, equalState, createKey, mapObject } from '../util'
 
 export default class FieldArray extends Component {
   constructor(...args) {
@@ -63,15 +63,20 @@ export default class FieldArray extends Component {
     return { registerField }
   }
   modelFieldSet(values, index) {
-    const model = Object
-      .keys(values)
-      .reduce((modeled, key) => ({
-        ...modeled,
-        [key]: this.modelField(this, index, key, values[key])
-      }), {})
-    return Object.defineProperty(model, '__FIELD_SET_KEY__', {
-      enumarable: false,
-      value: createKey()
+    const model = mapObject(values, (key, value) =>
+      this.modelField(this, index, key, value)
+    )
+    return Object.defineProperties(model, {
+      __FIELD_SET_KEY__: {
+        enumarable: false,
+        value: createKey()
+      },
+      setIndex: {
+        enumarable: false,
+        value: function (index) {
+          Object.keys(this).forEach(key => this[key].setIndex(index))
+        }
+      }
     })
   }
   modelArray() {
@@ -98,10 +103,8 @@ export default class FieldArray extends Component {
         this.insert(0, values)
       },
       insert(index, values) {
-        self.fieldSets.slice(index).forEach((modeled, i) =>
-          Object.keys(modeled).forEach(key =>
-            modeled[key].setIndex(i + index + 1)
-          )
+        self.fieldSets.slice(index).forEach((fieldSet, i) =>
+          fieldSet.setIndex(i + index + 1)
         )
         const value = [...self.field.state.value]
         self.fieldSets.splice(index, 0, self.modelFieldSet(values, index))
@@ -109,10 +112,8 @@ export default class FieldArray extends Component {
         self.field.update({ value })
       },
       remove(index) {
-        self.fieldSets.slice(index + 1).forEach((modeled, i) =>
-          Object.keys(modeled).forEach(key =>
-            modeled[key].setIndex(i + index)
-          )
+        self.fieldSets.slice(index + 1).forEach((fieldSet, i) =>
+          fieldSet.setIndex(i + index)
         )
         const value = [...self.field.state.value]
         self.fieldSets.splice(index, 1)
