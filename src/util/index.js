@@ -3,10 +3,7 @@ export const equalExcept = (...keys) => (a, b) => {
   const aKeys = Object.keys(a)
   const bKeys = Object.keys(b)
   return aKeys.length === bKeys.length &&
-         aKeys.every(key =>
-           (keys.length && !keys.includes[key]) ||
-           a[key] === b[key]
-         )
+         aKeys.every(key => keys.includes(key) || a[key] === b[key])
 }
 
 export const equalState = equalExcept()
