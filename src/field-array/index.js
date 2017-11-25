@@ -1,6 +1,6 @@
 import { Component } from 'react'
 import { func, array, string } from 'prop-types'
-import { shallowEqual, createKey, omit } from '../util'
+import { equalProps, equalState, createKey } from '../util'
 
 export default class FieldArray extends Component {
   constructor(...args) {
@@ -46,19 +46,17 @@ export default class FieldArray extends Component {
     }
   }
   componentWillUpdate() {
-    if (this.field.state.value.length !== this.fieldSets.length) {
-      this.fieldSets = this.field.state.value.map(this.modelFieldSet)
+    const { field, fieldSets, modelFieldSet } = this
+    if (field.state.value.length !== fieldSets.length) {
+      this.fieldSets = field.state.value.map(modelFieldSet)
     }
   }
   componentDidUpdate() {
     this.setState(this.field.state)
   }
   shouldComponentUpdate(nextProps, nextState) {
-    return !shallowEqual(this.field.state, nextState) ||
-           !shallowEqual(
-             omit(this.props, ['children']),
-             omit(nextProps, ['children'])
-           )
+    return !equalState(this.field.state, nextState) ||
+           !equalProps(this.props, nextProps)
   }
   getChildContext() {
     const { registerField } = this
@@ -126,15 +124,15 @@ export default class FieldArray extends Component {
   update(index, name, state) {
     const { value, isTouched } = this.field.state
     const updates = { value, isTouched }
-    switch (true) {
-      case 'value' in state:
-        updates.value = [
-          ...value.slice(0, index),
-          { ...value[index], [name]: state.value },
-          ...value.slice(index + 1)
-        ]
-      case 'isTouched' in state:
-        updates.isTouched = isTouched || !!state.isTouched
+    if ('value' in state) {
+      updates.value = [
+        ...value.slice(0, index),
+        { ...value[index], [name]: state.value },
+        ...value.slice(index + 1)
+      ]
+    }
+    if ('isTouched' in state) {
+      updates.isTouched = isTouched || !!state.isTouched
     }
     this.field.update(updates)
   }

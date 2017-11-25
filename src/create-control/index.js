@@ -1,6 +1,6 @@
 import { createElement, Component } from 'react'
 import { func, string } from 'prop-types'
-import { shallowEqual } from '../util'
+import { equalState, equalProps } from '../util'
 
 export default function createControl(component) {
 
@@ -37,8 +37,8 @@ export default function createControl(component) {
         this.setState(this.field.state)
       }
       shouldComponentUpdate(nextProps, nextState) {
-        return !shallowEqual(this.field.state, nextState) ||
-               !shallowEqual(this.props, nextProps)
+        return !equalState(this.field.state, nextState) ||
+               !equalProps(this.props, nextProps)
       }
       render() {
         const { id, name, ...props } = this.props
@@ -50,9 +50,7 @@ export default function createControl(component) {
           [valueKey]: field.state.value
         }
         if (id !== void 0) {
-          control.id = id === true
-            ? name
-            : id
+          control.id = id === true ? name : id
         }
         return createElement(component, {
           ...props,

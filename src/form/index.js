@@ -10,7 +10,6 @@ export default class Form extends Component {
       .keys(values)
       .reduce((touched, key) => ({ ...touched, [key]: false }), {})
     this.state = { values, touched }
-    this.fields = {}
     this.update = this.update.bind(this)
     this.onReset = this.onReset.bind(this)
     this.onSubmit = this.onSubmit.bind(this)
@@ -21,18 +20,18 @@ export default class Form extends Component {
     return { registerField }
   }
   registerField({ name, value }) {
-    let field = this.fields[name] = this.constructor.modelField(this, name, value)
+    const field = this.constructor.modelField(this, name, value)
     this.update(name, { ...field.state })
     return field
   }
   update(name, state) {
     this.setState(({ values, touched }) => {
       const nextState = { values, touched }
-      switch (true) {
-        case 'value' in state:
-          nextState.values = { ...values, [name]: state.value }
-        case 'isTouched' in state:
-          nextState.touched = { ...touched, [name]: !!state.isTouched }
+      if ('value' in state) {
+        nextState.values = { ...values, [name]: state.value }
+      }
+      if ('isTouched' in state) {
+        nextState.touched = { ...touched, [name]: !!state.isTouched }
       }
       return nextState
     })
@@ -46,10 +45,7 @@ export default class Form extends Component {
     const values = collapse(this.props.values)
     const touched = Object
       .keys(values)
-      .reduce((touched, key) => ({
-        ...touched,
-        [key]: false
-      }), {})
+      .reduce((touched, key) => ({ ...touched, [key]: false }), {})
     this.setState({
       values,
       touched

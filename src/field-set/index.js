@@ -1,6 +1,8 @@
 import { Component, createElement } from 'react'
 import { func, string } from 'prop-types'
-import { omit, shallowEqual } from '../util'
+import { equalExcept, equalState } from '../util'
+
+const equalProps = equalExcept('name', 'children')
 
 export default class FieldSet extends Component {
   constructor(...args) {
@@ -22,13 +24,11 @@ export default class FieldSet extends Component {
       }), {})
   }
   shouldComponentUpdate(nextProps) {
-    const _props = omit(this.props, ['name', 'children'])
-    const _nextProps = omit(nextProps, ['name', 'children'])
-    if (!shallowEqual(_props, _nextProps)) return true
-    const { fields, fieldState } = this
-    return Object
-      .keys(fields)
-      .some(key => !shallowEqual(fields[key].state, fieldState[key]))
+    const { props, fields, fieldState } = this
+    return !equalProps(props, nextProps) ||
+           Object
+             .keys(fields)
+             .some(key => !equalState(fields[key].state, fieldState[key]))
   }
   registerField({ name, value }) {
     const field = this.context.registerField({

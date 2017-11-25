@@ -1,10 +1,17 @@
-export const shallowEqual = (a, b) => {
+export const equalExcept = (...keys) => (a, b) => {
   if (a === b) return true
   const aKeys = Object.keys(a)
   const bKeys = Object.keys(b)
   return aKeys.length === bKeys.length &&
-         aKeys.every(key => a[key] === b[key])
+         aKeys.every(key =>
+           (keys.length && !keys.includes[key]) ||
+           a[key] === b[key]
+         )
 }
+
+export const equalState = equalExcept()
+
+export const equalProps = equalExcept('children')
 
 export const set = (target, [ key, ...path ], value) => {
   if (!path.length) return { ...target, [key]: value }
@@ -38,11 +45,3 @@ export const collapse = (target, path = '') => {
 }
 
 export const createKey = () => Math.random().toString(36).substr(2, 10)
-
-export const omit = (source, keys) =>
-  Object.keys(source)
-    .filter(key => !keys.includes(key))
-    .reduce((omitted, key) => ({
-      ...omitted,
-      [key]: source[key]
-    }), {})
