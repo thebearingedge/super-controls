@@ -50,11 +50,11 @@ describe('_Form', () => {
     class TestForm extends Form {
       componentDidUpdate() {
         expect(this.state.values)
-          .to.deep.equal({ foo: '', bar: 'bar', baz: '' })
+          .to.deep.equal({ foo: '', bar: 'bar' })
         done()
       }
     }
-    const wrapper = mount(<TestForm values={{ foo: '', bar: '', baz: '' }}/>)
+    const wrapper = mount(<TestForm values={{ foo: '', bar: '' }}/>)
     const { bar } = wrapper.instance().fields
     bar.update({ value: 'bar' })
   })
@@ -374,6 +374,66 @@ describe('_Form', () => {
     const wrapper = mount(<TestForm/>)
     const form = wrapper.instance()
     form.registerField({ path: 'foo.0.bar', value: 'bar' })
+  })
+
+  it('returns a field array wrapper', () => {
+    const values = { foo: [{ bar: '' }, { bar: '' }] }
+    const wrapper = mount(<Form values={values}/>)
+    const form = wrapper.instance()
+    const field = form.registerField({ path: 'foo', value: [] })
+    expect(field).to.deep.equal({
+      init: [{ bar: '' }, { bar: '' }],
+      value: [{ bar: '' }, { bar: '' }],
+      isTouched: false,
+      isDirty: false,
+      isPristine: true
+    })
+  })
+
+  it('creates array fields and returns a wrapper', () => {
+    const wrapper = mount(<Form/>)
+    const form = wrapper.instance()
+    const field = form.registerField({
+      path: 'foo',
+      value: [{ bar: '' }, { bar: '' }]
+    })
+    expect(field).to.deep.equal({
+      init: [{ bar: '' }, { bar: '' }],
+      value: [{ bar: '' }, { bar: '' }],
+      isTouched: false,
+      isDirty: false,
+      isPristine: true
+    })
+    expect(form.state).to.deep.equal({
+      values: {
+        foo: [{ bar: '' }, { bar: '' }]
+      },
+      touched: {
+        foo: [{ bar: false }, { bar: false }]
+      }
+    })
+    expect(form.fields).to.deep.equal({
+      foo: [
+        {
+          bar: {
+            init: '',
+            value: '',
+            isTouched: false,
+            isDirty: false,
+            isPristine: true
+          }
+        },
+        {
+          bar: {
+            init: '',
+            value: '',
+            isTouched: false,
+            isDirty: false,
+            isPristine: true
+          }
+        }
+      ]
+    })
   })
 
 })

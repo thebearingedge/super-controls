@@ -29,9 +29,7 @@ export function get(target, keyPath, fallback) {
   const [ key, index, ...path ] = keyPath.split('.')
   if (!target[key]) return fallback
   if (isInteger(index)) {
-    return target[key][index]
-      ? get(target[key][index], path.join('.'), fallback)
-      : fallback
+    return get(target[key][index], path.join('.'), fallback)
   }
   if (index === void 0) return target[key]
   return get(target[key], [index, ...path].join('.'), fallback)
