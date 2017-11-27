@@ -26,20 +26,13 @@ describe('_Form', () => {
   })
 
   it('gives state properties to fields', () => {
-    const wrapper = mount(<Form values={{ foo: '', bar: '' }}/>)
+    const wrapper = mount(<Form values={{ foo: ['bar', 'baz'] }}/>)
     expect(wrapper.instance())
       .to.have.property('fields')
       .that.deep.equals({
         foo: {
-          init: '',
-          value: '',
-          isTouched: false,
-          isDirty: false,
-          isPristine: true
-        },
-        bar: {
-          init: '',
-          value: '',
+          init: ['bar', 'baz'],
+          value: ['bar', 'baz'],
           isTouched: false,
           isDirty: false,
           isPristine: true
@@ -431,17 +424,16 @@ describe('_Form', () => {
   })
 
   it('returns a field array wrapper', () => {
-    const values = { foo: [{ bar: '' }, { bar: '' }] }
-    const wrapper = mount(<Form values={values}/>)
+    const wrapper = mount(<Form/>)
     const form = wrapper.instance()
     const field = form.registerFieldArray({
       paths: toPaths('foo'),
       value: []
     })
     expect(field).to.deep.equal({
-      length: 2,
-      init: [{ bar: '' }, { bar: '' }],
-      value: [{ bar: '' }, { bar: '' }],
+      length: 0,
+      init: [],
+      value: [],
       isTouched: false,
       isDirty: false,
       isPristine: true,

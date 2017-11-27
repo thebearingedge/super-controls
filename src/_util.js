@@ -39,7 +39,7 @@ export function get(target, keyPath, fallback) {
 
 export function mapLeaves(target, transform, path = '') {
   if (Array.isArray(target)) {
-    if (!isObject(target[0])) return target.slice()
+    if (!isObject(target[0])) return transform(target, path)
     return target.map((child, i) => {
       const keyPath = `${path}${path && '.'}${i}`
       return mapLeaves(child, transform, keyPath)
