@@ -89,3 +89,7 @@ export function shallowEqual(a, b) {
   return aKeys.length === bKeys.length &&
          aKeys.every(key => aKeys[key] === bKeys[key])
 }
+
+export function id(x) {
+  return x
+}
