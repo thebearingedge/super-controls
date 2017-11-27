@@ -1,11 +1,4 @@
-import modelField from './model-field'
-import {
-  shallowEqual,
-  someLeaves,
-  mapLeaves,
-  toPaths,
-  fromPaths
-} from './_util'
+import { shallowEqual, someLeaves, mapLeaves, fromPaths } from './_util'
 
 export default function modelFieldArray(form, paths) {
   const fieldArray = {
@@ -46,17 +39,10 @@ export default function modelFieldArray(form, paths) {
     },
     insert: {
       value(index, values) {
-        const { form, path, fields, value: valueState } = this
-        const fieldSet = mapLeaves(values, (value, keyPath) => {
-          const fullPath = `${path}.${index}.${keyPath}`
-          form.setInit(fullPath, value)
-          return modelField(form, toPaths(fullPath))
+        const { form, path, value: valueState } = this
+        mapLeaves(values, (value, keyPath) => {
+          form.setInit(`${path}.${index}.${keyPath}`, value)
         })
-        const fieldSets = [
-          ...fields.slice(0, index),
-          fieldSet,
-          ...fields.slice(index)
-        ]
         const value = [
           ...valueState.slice(0, index),
           values,
@@ -68,18 +54,13 @@ export default function modelFieldArray(form, paths) {
           mapLeaves(values, _ => false),
           ...touched.slice(index)
         ]
-        form.setField(path, fieldSets)
         form.update(path, { value, isTouched })
         this.mutations++
       }
     },
     remove: {
       value(index) {
-        const { form, path, fields, value: valueState } = this
-        const fieldSets = [
-          ...fields.slice(0, index),
-          ...fields.slice(index + 1)
-        ]
+        const { form, path, value: valueState } = this
         const value = [
           ...valueState.slice(0, index),
           ...valueState.slice(index + 1)
@@ -89,7 +70,6 @@ export default function modelFieldArray(form, paths) {
           ...touched.slice(0, index),
           ...touched.slice(index + 1)
         ]
-        form.setField(path, fieldSets)
         form.update(path, { value, isTouched })
         this.mutations++
       }

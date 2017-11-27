@@ -1,6 +1,6 @@
 import React from 'react'
 import { describe, it } from 'mocha'
-import { mount, expect, stub } from './__test__'
+import { mount, expect } from './__test__'
 import Form from './_form'
 import { toPaths } from './_util'
 
@@ -488,66 +488,38 @@ describe('_Form', () => {
     })
   })
 
-  it('"pushes" a new field into an array', done => {
-    class TestForm extends Form {
-      componentDidUpdate() {
-        expect(this.fields.foo[1]).to.deep.equal({
-          bar: {
-            init: 'baz',
-            value: 'baz',
-            isTouched: false,
-            isDirty: false,
-            isPristine: true
-          }
-        })
-        expect(this.state).to.deep.equal({
-          values: {
-            foo: [
-              { bar: '' },
-              { bar: 'baz' }
-            ]
-          },
-          touched: {
-            foo: [
-              { bar: false },
-              { bar: false }
-            ]
-          }
-        })
-        done()
-      }
-    }
+  it('"pushes" a new field into an array', () => {
     const values = { foo: [{ bar: '' }] }
-    const wrapper = mount(<TestForm values={values}/>)
+    const wrapper = mount(<Form values={values}/>)
     const form = wrapper.instance()
     const bars = form.registerFieldArray({ paths: toPaths('foo'), value: [] })
     bars.push({ bar: 'baz' })
+    expect(form.state).to.deep.equal({
+      values: {
+        foo: [
+          { bar: '' },
+          { bar: 'baz' }
+        ]
+      },
+      touched: {
+        foo: [
+          { bar: false },
+          { bar: false }
+        ]
+      }
+    })
   })
 
-  it('"pops" a field from an array', done => {
-    class TestForm extends Form {
-      componentDidUpdate() {}
-    }
-    const values = { foo: [{ bar: '' }, { bar: '' }] }
-    const wrapper = mount(<TestForm values={values}/>)
+  it('"pops" a field from an array', () => {
+    const values = { foo: [{ bar: 'baz' }, { bar: '' }] }
+    const wrapper = mount(<Form values={values}/>)
     const form = wrapper.instance()
-    stub(form, 'componentDidUpdate')
-      .callsFake(() => {
-        expect(form.fields.foo).to.deep.equal([
-          {
-            bar: {
-              init: '',
-              value: '',
-              isTouched: false,
-              isDirty: false,
-              isPristine: true
-            }
-          }
-        ])
-        done()
-      })
     const bars = form.registerFieldArray({ paths: toPaths('foo'), value: [] })
     bars.pop()
+    expect(form.state).to.deep.equal({
+      values: { foo: [{ bar: 'baz' }] },
+      touched: { foo: [{ bar: false }] }
+    })
   })
 
   it('"unshifts" a new field into an array', () => {
@@ -556,45 +528,22 @@ describe('_Form', () => {
     const form = wrapper.instance()
     const bars = form.registerFieldArray({ paths: toPaths('foo'), value: [] })
     bars.unshift({ bar: '' })
-    expect(form.fields.foo).to.deep.equal([
-      {
-        bar: {
-          init: '',
-          value: '',
-          isTouched: false,
-          isDirty: false,
-          isPristine: true
-        }
-      }
-    ])
     expect(form.state).to.deep.equal({
       values: { foo: [{ bar: '' }] },
       touched: { foo: [{ bar: false }] }
     })
   })
 
-  it('"shift"s a field from an array', done => {
-    class TestForm extends Form {
-      componentDidUpdate() {
-        expect(this.fields.foo).to.deep.equal([
-          {
-            bar: {
-              init: 'baz',
-              value: 'baz',
-              isTouched: false,
-              isDirty: false,
-              isPristine: true
-            }
-          }
-        ])
-        done()
-      }
-    }
+  it('"shift"s a field from an array', () => {
     const values = { foo: [{ bar: '' }, { bar: 'baz' }] }
-    const wrapper = mount(<TestForm values={values}/>)
+    const wrapper = mount(<Form values={values}/>)
     const form = wrapper.instance()
     const bars = form.registerFieldArray({ paths: toPaths('foo'), value: [] })
     bars.shift()
+    expect(form.state).to.deep.equal({
+      values: { foo: [{ bar: 'baz' }] },
+      touched: { foo: [{ bar: false }] }
+    })
   })
 
 })
