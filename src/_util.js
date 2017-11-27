@@ -44,18 +44,18 @@ export function get(target, keyPath, fallback) {
   return get(target[key], [index, ...path], fallback)
 }
 
-export function mapLeaves(target, transform, path = []) {
+export function mapProperties(target, transform, path = []) {
   if (isArray(target)) {
     if (!isObject(target[0])) return transform(target, path)
     return target.map((child, i) => {
-      return mapLeaves(child, transform, [...path, i])
+      return mapProperties(child, transform, [...path, i])
     })
   }
   return Object.keys(target)
     .reduce((mapped, key) => {
       const keyPath = [...path, key]
       return isObject(target[key]) || isArray(target[key])
-        ? { ...mapped, [key]: mapLeaves(target[key], transform, keyPath) }
+        ? { ...mapped, [key]: mapProperties(target[key], transform, keyPath) }
         : { ...mapped, [key]: transform(target[key], keyPath) }
     }, {})
 }

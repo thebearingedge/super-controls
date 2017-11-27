@@ -1,4 +1,4 @@
-import { shallowEqual, someLeaves, mapLeaves, fromThunks } from './_util'
+import { shallowEqual, someLeaves, mapProperties, fromThunks } from './_util'
 
 export default function modelFieldArray(form, thunks) {
   const fieldArray = {
@@ -40,7 +40,7 @@ export default function modelFieldArray(form, thunks) {
     insert: {
       value(index, values) {
         const { form, path, value: valueState } = this
-        mapLeaves(values, (value, keyPath) => {
+        mapProperties(values, (value, keyPath) => {
           form.setInit([...path, index, ...keyPath], value)
         })
         const value = [
@@ -51,7 +51,7 @@ export default function modelFieldArray(form, thunks) {
         const touched = form.getTouched(path) || []
         const isTouched = [
           ...touched.slice(0, index),
-          mapLeaves(values, _ => false),
+          mapProperties(values, _ => false),
           ...touched.slice(index)
         ]
         fieldArray.mutations++

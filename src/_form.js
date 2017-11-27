@@ -3,17 +3,17 @@ import { object } from 'prop-types'
 import modelField from './model-field'
 import modelFieldSet from './model-field-set'
 import modelFieldArray from './model-field-array'
-import { get, set, isUndefined, mapLeaves, fromThunks, toThunks } from './_util'
+import { get, set, isUndefined, mapProperties, fromThunks, toThunks } from './_util'
 
 export default class Form extends Component {
   constructor(...args) {
     super(...args)
-    this.init = mapLeaves(this.props.values, value => value)
+    this.init = mapProperties(this.props.values, value => value)
     this.state = {
-      values: mapLeaves(this.props.values, value => value),
-      touched: mapLeaves(this.init, value => false)
+      values: mapProperties(this.props.values, value => value),
+      touched: mapProperties(this.init, value => false)
     }
-    this.fields = mapLeaves(this.init, (_, path) =>
+    this.fields = mapProperties(this.init, (_, path) =>
       modelField(this, toThunks(path))
     )
   }
@@ -69,12 +69,12 @@ export default class Form extends Component {
     }
     const registered = get(this.fields, path)
     if (registered) return modelFieldSet(this, thunks)
-    this.setField(path, mapLeaves(value, (_, keyPath) =>
+    this.setField(path, mapProperties(value, (_, keyPath) =>
       modelField(this, toThunks([...path, ...keyPath]))
     ))
     this.update(path, {
       value,
-      isTouched: mapLeaves(value, _ => false)
+      isTouched: mapProperties(value, _ => false)
     })
     return modelFieldSet(this, thunks)
   }
@@ -86,13 +86,13 @@ export default class Form extends Component {
     const registered = get(this.fields, path, [])
     if (registered.length) return modelFieldArray(this, thunks)
     this.setField(path, value.map((values, i) =>
-      mapLeaves(values, (_, keyPath) =>
+      mapProperties(values, (_, keyPath) =>
         modelField(this, toThunks([...path, i, ...keyPath]))
       )
     ))
     this.update(path, {
       value,
-      isTouched: mapLeaves(value, _ => false)
+      isTouched: mapProperties(value, _ => false)
     })
     return modelFieldArray(this, thunks)
   }
