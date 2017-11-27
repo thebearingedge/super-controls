@@ -24,47 +24,6 @@ describe('_Form', () => {
       .that.deep.equals({ foo: false, bar: false })
   })
 
-  it('gives state properties to fields', () => {
-    const wrapper = mount(<Form values={{ foo: ['bar', 'baz'] }}/>)
-    expect(wrapper.instance())
-      .to.have.property('fields')
-      .that.deep.equals({
-        foo: {
-          init: ['bar', 'baz'],
-          value: ['bar', 'baz'],
-          isTouched: false,
-          isDirty: false,
-          isPristine: true
-        }
-      })
-  })
-
-  it('receives value updates from fields', done => {
-    class TestForm extends Form {
-      componentDidUpdate() {
-        expect(this.state.values)
-          .to.deep.equal({ foo: '', bar: 'bar' })
-        done()
-      }
-    }
-    const wrapper = mount(<TestForm values={{ foo: '', bar: '' }}/>)
-    const { bar } = wrapper.instance().fields
-    bar.update({ value: 'bar' })
-  })
-
-  it('receives touch updates from fields', done => {
-    class TestForm extends Form {
-      componentDidUpdate() {
-        expect(this.state.touched)
-          .to.deep.equal({ foo: false, bar: true })
-        done()
-      }
-    }
-    const wrapper = mount(<TestForm values={{ foo: '', bar: '' }}/>)
-    const { bar } = wrapper.instance().fields
-    bar.update({ isTouched: true })
-  })
-
   it('has a nested initial values state', () => {
     const values = {
       foo: {
@@ -99,81 +58,6 @@ describe('_Form', () => {
       })
   })
 
-  it('gives state properties to nested fields', () => {
-    const values = {
-      foo: {
-        bar: {
-          baz: ''
-        }
-      }
-    }
-    const wrapper = mount(<Form values={values}/>)
-    const form = wrapper.instance()
-    expect(form.fields).to.deep.equal({
-      foo: {
-        bar: {
-          baz: {
-            init: '',
-            value: '',
-            isTouched: false,
-            isDirty: false,
-            isPristine: true
-          }
-        }
-      }
-    })
-  })
-
-  it('receives value updates from nested fields', done => {
-    class TestForm extends Form {
-      componentDidUpdate() {
-        expect(this.state.values).to.deep.equal({
-          foo: {
-            bar: {
-              baz: 'baz'
-            }
-          }
-        })
-        done()
-      }
-    }
-    const values = {
-      foo: {
-        bar: {
-          baz: ''
-        }
-      }
-    }
-    const wrapper = mount(<TestForm values={values}/>)
-    const baz = wrapper.instance().fields.foo.bar.baz
-    baz.update({ value: 'baz' })
-  })
-
-  it('receives touch updates from nested fields', done => {
-    class TestForm extends Form {
-      componentDidUpdate() {
-        expect(this.state.touched).to.deep.equal({
-          foo: {
-            bar: {
-              baz: true
-            }
-          }
-        })
-        done()
-      }
-    }
-    const values = {
-      foo: {
-        bar: {
-          baz: ''
-        }
-      }
-    }
-    const wrapper = mount(<TestForm values={values}/>)
-    const baz = wrapper.instance().fields.foo.bar.baz
-    baz.update({ isTouched: true })
-  })
-
   it('has an initial values state containing arrays', () => {
     const values = {
       foo: [
@@ -205,344 +89,206 @@ describe('_Form', () => {
       })
   })
 
-  it('gives state properties to fields in arrays', () => {
-    const values = {
-      foo: [
-        { bar: '' },
-        { bar: '' }
-      ]
-    }
-    const wrapper = mount(<Form values={values}/>)
-    expect(wrapper.instance())
-      .to.have.property('fields')
-      .that.deep.equals({
-        foo: [
-          {
-            bar: {
-              init: '',
-              value: '',
-              isTouched: false,
-              isDirty: false,
-              isPristine: true
-            }
-          },
-          {
-            bar: {
-              init: '',
-              value: '',
-              isTouched: false,
-              isDirty: false,
-              isPristine: true
-            }
+  describe('registerField', () => {
+
+    it('retrieves fields by path', () => {
+      const values = {
+        foo: {
+          bar: {
+            baz: [{ qux: '' }]
           }
-        ]
+        }
+      }
+      const wrapper = mount(<Form values={values}/>)
+      const form = wrapper.instance()
+      const field = form.registerField({
+        paths: toThunks('foo.bar.baz.0.qux')
       })
-  })
+      expect(field).to.deep.equal({
+        init: '',
+        value: '',
+        isTouched: false,
+        isDirty: false,
+        isPristine: true
+      })
+    })
 
-  it('receives value updates from fields in arrays', done => {
-    const values = {
-      foo: [
-        { bar: '' },
-        { bar: '' }
-      ]
-    }
-    class TestForm extends Form {
-      componentDidUpdate() {
-        expect(this.state.values).to.deep.equal({
-          foo: [
-            { bar: '' },
-            { bar: 'bar' }
-          ]
-        })
-        done()
-      }
-    }
-    const wrapper = mount(<TestForm values={values}/>)
-    const [ , { bar } ] = wrapper.instance().fields.foo
-    bar.update({ value: 'bar' })
-  })
-
-  it('receives touch updates from fields in arrays', done => {
-    const values = {
-      foo: [
-        { bar: '' },
-        { bar: '' }
-      ]
-    }
-    class TestForm extends Form {
-      componentDidUpdate() {
-        expect(this.state.touched).to.deep.equal({
-          foo: [
-            { bar: false },
-            { bar: true }
-          ]
-        })
-        done()
-      }
-    }
-    const wrapper = mount(<TestForm values={values}/>)
-    const [ , { bar } ] = wrapper.instance().fields.foo
-    bar.update({ isTouched: true })
-  })
-
-  it('retrieves fields by path', () => {
-    const values = {
-      foo: {
-        bar: {
-          baz: [{ qux: '' }]
+    it('registers new fields', done => {
+      class TestForm extends Form {
+        componentDidUpdate() {
+          expect(this.state).to.deep.equal({
+            values: { foo: 'foo' },
+            touched: { foo: false }
+          })
+          done()
         }
       }
-    }
-    const wrapper = mount(<Form values={values}/>)
-    const form = wrapper.instance()
-    const field = form.registerField({
-      paths: toThunks('foo.bar.baz.0.qux')
+      const wrapper = mount(<TestForm/>)
+      const form = wrapper.instance()
+      form.registerField({ paths: toThunks('foo'), value: 'foo' })
     })
-    expect(field).to.deep.equal({
-      init: '',
-      value: '',
-      isTouched: false,
-      isDirty: false,
-      isPristine: true
+
+    it('registers new nested fields', done => {
+      class TestForm extends Form {
+        componentDidUpdate() {
+          expect(this.state).to.deep.equal({
+            values: { foo: { bar: 'bar' } },
+            touched: { foo: { bar: false } }
+          })
+          done()
+        }
+      }
+      const wrapper = mount(<TestForm/>)
+      const form = wrapper.instance()
+      form.registerField({ paths: toThunks('foo.bar'), value: 'bar' })
     })
-  })
 
-  it('registers new fields', done => {
-    class TestForm extends Form {
-      componentDidUpdate() {
-        expect(this.state).to.deep.equal({
-          values: { foo: 'foo' },
-          touched: { foo: false }
-        })
-        done()
+    it('registers new fields in arrays', done => {
+      class TestForm extends Form {
+        componentDidUpdate() {
+          expect(this.state).to.deep.equal({
+            values: { foo: [{ bar: 'bar' }] },
+            touched: { foo: [{ bar: false }] }
+          })
+          done()
+        }
       }
-    }
-    const wrapper = mount(<TestForm/>)
-    const form = wrapper.instance()
-    form.registerField({ paths: toThunks('foo'), value: 'foo' })
+      const wrapper = mount(<TestForm/>)
+      const form = wrapper.instance()
+      form.registerField({ paths: toThunks('foo.0.bar'), value: 'bar' })
+    })
+
   })
 
-  it('registers new nested fields', done => {
-    class TestForm extends Form {
-      componentDidUpdate() {
-        expect(this.state).to.deep.equal({
-          values: { foo: { bar: 'bar' } },
-          touched: { foo: { bar: false } }
-        })
-        expect(this.fields.foo.bar).to.deep.equal({
-          init: 'bar',
-          value: 'bar',
-          isTouched: false,
-          isDirty: false,
-          isPristine: true
-        })
-        done()
-      }
-    }
-    const wrapper = mount(<TestForm/>)
-    const form = wrapper.instance()
-    form.registerField({ paths: toThunks('foo.bar'), value: 'bar' })
+  describe('registerFieldSet', () => {
+
+    it('returns a field set wrapper', () => {
+      const wrapper = mount(<Form/>)
+      const form = wrapper.instance()
+      const field = form.registerFieldSet({
+        paths: toThunks('foo'),
+        value: { bar: '' }
+      })
+      expect(form.state).to.deep.equal({
+        values: { foo: { bar: '' } },
+        touched: { foo: { bar: false } }
+      })
+      expect(field).to.deep.equal({
+        fields: {},
+        init: { bar: '' },
+        value: { bar: '' },
+        isTouched: false,
+        isDirty: false,
+        isPristine: true
+      })
+    })
+
   })
 
-  it('registers new fields in arrays', done => {
-    class TestForm extends Form {
-      componentDidUpdate() {
-        expect(this.state).to.deep.equal({
-          values: { foo: [{ bar: 'bar' }] },
-          touched: { foo: [{ bar: false }] }
-        })
-        expect(this.fields.foo).to.deep.equal([
-          {
-            bar: {
-              init: 'bar',
-              value: 'bar',
-              isTouched: false,
-              isDirty: false,
-              isPristine: true
+  describe('registerFieldArray', () => {
+
+    it('returns a field array wrapper', () => {
+      const wrapper = mount(<Form/>)
+      const form = wrapper.instance()
+      const field = form.registerFieldArray({
+        paths: toThunks('foo'),
+        value: []
+      })
+      expect(form.state).to.deep.equal({
+        values: { foo: [] },
+        touched: { foo: [] }
+      })
+      expect(field).to.deep.equal({
+        fields: [],
+        length: 0,
+        init: [],
+        value: [],
+        isTouched: false,
+        isDirty: false,
+        isPristine: true
+      })
+    })
+
+    it('"pushes" a new field into an array', done => {
+      class TestForm extends Form {
+        componentDidUpdate() {
+          expect(this.state).to.deep.equal({
+            values: {
+              foo: [
+                { bar: '' },
+                { bar: 'baz' }
+              ]
+            },
+            touched: {
+              foo: [
+                { bar: false },
+                { bar: false }
+              ]
             }
-          }
-        ])
-        done()
-      }
-    }
-    const wrapper = mount(<TestForm/>)
-    const form = wrapper.instance()
-    form.registerField({ paths: toThunks('foo.0.bar'), value: 'bar' })
-  })
-
-  it('returns a field set wrapper', () => {
-    const values = { foo: { bar: '' } }
-    const wrapper = mount(<Form values={values}/>)
-    const form = wrapper.instance()
-    const field = form.registerFieldSet({ paths: toThunks('foo'), value: {} })
-    expect(field).to.deep.equal({
-      init: { bar: '' },
-      value: { bar: '' },
-      isTouched: false,
-      isDirty: false,
-      isPristine: true,
-      fields: form.fields.foo
-    })
-  })
-
-  it('creates nested fields and returns a field set wrapper', () => {
-    const wrapper = mount(<Form/>)
-    const form = wrapper.instance()
-    const field = form.registerFieldSet({
-      paths: toThunks('foo'),
-      value: { bar: '' }
-    })
-    expect(field).to.deep.equal({
-      init: { bar: '' },
-      value: { bar: '' },
-      isTouched: false,
-      isDirty: false,
-      isPristine: true,
-      fields: form.fields.foo
-    })
-    expect(form.state).to.deep.equal({
-      values: {
-        foo: { bar: '' }
-      },
-      touched: {
-        foo: { bar: false }
-      }
-    })
-    expect(form.fields).to.deep.equal({
-      foo: {
-        bar: {
-          init: '',
-          value: '',
-          isTouched: false,
-          isDirty: false,
-          isPristine: true
+          })
+          done()
         }
       }
+      const values = { foo: [{ bar: '' }] }
+      const wrapper = mount(<TestForm values={values}/>)
+      const form = wrapper.instance()
+      const bars = form.registerFieldArray({
+        paths: toThunks('foo'),
+        value: []
+      })
+      bars.push({ bar: 'baz' })
     })
-  })
 
-  it('returns a field array wrapper', () => {
-    const wrapper = mount(<Form/>)
-    const form = wrapper.instance()
-    const field = form.registerFieldArray({
-      paths: toThunks('foo'),
-      value: []
+    it('"pops" a field from an array', () => {
+      const values = { foo: [{ bar: 'baz' }, { bar: '' }] }
+      const wrapper = mount(<Form values={values}/>)
+      const form = wrapper.instance()
+      const bars = form.registerFieldArray({
+        paths: toThunks('foo'),
+        value: []
+      })
+      bars.pop()
+      expect(form.state).to.deep.equal({
+        values: { foo: [{ bar: 'baz' }] },
+        touched: { foo: [{ bar: false }] }
+      })
     })
-    expect(field).to.deep.equal({
-      length: 0,
-      init: [],
-      value: [],
-      isTouched: false,
-      isDirty: false,
-      isPristine: true,
-      fields: form.fields.foo
-    })
-  })
 
-  it('creates nested fields and returns a field array wrapper', () => {
-    const wrapper = mount(<Form/>)
-    const form = wrapper.instance()
-    const field = form.registerFieldArray({
-      paths: toThunks('foo'),
-      value: [{ bar: '' }, { bar: '' }]
-    })
-    expect(field).to.deep.equal({
-      length: 2,
-      init: [{ bar: '' }, { bar: '' }],
-      value: [{ bar: '' }, { bar: '' }],
-      isTouched: false,
-      isDirty: false,
-      isPristine: true,
-      fields: form.fields.foo
-    })
-    expect(form.state).to.deep.equal({
-      values: {
-        foo: [{ bar: '' }, { bar: '' }]
-      },
-      touched: {
-        foo: [{ bar: false }, { bar: false }]
-      }
-    })
-    expect(form.fields).to.deep.equal({
-      foo: [
-        {
-          bar: {
-            init: '',
-            value: '',
-            isTouched: false,
-            isDirty: false,
-            isPristine: true
-          }
-        },
-        {
-          bar: {
-            init: '',
-            value: '',
-            isTouched: false,
-            isDirty: false,
-            isPristine: true
-          }
+    it('"unshifts" a new field into an array', done => {
+      class TestForm extends Form {
+        componentDidUpdate() {
+          expect(form.state).to.deep.equal({
+            values: { foo: [{ bar: '' }, { bar: '' }] },
+            touched: { foo: [{ bar: false }, { bar: false }] }
+          })
+          done()
         }
-      ]
-    })
-  })
-
-  it('"pushes" a new field into an array', () => {
-    const values = { foo: [{ bar: '' }] }
-    const wrapper = mount(<Form values={values}/>)
-    const form = wrapper.instance()
-    const bars = form.registerFieldArray({ paths: toThunks('foo'), value: [] })
-    bars.push({ bar: 'baz' })
-    expect(form.state).to.deep.equal({
-      values: {
-        foo: [
-          { bar: '' },
-          { bar: 'baz' }
-        ]
-      },
-      touched: {
-        foo: [
-          { bar: false },
-          { bar: false }
-        ]
       }
+      const values = { foo: [{ bar: '' }] }
+      const wrapper = mount(<TestForm values={values}/>)
+      const form = wrapper.instance()
+      const bars = form.registerFieldArray({
+        paths: toThunks('foo'),
+        value: []
+      })
+      bars.unshift({ bar: '' })
     })
-  })
 
-  it('"pops" a field from an array', () => {
-    const values = { foo: [{ bar: 'baz' }, { bar: '' }] }
-    const wrapper = mount(<Form values={values}/>)
-    const form = wrapper.instance()
-    const bars = form.registerFieldArray({ paths: toThunks('foo'), value: [] })
-    bars.pop()
-    expect(form.state).to.deep.equal({
-      values: { foo: [{ bar: 'baz' }] },
-      touched: { foo: [{ bar: false }] }
+    it('"shift"s a field from an array', () => {
+      const values = { foo: [{ bar: '' }, { bar: 'baz' }] }
+      const wrapper = mount(<Form values={values}/>)
+      const form = wrapper.instance()
+      const bars = form.registerFieldArray({
+        paths: toThunks('foo'),
+        value: []
+      })
+      bars.shift()
+      expect(form.state).to.deep.equal({
+        values: { foo: [{ bar: 'baz' }] },
+        touched: { foo: [{ bar: false }] }
+      })
     })
-  })
 
-  it('"unshifts" a new field into an array', () => {
-    const values = { foo: [] }
-    const wrapper = mount(<Form values={values}/>)
-    const form = wrapper.instance()
-    const bars = form.registerFieldArray({ paths: toThunks('foo'), value: [] })
-    bars.unshift({ bar: '' })
-    expect(form.state).to.deep.equal({
-      values: { foo: [{ bar: '' }] },
-      touched: { foo: [{ bar: false }] }
-    })
-  })
-
-  it('"shift"s a field from an array', () => {
-    const values = { foo: [{ bar: '' }, { bar: 'baz' }] }
-    const wrapper = mount(<Form values={values}/>)
-    const form = wrapper.instance()
-    const bars = form.registerFieldArray({ paths: toThunks('foo'), value: [] })
-    bars.shift()
-    expect(form.state).to.deep.equal({
-      values: { foo: [{ bar: 'baz' }] },
-      touched: { foo: [{ bar: false }] }
-    })
   })
 
 })

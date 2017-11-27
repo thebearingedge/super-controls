@@ -21,7 +21,7 @@ export default function modelFieldArray(form, thunks) {
       return !this.isDirty
     },
     get length() {
-      return this.fields.length
+      return this.value.length
     }
   }
   return Object.defineProperties(fieldArray, {
@@ -48,7 +48,7 @@ export default function modelFieldArray(form, thunks) {
           values,
           ...valueState.slice(index)
         ]
-        const touched = form.getTouched(path) || []
+        const touched = form.getTouched(path)
         const isTouched = [
           ...touched.slice(0, index),
           mapProperties(values, _ => false),

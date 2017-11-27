@@ -29,6 +29,7 @@ export function set(target, keyPath, value) {
     }
   }
   if (isUndefined(index)) return { ...target, [key]: value }
+  target[key] = target[key] || isInteger(key) ? [] : {}
   return { ...target, [key]: set(target[key], [index, ...path], value) }
 }
 
@@ -76,10 +77,6 @@ export function someLeaves(target, predicate) {
 
 export function fromThunks(thunks) {
   return thunks.map(thunk => thunk())
-}
-
-export function toThunks(path) {
-  return path.map(name => () => name)
 }
 
 export function shallowEqual(a, b) {

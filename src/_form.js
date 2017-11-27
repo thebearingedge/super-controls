@@ -7,23 +7,25 @@ import {
   id,
   get,
   set,
-  isUndefined,
-  mapProperties,
+  isArray,
   fromThunks,
-  toThunks
+  isUndefined,
+  mapProperties
 } from './_util'
 
 export default class Form extends Component {
   constructor(...args) {
     super(...args)
+    this.fields = {}
     this.init = mapProperties(this.props.values, id)
     this.state = {
       values: mapProperties(this.props.values, id),
-      touched: mapProperties(this.init, _ => false)
+      touched: mapProperties(this.init, value =>
+        isArray(value) && isUndefined(value[0])
+          ? value
+          : false
+      )
     }
-    this.fields = mapProperties(this.init, (_, path) =>
-      modelField(this, toThunks(path))
-    )
   }
   update(path, state) {
     this.setState(({ values, touched }) => {
@@ -62,46 +64,34 @@ export default class Form extends Component {
     const path = fromThunks(thunks)
     if (!this.hasInit(path)) {
       this.init = set(this.init, path, value)
+      this.update(path, { value, isTouched: false })
     }
-    const registered = get(this.fields, path)
-    if (registered) return registered
     const field = modelField(this, thunks)
     this.setField(path, field)
-    this.update(path, { value, isTouched: false })
     return field
   }
   registerFieldSet({ paths: thunks, value }) {
     const path = fromThunks(thunks)
     if (!this.hasInit(path)) {
       this.init = set(this.init, path, value)
+      this.update(path, {
+        value,
+        isTouched: mapProperties(value, _ => false)
+      })
     }
-    const registered = get(this.fields, path)
-    if (registered) return modelFieldSet(this, thunks)
-    this.setField(path, mapProperties(value, (_, keyPath) =>
-      modelField(this, toThunks([...path, ...keyPath]))
-    ))
-    this.update(path, {
-      value,
-      isTouched: mapProperties(value, _ => false)
-    })
     return modelFieldSet(this, thunks)
   }
   registerFieldArray({ paths: thunks, value }) {
     const path = fromThunks(thunks)
     if (!this.hasInit(path)) {
       this.init = set(this.init, path, value)
-    }
-    const registered = get(this.fields, path, [])
-    if (registered.length) return modelFieldArray(this, thunks)
-    this.setField(path, value.map((values, i) =>
-      mapProperties(values, (_, keyPath) =>
-        modelField(this, toThunks([...path, i, ...keyPath]))
+      const isTouched = mapProperties(value, val =>
+        isArray(val) && isUndefined(val[0])
+          ? val
+          : false
       )
-    ))
-    this.update(path, {
-      value,
-      isTouched: mapProperties(value, _ => false)
-    })
+      this.update(path, { value, isTouched })
+    }
     return modelFieldArray(this, thunks)
   }
   render() {
