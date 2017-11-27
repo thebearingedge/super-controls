@@ -1,21 +1,23 @@
-import { shallowEqual, someLeaves, mapProperties, fromThunks } from './_util'
+import { someLeaves, fromThunks, createKey } from './_util'
 
-export default function modelFieldArray(form, thunks) {
+export default function modelFieldArray(form, paths) {
+
+  const init = form.getValue(fromThunks(paths))
+
   const fieldArray = {
     get fields() {
       return form.getField(this.path, [])
-    },
-    get init() {
-      return form.getInit(this.path)
     },
     get value() {
       return form.getValue(this.path, this.init)
     },
     get isTouched() {
-      return someLeaves(this.fields, ({ isTouched }) => isTouched)
+      return this.value.length !== this.init.length ||
+             someLeaves(this.fields, ({ isTouched }) => isTouched)
     },
     get isDirty() {
-      return !shallowEqual(this.value, this.init)
+      return this.value.length !== this.init.length ||
+             someLeaves(this.fields, ({ isDirty }) => isDirty)
     },
     get isPristine() {
       return !this.isDirty
@@ -30,8 +32,16 @@ export default function modelFieldArray(form, thunks) {
     },
     path: {
       get() {
-        return fromThunks(thunks)
+        return fromThunks(paths)
       }
+    },
+    init: {
+      enumerable: true,
+      value: init
+    },
+    keys: {
+      writable: true,
+      value: init.map(_ => createKey())
     },
     mutations: {
       writable: true,
@@ -39,38 +49,46 @@ export default function modelFieldArray(form, thunks) {
     },
     insert: {
       value(index, values) {
-        const { form, path, value: valueState } = this
-        mapProperties(values, (value, keyPath) => {
-          form.setInit([...path, index, ...keyPath], value)
-        })
-        const value = [
-          ...valueState.slice(0, index),
+        const { form, path, keys: oldKeys, value: oldValue } = this
+        const oldInit = form.getInit(path)
+        const oldTouched = form.getTouched(path, [])
+        const [ value, init ] = [oldValue, oldInit].map(collection => [
+          ...collection.slice(0, index),
           values,
-          ...valueState.slice(index)
-        ]
-        const touched = form.getTouched(path)
+          ...collection.slice(index)
+        ])
         const isTouched = [
-          ...touched.slice(0, index),
-          mapProperties(values, _ => false),
-          ...touched.slice(index)
+          ...oldTouched.slice(0, index),
+          {},
+          ...oldTouched.slice(index)
+        ]
+        this.keys = [
+          ...oldKeys.slice(0, index),
+          createKey(),
+          ...oldKeys.slice(index)
         ]
         fieldArray.mutations++
+        form.setInit(path, init)
         form.update(path, { value, isTouched })
       }
     },
     remove: {
       value(index) {
-        const { form, path, value: valueState } = this
-        const value = [
-          ...valueState.slice(0, index),
-          ...valueState.slice(index + 1)
-        ]
-        const touched = form.getTouched(path, [])
-        const isTouched = [
-          ...touched.slice(0, index),
-          ...touched.slice(index + 1)
-        ]
+        const { form, path, keys: oldKeys, value: oldValue } = this
+        const oldInit = form.getInit(path)
+        const oldTouched = form.getTouched(path)
+        const [ init, keys, value, isTouched ] = [
+          oldInit,
+          oldKeys,
+          oldValue,
+          oldTouched
+        ].map(collection => [
+          ...collection.slice(0, index),
+          ...collection.slice(index + 1)
+        ])
         fieldArray.mutations++
+        this.keys = keys
+        form.setInit(path, init)
         form.update(path, { value, isTouched })
       }
     },
@@ -92,6 +110,13 @@ export default function modelFieldArray(form, thunks) {
     shift: {
       value() {
         this.remove(0)
+      }
+    },
+    map: {
+      value(transform) {
+        return this.value.map((values, i) =>
+          transform(values, i, this.keys[i])
+        )
       }
     }
   })

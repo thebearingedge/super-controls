@@ -79,14 +79,10 @@ export function fromThunks(thunks) {
   return thunks.map(thunk => thunk())
 }
 
-export function shallowEqual(a, b) {
-  if (a === b) return true
-  const aKeys = Object.keys(a)
-  const bKeys = Object.keys(b)
-  return aKeys.length === bKeys.length &&
-         aKeys.every(key => aKeys[key] === bKeys[key])
-}
-
 export function id(x) {
   return x
+}
+
+export function createKey() {
+  return Math.random().toString(36).substr(2, 10)
 }

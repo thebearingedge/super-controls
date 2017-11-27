@@ -3,15 +3,7 @@ import { object } from 'prop-types'
 import modelField from './model-field'
 import modelFieldSet from './model-field-set'
 import modelFieldArray from './model-field-array'
-import {
-  id,
-  get,
-  set,
-  isArray,
-  fromThunks,
-  isUndefined,
-  mapProperties
-} from './_util'
+import { id, get, set, fromThunks, isUndefined, mapProperties } from './_util'
 
 export default class Form extends Component {
   constructor(...args) {
@@ -20,11 +12,7 @@ export default class Form extends Component {
     this.init = mapProperties(this.props.values, id)
     this.state = {
       values: mapProperties(this.props.values, id),
-      touched: mapProperties(this.init, value =>
-        isArray(value) && isUndefined(value[0])
-          ? value
-          : false
-      )
+      touched: {}
     }
   }
   update(path, state) {
@@ -39,14 +27,16 @@ export default class Form extends Component {
       return nextState
     })
   }
-  hasInit(path) {
-    return !isUndefined(this.getInit(path))
-  }
   setInit(path, value) {
     this.init = set(this.init, path, value)
   }
   getInit(path) {
     return get(this.init, path)
+  }
+  ensureInit(path, value) {
+    if (!isUndefined(this.getInit(path))) return
+    this.setInit(path, value)
+    this.update(path, { value })
   }
   setField(path, field) {
     this.fields = set(this.fields, path, field)
@@ -60,39 +50,25 @@ export default class Form extends Component {
   getValue(path, fallback) {
     return get(this.state.values, path, fallback)
   }
-  registerField({ paths: thunks, value }) {
-    const path = fromThunks(thunks)
-    if (!this.hasInit(path)) {
-      this.init = set(this.init, path, value)
-      this.update(path, { value, isTouched: false })
+  registerField({ paths, value }) {
+    const path = fromThunks(paths)
+    this.ensureInit(path, value)
+    if (isUndefined(this.getTouched(path))) {
+      this.update(path, { isTouched: false })
     }
-    const field = modelField(this, thunks)
+    const field = modelField(this, paths)
     this.setField(path, field)
     return field
   }
-  registerFieldSet({ paths: thunks, value }) {
-    const path = fromThunks(thunks)
-    if (!this.hasInit(path)) {
-      this.init = set(this.init, path, value)
-      this.update(path, {
-        value,
-        isTouched: mapProperties(value, _ => false)
-      })
-    }
-    return modelFieldSet(this, thunks)
+  registerFieldSet({ paths, value }) {
+    const path = fromThunks(paths)
+    this.ensureInit(path, value)
+    return modelFieldSet(this, paths)
   }
-  registerFieldArray({ paths: thunks, value }) {
-    const path = fromThunks(thunks)
-    if (!this.hasInit(path)) {
-      this.init = set(this.init, path, value)
-      const isTouched = mapProperties(value, val =>
-        isArray(val) && isUndefined(val[0])
-          ? val
-          : false
-      )
-      this.update(path, { value, isTouched })
-    }
-    return modelFieldArray(this, thunks)
+  registerFieldArray({ paths, value }) {
+    const path = fromThunks(paths)
+    this.ensureInit(path, value)
+    return modelFieldArray(this, paths)
   }
   render() {
     return createElement('form')

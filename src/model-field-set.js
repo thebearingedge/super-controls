@@ -1,6 +1,6 @@
-import { someLeaves, fromThunks, shallowEqual } from './_util'
+import { someLeaves, fromThunks } from './_util'
 
-export default function modelFieldSet(form, thunks) {
+export default function modelFieldSet(form, paths) {
   const fieldSet = {
     get fields() {
       return form.getField(this.path, {})
@@ -15,7 +15,7 @@ export default function modelFieldSet(form, thunks) {
       return someLeaves(this.fields, ({ isTouched }) => isTouched)
     },
     get isDirty() {
-      return !shallowEqual(this.value, this.init)
+      return someLeaves(this.fields, ({ isDirty }) => isDirty)
     },
     get isPristine() {
       return !this.isDirty
@@ -27,7 +27,7 @@ export default function modelFieldSet(form, thunks) {
     },
     path: {
       get() {
-        return fromThunks(thunks)
+        return fromThunks(paths)
       }
     },
     mutations: {

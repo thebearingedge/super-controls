@@ -1,6 +1,6 @@
 import { fromThunks } from './_util'
 
-export default function modelField(form, thunks) {
+export default function modelField(form, paths) {
   const field = {
     get init() {
       return form.getInit(this.path)
@@ -24,7 +24,7 @@ export default function modelField(form, thunks) {
     },
     path: {
       get() {
-        return fromThunks(thunks)
+        return fromThunks(paths)
       }
     },
     mutations: {
