@@ -2,6 +2,7 @@ import React from 'react'
 import { describe, it } from 'mocha'
 import { mount, expect, stub } from './__test__'
 import Form from './_form'
+import { toPaths } from './_util'
 
 describe('_Form', () => {
 
@@ -213,7 +214,7 @@ describe('_Form', () => {
       })
   })
 
-  it('give state properties to fields in arrays', () => {
+  it('gives state properties to fields in arrays', () => {
     const values = {
       foo: [
         { bar: '' },
@@ -303,7 +304,9 @@ describe('_Form', () => {
     }
     const wrapper = mount(<Form values={values}/>)
     const form = wrapper.instance()
-    const field = form.registerField({ path: 'foo.bar.baz.0.qux' })
+    const field = form.registerField({
+      paths: toPaths('foo.bar.baz.0.qux')
+    })
     expect(field).to.deep.equal({
       init: '',
       value: '',
@@ -325,7 +328,7 @@ describe('_Form', () => {
     }
     const wrapper = mount(<TestForm/>)
     const form = wrapper.instance()
-    form.registerField({ path: 'foo', value: 'foo' })
+    form.registerField({ paths: toPaths('foo'), value: 'foo' })
   })
 
   it('registers new nested fields', done => {
@@ -347,7 +350,7 @@ describe('_Form', () => {
     }
     const wrapper = mount(<TestForm/>)
     const form = wrapper.instance()
-    form.registerField({ path: 'foo.bar', value: 'bar' })
+    form.registerField({ paths: toPaths('foo.bar'), value: 'bar' })
   })
 
   it('registers new fields in arrays', done => {
@@ -373,14 +376,14 @@ describe('_Form', () => {
     }
     const wrapper = mount(<TestForm/>)
     const form = wrapper.instance()
-    form.registerField({ path: 'foo.0.bar', value: 'bar' })
+    form.registerField({ paths: toPaths('foo.0.bar'), value: 'bar' })
   })
 
   it('returns a field set wrapper', () => {
     const values = { foo: { bar: '' } }
     const wrapper = mount(<Form values={values}/>)
     const form = wrapper.instance()
-    const field = form.registerFieldSet({ path: 'foo', value: {} })
+    const field = form.registerFieldSet({ paths: toPaths('foo'), value: {} })
     expect(field).to.deep.equal({
       init: { bar: '' },
       value: { bar: '' },
@@ -395,7 +398,7 @@ describe('_Form', () => {
     const wrapper = mount(<Form/>)
     const form = wrapper.instance()
     const field = form.registerFieldSet({
-      path: 'foo',
+      paths: toPaths('foo'),
       value: { bar: '' }
     })
     expect(field).to.deep.equal({
@@ -431,7 +434,10 @@ describe('_Form', () => {
     const values = { foo: [{ bar: '' }, { bar: '' }] }
     const wrapper = mount(<Form values={values}/>)
     const form = wrapper.instance()
-    const field = form.registerFieldArray({ path: 'foo', value: [] })
+    const field = form.registerFieldArray({
+      paths: toPaths('foo'),
+      value: []
+    })
     expect(field).to.deep.equal({
       length: 2,
       init: [{ bar: '' }, { bar: '' }],
@@ -447,7 +453,7 @@ describe('_Form', () => {
     const wrapper = mount(<Form/>)
     const form = wrapper.instance()
     const field = form.registerFieldArray({
-      path: 'foo',
+      paths: toPaths('foo'),
       value: [{ bar: '' }, { bar: '' }]
     })
     expect(field).to.deep.equal({
@@ -523,7 +529,7 @@ describe('_Form', () => {
     const values = { foo: [{ bar: '' }] }
     const wrapper = mount(<TestForm values={values}/>)
     const form = wrapper.instance()
-    const bars = form.registerFieldArray({ path: 'foo', value: [] })
+    const bars = form.registerFieldArray({ paths: toPaths('foo'), value: [] })
     bars.push({ bar: 'baz' })
   })
 
@@ -549,12 +555,67 @@ describe('_Form', () => {
         ])
         done()
       })
-    const bars = form.registerFieldArray({ path: 'foo', value: [] })
+    const bars = form.registerFieldArray({ paths: toPaths('foo'), value: [] })
     bars.pop()
   })
 
-  it('"unshifts" a new field into an array')
+  it('"unshifts" a new field into an array', done => {
+    class TestForm extends Form {
+      componentDidUpdate() {}
+    }
+    const values = { foo: [{ bar: '' }, { bar: '' }] }
+    const wrapper = mount(<TestForm values={values}/>)
+    const form = wrapper.instance()
+    stub(form, 'componentDidUpdate')
+      .callsFake(() => {
+        expect(form.fields.foo).to.deep.equal([
+          {
+            bar: {
+              init: 'bar',
+              value: 'bar',
+              isTouched: false,
+              isDirty: false,
+              isPristine: true
+            }
+          },
+          {
+            bar: {
+              init: '',
+              value: '',
+              isTouched: false,
+              isDirty: false,
+              isPristine: true
+            }
+          }
+        ])
+        done()
+      })
+    const bars = form.registerFieldArray({ paths: toPaths('foo'), value: [] })
+    bars.unshift({ bar: 'bar' })
+  })
 
-  it('"shift" a field from an array')
+  it('"shift"s a field from an array', done => {
+    class TestForm extends Form {
+      componentDidUpdate() {
+        expect(this.fields.foo).to.deep.equal([
+          {
+            bar: {
+              init: 'baz',
+              value: 'baz',
+              isTouched: false,
+              isDirty: false,
+              isPristine: true
+            }
+          }
+        ])
+        done()
+      }
+    }
+    const values = { foo: [{ bar: '' }, { bar: 'baz' }] }
+    const wrapper = mount(<TestForm values={values}/>)
+    const form = wrapper.instance()
+    const bars = form.registerFieldArray({ paths: toPaths('foo'), value: [] })
+    bars.shift()
+  })
 
 })

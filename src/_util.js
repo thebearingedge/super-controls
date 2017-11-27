@@ -67,3 +67,11 @@ export function someLeaves(target, predicate) {
         : predicate(target[key])
     )
 }
+
+export function toPaths(path) {
+  return path.split('.').map(key => () => key)
+}
+
+export function fromPaths(paths) {
+  return paths.map(path => path()).join('.')
+}

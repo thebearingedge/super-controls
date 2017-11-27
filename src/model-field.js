@@ -1,4 +1,6 @@
-export default function modelField(form, init, path) {
+import { fromPaths } from './_util'
+
+export default function modelField(form, init, paths) {
   const field = {
     get init() {
       return init
@@ -20,8 +22,13 @@ export default function modelField(form, init, path) {
     form: {
       value: form
     },
+    paths: {
+      value: paths
+    },
     path: {
-      value: path
+      get() {
+        return fromPaths(this.paths)
+      }
     },
     update: {
       value(state) {

@@ -2,8 +2,8 @@ import { Component, createElement } from 'react'
 import { object } from 'prop-types'
 import modelField from './model-field'
 import modelFieldSet from './model-field-set'
-import ModelFieldArray from './model-field-array'
-import { get, set, mapLeaves } from './_util'
+import modelFieldArray from './model-field-array'
+import { get, set, mapLeaves, toPaths } from './_util'
 
 export default class Form extends Component {
   constructor(...args) {
@@ -13,7 +13,7 @@ export default class Form extends Component {
       touched: mapLeaves(this.props.values, _ => false)
     }
     this.fields = mapLeaves(this.state.values, (value, path) =>
-      modelField(this, value, path)
+      modelField(this, value, toPaths(path))
     )
   }
   update(path, state) {
@@ -40,42 +40,45 @@ export default class Form extends Component {
   getValue(path, fallback) {
     return get(this.state.values, path, fallback)
   }
-  registerField({ path, value }) {
+  registerField({ paths, value }) {
+    const path = paths.map(path => path()).join('.')
     const registered = get(this.fields, path)
     if (registered) return registered
     const init = get(this.state.values, path, value)
-    const field = modelField(this, init, path)
+    const field = modelField(this, init, paths)
     this.setField(path, field)
     this.update(path, { value, isTouched: false })
     return field
   }
-  registerFieldSet({ path, value }) {
+  registerFieldSet({ paths, value }) {
+    const path = paths.map(path => path()).join('.')
     const init = get(this.state.values, path, value)
     const registered = get(this.fields, path)
-    if (registered) return modelFieldSet(this, init, path)
+    if (registered) return modelFieldSet(this, init, paths)
     this.setField(path, mapLeaves(value, (init, keyPath) =>
-      modelField(this, init, `${keyPath}.${path}`)
+      modelField(this, init, toPaths(`${keyPath}.${path}`))
     ))
     this.update(path, {
       value: init,
       isTouched: mapLeaves(init, _ => false)
     })
-    return modelFieldSet(this, init, path)
+    return modelFieldSet(this, init, paths)
   }
-  registerFieldArray({ path, value }) {
+  registerFieldArray({ paths, value }) {
+    const path = paths.map(path => path()).join('.')
     const init = get(this.state.values, path, value)
     const registered = get(this.fields, path, [])
-    if (registered.length) return new ModelFieldArray(this, init, path)
+    if (registered.length) return modelFieldArray(this, init, paths)
     this.setField(path, init.map((values, i) =>
       mapLeaves(values, (init, path) =>
-        modelField(this, init, `${i}.${path}`)
+        modelField(this, init, toPaths(`${i}.${path}`))
       )
     ))
     this.update(path, {
       value: init,
       isTouched: init.map(values => mapLeaves(values, _ => false))
     })
-    return new ModelFieldArray(this, init, path)
+    return modelFieldArray(this, init, paths)
   }
   render() {
     return createElement('form')

@@ -1,7 +1,7 @@
 import modelField from './model-field'
-import { someLeaves, mapLeaves } from './_util'
+import { someLeaves, mapLeaves, toPaths, fromPaths } from './_util'
 
-export default function modelFieldArray(form, init, path) {
+export default function modelFieldArray(form, init, paths) {
   const fieldArray = {
     get fields() {
       return form.getField(this.path, [])
@@ -29,14 +29,19 @@ export default function modelFieldArray(form, init, path) {
     form: {
       value: form
     },
+    paths: {
+      value: paths
+    },
     path: {
-      value: path
+      get() {
+        return fromPaths(this.paths)
+      }
     },
     insert: {
       value(index, values) {
         const { form, path, value: valueState, fields } = this
         const fieldSet = mapLeaves(values, (init, keyPath) =>
-          modelField(form, init, `${path}.${index}.${keyPath}`)
+          modelField(form, init, toPaths(`${path}.${index}.${keyPath}`))
         )
         const fieldSets = [
           ...fields.slice(0, index),
@@ -86,6 +91,16 @@ export default function modelFieldArray(form, init, path) {
     pop: {
       value() {
         this.remove(this.length - 1)
+      }
+    },
+    unshift: {
+      value(values) {
+        this.insert(0, values)
+      }
+    },
+    shift: {
+      value() {
+        this.remove(0)
       }
     }
   })

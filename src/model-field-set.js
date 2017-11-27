@@ -1,9 +1,9 @@
-import { someLeaves } from './_util'
+import { someLeaves, fromPaths } from './_util'
 
-export default function modelFieldSet(form, init, path) {
+export default function modelFieldSet(form, init, paths) {
   const fieldSet = {
     get fields() {
-      return form.getField(path, {})
+      return form.getField(this.path, {})
     },
     get init() {
       return init
@@ -25,8 +25,13 @@ export default function modelFieldSet(form, init, path) {
     form: {
       value: form
     },
+    paths: {
+      value: paths
+    },
     path: {
-      value: path
+      get() {
+        return fromPaths(this.paths)
+      }
     }
   })
 }
