@@ -1,6 +1,6 @@
-import { fromPaths } from './_util'
+import { fromThunks } from './_util'
 
-export default function modelField(form, paths) {
+export default function modelField(form, thunks) {
   const field = {
     get init() {
       return form.getInit(this.path)
@@ -24,18 +24,18 @@ export default function modelField(form, paths) {
     },
     path: {
       get() {
-        return fromPaths(paths)
+        return fromThunks(thunks)
       }
     },
     mutations: {
-      configurable: true,
+      writable: true,
       value: 0
     },
     update: {
       configurable: true,
       value(state) {
-        form.update(field.path, state)
         field.mutations++
+        form.update(field.path, state)
       }
     }
   })

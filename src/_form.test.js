@@ -1,8 +1,7 @@
 import React from 'react'
 import { describe, it } from 'mocha'
-import { mount, expect } from './__test__'
+import { mount, expect, toThunks } from './__test__'
 import Form from './_form'
-import { toPaths } from './_util'
 
 describe('_Form', () => {
 
@@ -297,7 +296,7 @@ describe('_Form', () => {
     const wrapper = mount(<Form values={values}/>)
     const form = wrapper.instance()
     const field = form.registerField({
-      paths: toPaths('foo.bar.baz.0.qux')
+      paths: toThunks('foo.bar.baz.0.qux')
     })
     expect(field).to.deep.equal({
       init: '',
@@ -320,7 +319,7 @@ describe('_Form', () => {
     }
     const wrapper = mount(<TestForm/>)
     const form = wrapper.instance()
-    form.registerField({ paths: toPaths('foo'), value: 'foo' })
+    form.registerField({ paths: toThunks('foo'), value: 'foo' })
   })
 
   it('registers new nested fields', done => {
@@ -342,7 +341,7 @@ describe('_Form', () => {
     }
     const wrapper = mount(<TestForm/>)
     const form = wrapper.instance()
-    form.registerField({ paths: toPaths('foo.bar'), value: 'bar' })
+    form.registerField({ paths: toThunks('foo.bar'), value: 'bar' })
   })
 
   it('registers new fields in arrays', done => {
@@ -368,14 +367,14 @@ describe('_Form', () => {
     }
     const wrapper = mount(<TestForm/>)
     const form = wrapper.instance()
-    form.registerField({ paths: toPaths('foo.0.bar'), value: 'bar' })
+    form.registerField({ paths: toThunks('foo.0.bar'), value: 'bar' })
   })
 
   it('returns a field set wrapper', () => {
     const values = { foo: { bar: '' } }
     const wrapper = mount(<Form values={values}/>)
     const form = wrapper.instance()
-    const field = form.registerFieldSet({ paths: toPaths('foo'), value: {} })
+    const field = form.registerFieldSet({ paths: toThunks('foo'), value: {} })
     expect(field).to.deep.equal({
       init: { bar: '' },
       value: { bar: '' },
@@ -390,7 +389,7 @@ describe('_Form', () => {
     const wrapper = mount(<Form/>)
     const form = wrapper.instance()
     const field = form.registerFieldSet({
-      paths: toPaths('foo'),
+      paths: toThunks('foo'),
       value: { bar: '' }
     })
     expect(field).to.deep.equal({
@@ -426,7 +425,7 @@ describe('_Form', () => {
     const wrapper = mount(<Form/>)
     const form = wrapper.instance()
     const field = form.registerFieldArray({
-      paths: toPaths('foo'),
+      paths: toThunks('foo'),
       value: []
     })
     expect(field).to.deep.equal({
@@ -444,7 +443,7 @@ describe('_Form', () => {
     const wrapper = mount(<Form/>)
     const form = wrapper.instance()
     const field = form.registerFieldArray({
-      paths: toPaths('foo'),
+      paths: toThunks('foo'),
       value: [{ bar: '' }, { bar: '' }]
     })
     expect(field).to.deep.equal({
@@ -492,7 +491,7 @@ describe('_Form', () => {
     const values = { foo: [{ bar: '' }] }
     const wrapper = mount(<Form values={values}/>)
     const form = wrapper.instance()
-    const bars = form.registerFieldArray({ paths: toPaths('foo'), value: [] })
+    const bars = form.registerFieldArray({ paths: toThunks('foo'), value: [] })
     bars.push({ bar: 'baz' })
     expect(form.state).to.deep.equal({
       values: {
@@ -514,7 +513,7 @@ describe('_Form', () => {
     const values = { foo: [{ bar: 'baz' }, { bar: '' }] }
     const wrapper = mount(<Form values={values}/>)
     const form = wrapper.instance()
-    const bars = form.registerFieldArray({ paths: toPaths('foo'), value: [] })
+    const bars = form.registerFieldArray({ paths: toThunks('foo'), value: [] })
     bars.pop()
     expect(form.state).to.deep.equal({
       values: { foo: [{ bar: 'baz' }] },
@@ -526,7 +525,7 @@ describe('_Form', () => {
     const values = { foo: [] }
     const wrapper = mount(<Form values={values}/>)
     const form = wrapper.instance()
-    const bars = form.registerFieldArray({ paths: toPaths('foo'), value: [] })
+    const bars = form.registerFieldArray({ paths: toThunks('foo'), value: [] })
     bars.unshift({ bar: '' })
     expect(form.state).to.deep.equal({
       values: { foo: [{ bar: '' }] },
@@ -538,7 +537,7 @@ describe('_Form', () => {
     const values = { foo: [{ bar: '' }, { bar: 'baz' }] }
     const wrapper = mount(<Form values={values}/>)
     const form = wrapper.instance()
-    const bars = form.registerFieldArray({ paths: toPaths('foo'), value: [] })
+    const bars = form.registerFieldArray({ paths: toThunks('foo'), value: [] })
     bars.shift()
     expect(form.state).to.deep.equal({
       values: { foo: [{ bar: 'baz' }] },

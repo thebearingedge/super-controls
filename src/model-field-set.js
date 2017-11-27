@@ -1,6 +1,6 @@
-import { someLeaves, fromPaths, shallowEqual } from './_util'
+import { someLeaves, fromThunks, shallowEqual } from './_util'
 
-export default function modelFieldSet(form, paths) {
+export default function modelFieldSet(form, thunks) {
   const fieldSet = {
     get fields() {
       return form.getField(this.path, {})
@@ -27,11 +27,11 @@ export default function modelFieldSet(form, paths) {
     },
     path: {
       get() {
-        return fromPaths(paths)
+        return fromThunks(thunks)
       }
     },
     mutations: {
-      configurable: true,
+      writable: true,
       value: 0
     }
   })

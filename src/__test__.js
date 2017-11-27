@@ -24,19 +24,7 @@ after(() => {
 export const { expect } = chai
 export const { mount } = enzyme
 export const { stub, spy } = sinon
-export const mockField = value => {
-  let isTouched
-  const field = {
-    get value() {
-      return value
-    },
-    get isTouched() {
-      return !!isTouched
-    }
-  }
-  return Object.defineProperty(field, 'update', {
-    configurable: true,
-    enumerable: false,
-    value() {}
-  })
+
+export function toThunks(path) {
+  return path.split('.').map(key => () => key)
 }
