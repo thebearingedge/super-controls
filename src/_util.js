@@ -10,6 +10,10 @@ export function isUndefined(value) {
   return value === void 0
 }
 
+export function isArray(value) {
+  return Array.isArray(value)
+}
+
 export function set(target, keyPath, value) {
   const [ key, index, ...path ] = keyPath
   if (isInteger(index)) {
@@ -41,7 +45,7 @@ export function get(target, keyPath, fallback) {
 }
 
 export function mapLeaves(target, transform, path = []) {
-  if (Array.isArray(target)) {
+  if (isArray(target)) {
     if (!isObject(target[0])) return transform(target, path)
     return target.map((child, i) => {
       return mapLeaves(child, transform, [...path, i])
@@ -50,21 +54,21 @@ export function mapLeaves(target, transform, path = []) {
   return Object.keys(target)
     .reduce((mapped, key) => {
       const keyPath = [...path, key]
-      return isObject(target[key]) || Array.isArray(target[key])
+      return isObject(target[key]) || isArray(target[key])
         ? { ...mapped, [key]: mapLeaves(target[key], transform, keyPath) }
         : { ...mapped, [key]: transform(target[key], keyPath) }
     }, {})
 }
 
 export function someLeaves(target, predicate) {
-  if (Array.isArray(target)) {
+  if (isArray(target)) {
     if (!target.length) return false
     return isObject(target[0]) &&
            !!target.find(child => someLeaves(child, predicate))
   }
   return !!Object.keys(target)
     .find(key =>
-      isObject(target[key])
+      isObject(target[key]) || isArray(target)
         ? someLeaves(target[key], predicate)
         : predicate(target)
     )
