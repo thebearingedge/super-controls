@@ -109,21 +109,20 @@ describe('_Form', () => {
       }
     }
     const wrapper = mount(<Form values={values}/>)
-    expect(wrapper.instance())
-      .to.have.property('fields')
-      .that.deep.equals({
-        foo: {
-          bar: {
-            baz: {
-              init: '',
-              value: '',
-              isTouched: false,
-              isDirty: false,
-              isPristine: true
-            }
+    const form = wrapper.instance()
+    expect(form.fields).to.deep.equal({
+      foo: {
+        bar: {
+          baz: {
+            init: '',
+            value: '',
+            isTouched: false,
+            isDirty: false,
+            isPristine: true
           }
         }
-      })
+      }
+    })
   })
 
   it('receives value updates from nested fields', done => {
@@ -551,39 +550,27 @@ describe('_Form', () => {
     bars.pop()
   })
 
-  it('"unshifts" a new field into an array', done => {
-    class TestForm extends Form {
-      componentDidUpdate() {}
-    }
-    const values = { foo: [{ bar: '' }, { bar: '' }] }
-    const wrapper = mount(<TestForm values={values}/>)
+  it('"unshifts" a new field into an array', () => {
+    const values = { foo: [] }
+    const wrapper = mount(<Form values={values}/>)
     const form = wrapper.instance()
-    stub(form, 'componentDidUpdate')
-      .callsFake(() => {
-        expect(form.fields.foo).to.deep.equal([
-          {
-            bar: {
-              init: 'bar',
-              value: 'bar',
-              isTouched: false,
-              isDirty: false,
-              isPristine: true
-            }
-          },
-          {
-            bar: {
-              init: '',
-              value: '',
-              isTouched: false,
-              isDirty: false,
-              isPristine: true
-            }
-          }
-        ])
-        done()
-      })
     const bars = form.registerFieldArray({ paths: toPaths('foo'), value: [] })
-    bars.unshift({ bar: 'bar' })
+    bars.unshift({ bar: '' })
+    expect(form.fields.foo).to.deep.equal([
+      {
+        bar: {
+          init: '',
+          value: '',
+          isTouched: false,
+          isDirty: false,
+          isPristine: true
+        }
+      }
+    ])
+    expect(form.state).to.deep.equal({
+      values: { foo: [{ bar: '' }] },
+      touched: { foo: [{ bar: false }] }
+    })
   })
 
   it('"shift"s a field from an array', done => {

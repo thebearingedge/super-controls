@@ -1,12 +1,12 @@
 import { fromPaths } from './_util'
 
-export default function modelField(form, init, paths) {
+export default function modelField(form, paths) {
   const field = {
     get init() {
-      return init
+      return form.getInit(this.path)
     },
     get value() {
-      return form.getValue(this.path, init)
+      return form.getValue(this.path, this.init)
     },
     get isTouched() {
       return !!form.getTouched(this.path)
@@ -22,12 +22,9 @@ export default function modelField(form, init, paths) {
     form: {
       value: form
     },
-    paths: {
-      value: paths
-    },
     path: {
       get() {
-        return fromPaths(this.paths)
+        return fromPaths(paths)
       }
     },
     mutations: {

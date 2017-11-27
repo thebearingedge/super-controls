@@ -6,6 +6,10 @@ export function isInteger(value) {
   return +value === parseInt(value, 10)
 }
 
+export function isUndefined(value) {
+  return value === void 0
+}
+
 export function set(target, keyPath, value) {
   const [ key, index, ...path ] = keyPath.split('.')
   if (isInteger(index)) {
@@ -20,20 +24,20 @@ export function set(target, keyPath, value) {
       ]
     }
   }
-  if (index === void 0) return { ...target, [key]: value }
+  if (isUndefined(index)) return { ...target, [key]: value }
   keyPath = [index, ...path].join('.')
   return { ...target, [key]: set(target[key], keyPath, value) }
 }
 
 export function get(target, keyPath, fallback) {
   const [ key, index, ...path ] = keyPath.split('.')
-  if (!target[key]) return fallback
+  if (isUndefined(target[key])) return fallback
   if (isInteger(index)) {
-    return target[key][index] === void 0
+    return isUndefined(target[key][index])
       ? fallback
       : get(target[key][index], path.join('.'), fallback)
   }
-  if (index === void 0) return target[key]
+  if (isUndefined(index)) return target[key]
   return get(target[key], [index, ...path].join('.'), fallback)
 }
 
@@ -64,7 +68,7 @@ export function someLeaves(target, predicate) {
     .find(key =>
       isObject(target[key])
         ? someLeaves(target[key], predicate)
-        : predicate(target[key])
+        : predicate(target)
     )
 }
 
@@ -74,4 +78,12 @@ export function toPaths(path) {
 
 export function fromPaths(paths) {
   return paths.map(path => path()).join('.')
+}
+
+export function shallowEqual(a, b) {
+  if (a === b) return true
+  const aKeys = Object.keys(a)
+  const bKeys = Object.keys(b)
+  return aKeys.length === bKeys.length &&
+         aKeys.every(key => aKeys[key] === bKeys[key])
 }

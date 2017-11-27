@@ -1,21 +1,21 @@
-import { someLeaves, fromPaths } from './_util'
+import { someLeaves, fromPaths, shallowEqual } from './_util'
 
-export default function modelFieldSet(form, init, paths) {
+export default function modelFieldSet(form, paths) {
   const fieldSet = {
     get fields() {
       return form.getField(this.path, {})
     },
     get init() {
-      return init
+      return form.getInit(this.path)
     },
     get value() {
-      return form.getValue(this.path, init)
+      return form.getValue(this.path, this.init)
     },
     get isTouched() {
       return someLeaves(this.fields, ({ isTouched }) => isTouched)
     },
     get isDirty() {
-      return this.value !== this.init
+      return !shallowEqual(this.value, this.init)
     },
     get isPristine() {
       return !this.isDirty
@@ -25,12 +25,9 @@ export default function modelFieldSet(form, init, paths) {
     form: {
       value: form
     },
-    paths: {
-      value: paths
-    },
     path: {
       get() {
-        return fromPaths(this.paths)
+        return fromPaths(paths)
       }
     },
     mutations: {

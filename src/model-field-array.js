@@ -1,22 +1,28 @@
 import modelField from './model-field'
-import { someLeaves, mapLeaves, toPaths, fromPaths } from './_util'
+import {
+  shallowEqual,
+  someLeaves,
+  mapLeaves,
+  toPaths,
+  fromPaths
+} from './_util'
 
-export default function modelFieldArray(form, init, paths) {
+export default function modelFieldArray(form, paths) {
   const fieldArray = {
     get fields() {
       return form.getField(this.path, [])
     },
     get init() {
-      return init
+      return form.getInit(this.path)
     },
     get value() {
-      return form.getValue(this.path, init)
+      return form.getValue(this.path, this.init)
     },
     get isTouched() {
       return someLeaves(this.fields, ({ isTouched }) => isTouched)
     },
     get isDirty() {
-      return this.value !== this.init
+      return !shallowEqual(this.value, this.init)
     },
     get isPristine() {
       return !this.isDirty
@@ -29,39 +35,38 @@ export default function modelFieldArray(form, init, paths) {
     form: {
       value: form
     },
-    paths: {
-      value: paths
-    },
     path: {
       get() {
-        return fromPaths(this.paths)
+        return fromPaths(paths)
       }
     },
     mutations: {
-      configurable: true,
+      writable: true,
       value: 0
     },
     insert: {
       value(index, values) {
-        const { form, path, value: valueState, fields } = this
-        const fieldSet = mapLeaves(values, (init, keyPath) =>
-          modelField(form, init, toPaths(`${path}.${index}.${keyPath}`))
-        )
+        const { form, path, fields, value: valueState } = this
+        const fieldSet = mapLeaves(values, (value, keyPath) => {
+          const fullPath = `${path}.${index}.${keyPath}`
+          form.setInit(fullPath, value)
+          return modelField(form, toPaths(fullPath))
+        })
         const fieldSets = [
           ...fields.slice(0, index),
           fieldSet,
-          ...fields.slice(index + 1)
+          ...fields.slice(index)
         ]
         const value = [
           ...valueState.slice(0, index),
           values,
-          ...valueState.slice(index + 1)
+          ...valueState.slice(index)
         ]
-        const touched = form.getTouched(path, [])
+        const touched = form.getTouched(path) || []
         const isTouched = [
           ...touched.slice(0, index),
           mapLeaves(values, _ => false),
-          ...touched.slice(index + 1)
+          ...touched.slice(index)
         ]
         form.setField(path, fieldSets)
         form.update(path, { value, isTouched })
@@ -70,14 +75,14 @@ export default function modelFieldArray(form, init, paths) {
     },
     remove: {
       value(index) {
-        const { form, fields, path } = this
+        const { form, path, fields, value: valueState } = this
         const fieldSets = [
           ...fields.slice(0, index),
           ...fields.slice(index + 1)
         ]
         const value = [
-          ...this.value.slice(0, index),
-          ...this.value.slice(index + 1)
+          ...valueState.slice(0, index),
+          ...valueState.slice(index + 1)
         ]
         const touched = form.getTouched(path, [])
         const isTouched = [
