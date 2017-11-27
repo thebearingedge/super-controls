@@ -37,6 +37,10 @@ export default function modelFieldArray(form, init, paths) {
         return fromPaths(this.paths)
       }
     },
+    mutations: {
+      configurable: true,
+      value: 0
+    },
     insert: {
       value(index, values) {
         const { form, path, value: valueState, fields } = this
@@ -61,6 +65,7 @@ export default function modelFieldArray(form, init, paths) {
         ]
         form.setField(path, fieldSets)
         form.update(path, { value, isTouched })
+        this.mutations++
       }
     },
     remove: {
@@ -81,6 +86,7 @@ export default function modelFieldArray(form, init, paths) {
         ]
         form.setField(path, fieldSets)
         form.update(path, { value, isTouched })
+        this.mutations++
       }
     },
     push: {

@@ -32,6 +32,10 @@ export default function modelFieldSet(form, init, paths) {
       get() {
         return fromPaths(this.paths)
       }
+    },
+    mutations: {
+      configurable: true,
+      value: 0
     }
   })
 }

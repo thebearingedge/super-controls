@@ -30,9 +30,15 @@ export default function modelField(form, init, paths) {
         return fromPaths(this.paths)
       }
     },
+    mutations: {
+      configurable: true,
+      value: 0
+    },
     update: {
+      configurable: true,
       value(state) {
-        form.update(this.path, state)
+        form.update(field.path, state)
+        field.mutations++
       }
     }
   })
