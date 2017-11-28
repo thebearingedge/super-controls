@@ -404,7 +404,7 @@ describe('Form', () => {
       })
       expect(form.state).to.deep.equal({
         values: { foo: [{ bar: 'baz' }] },
-        touched: { foo: [{ bar: false }] }
+        touched: { foo: [{ bar: false }, { bar: false }] }
       })
     })
 
@@ -444,7 +444,7 @@ describe('Form', () => {
       bars.shift()
       expect(form.state).to.deep.equal({
         values: { foo: [{ bar: 'baz' }] },
-        touched: { foo: [{ bar: false }] }
+        touched: { foo: [{ bar: false }, { bar: false }] }
       })
     })
 

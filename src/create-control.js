@@ -1,5 +1,5 @@
 import { createElement, Component } from 'react'
-import { func, string } from 'prop-types'
+import { func, string, number, oneOfType } from 'prop-types'
 import { isUndefined, equalProps, omit } from './util'
 
 export default function createControl(component) {
@@ -62,7 +62,7 @@ export default function createControl(component) {
 
     Control.propTypes = {
       ...propTypes,
-      name: string.isRequired
+      name: oneOfType([string, number]).isRequired
     }
 
     Control.contextTypes = {

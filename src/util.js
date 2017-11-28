@@ -27,43 +27,56 @@ export function omit(obj, props) {
     }), {})
 }
 
-export function set(target, keyPath, value) {
-  const [ key, index, ...path ] = keyPath
+export function set(target, [ key, index, ...path ], value) {
+  if (isUndefined(index)) {
+    return isObject(target)
+      ? { ...target, [key]: value }
+      : [...target.slice(0, key), value, ...target.slice(key + 1)]
+  }
   if (isInteger(index)) {
-    target[key] = target[key] || []
-    target[key][index] = target[key][index] || {}
+    const nested = target[key] || []
+    if (isArray(target)) {
+      return [
+        ...target.slice(0, key),
+        set(nested, [index, ...path], value),
+        ...target.slice(key + 1)
+      ]
+    }
     return {
       ...target,
       [key]: [
-        ...target[key].slice(0, index),
-        set(target[key][index], path, value),
-        ...target[key].slice(index + 1)
+        ...nested.slice(0, index),
+        ...set(nested, [index, ...path], value),
+        ...nested.slice(index + 1)
       ]
     }
   }
-  if (isUndefined(index)) return { ...target, [key]: value }
-  target[key] = target[key] || isInteger(key) ? [] : {}
-  return { ...target, [key]: set(target[key], [index, ...path], value) }
+  const nested = target[key] || {}
+  if (isArray(target)) {
+    return [
+      ...target.slice(0, key),
+      set(nested, [index, ...path], value),
+      ...target.slice(key + 1)
+    ]
+  }
+  return {
+    ...target,
+    [key]: set(nested, [index, ...path], value)
+  }
 }
 
-export function get(target, keyPath, fallback) {
-  const [ key, index, ...path ] = keyPath
-  if (isUndefined(target[key])) return fallback
-  if (isInteger(index)) {
-    return isUndefined(target[key][index])
-      ? fallback
-      : get(target[key][index], path, fallback)
-  }
-  if (isUndefined(index)) return target[key]
-  return get(target[key], [index, ...path], fallback)
+export function get(source, [key, ...path], fallback) {
+  if (isUndefined(source[key])) return fallback
+  if (!path.length) return source[key]
+  return get(source[key], path, fallback)
 }
 
 export function mapProperties(target, transform, path = []) {
   if (isArray(target)) {
     if (!isObject(target[0])) return transform(target, path)
-    return target.map((child, i) => {
-      return mapProperties(child, transform, [...path, i])
-    })
+    return target.map((child, i) =>
+      mapProperties(child, transform, [...path, i])
+    )
   }
   return keys(target)
     .reduce((mapped, key) => {
@@ -76,8 +89,8 @@ export function mapProperties(target, transform, path = []) {
 
 export function someLeaves(target, predicate) {
   if (isArray(target)) {
-    if (!target.length) return false
-    return isObject(target[0]) &&
+    return !!target.length &&
+           isObject(target[0]) &&
            !!target.find(child => someLeaves(child, predicate))
   }
   return !!keys(target)
@@ -100,14 +113,14 @@ export function createKey() {
   return Math.random().toString(36).substr(2, 10)
 }
 
-export function equalExcept(...props) {
+export function equalExcept(...skip) {
   return function (a, b) {
     if (a === b) return true
     const aKeys = keys(a)
     const bKeys = keys(b)
     return aKeys.length === bKeys.length &&
-           aKeys.every(key => props.includes(key) || a[key] === b[key])
+           aKeys.every(key => skip.includes(key) || a[key] === b[key])
   }
 }
 
-export const equalProps = equalExcept('children')
+export const equalProps = equalExcept('name', 'children')
