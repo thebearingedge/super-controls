@@ -1,9 +1,17 @@
 import { Component, createElement } from 'react'
-import { object } from 'prop-types'
+import { func, object } from 'prop-types'
 import modelField from './model-field'
 import modelFieldSet from './model-field-set'
 import modelFieldArray from './model-field-array'
-import { id, get, set, fromThunks, isUndefined, mapProperties } from './util'
+import {
+  id,
+  get,
+  set,
+  omit,
+  fromThunks,
+  isUndefined,
+  mapProperties
+} from './util'
 
 export default class Form extends Component {
   constructor(...args) {
@@ -14,6 +22,12 @@ export default class Form extends Component {
       values: mapProperties(this.props.values, id),
       touched: {}
     }
+    this.registerField = this.registerField.bind(this)
+    this.registerFieldSet = this.registerFieldSet.bind(this)
+  }
+  getChildContext() {
+    const { registerField, registerFieldSet } = this
+    return { registerField, registerFieldSet }
   }
   update(path, state) {
     this.setState(({ values, touched }) => {
@@ -71,7 +85,7 @@ export default class Form extends Component {
     return modelFieldArray(this, paths)
   }
   render() {
-    return createElement('form')
+    return createElement('form', omit(this.props, ['values']))
   }
 }
 
@@ -81,4 +95,9 @@ Form.propTypes = {
 
 Form.defaultProps = {
   values: {}
+}
+
+Form.childContextTypes = {
+  registerField: func,
+  registerFieldSet: func
 }
