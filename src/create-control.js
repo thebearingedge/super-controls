@@ -1,6 +1,6 @@
 import { createElement, Component } from 'react'
 import { func, string } from 'prop-types'
-import { isUndefined, equalProps } from './util'
+import { isUndefined, equalProps, omit } from './util'
 
 export default function createControl(component) {
 
@@ -52,7 +52,7 @@ export default function createControl(component) {
         }
         if (!isUndefined(id)) control.id = id === true ? name : id
         const componentProps = {
-          ...props,
+          ...omit(props, [valueKey]),
           control
         }
         if (injectField) componentProps.field = field

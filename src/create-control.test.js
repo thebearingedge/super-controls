@@ -1,12 +1,12 @@
 import React from 'react'
 import { describe, it } from 'mocha'
-import { mount, expect, stub, spy, mockField } from './__test__'
+import { mountWith, expect, stub, spy, mockField } from './__test__'
 import createControl from './create-control'
 
 describe('createControl', () => {
 
   const context = { registerField: mockField }
-  const withContext = element => mount(element, { context })
+  const mount = mountWith({ context })
 
   it('accepts a configuration object', () => {
     const propTypes = { foo() {} }
@@ -27,7 +27,7 @@ describe('createControl', () => {
     const Input = createControl(({ control }) =>
       <input {...control}/>
     )()
-    const wrapper = withContext(<Input name='test'/>)
+    const wrapper = mount(<Input name='test'/>)
     const { field } = wrapper.instance()
     expect(field.path).to.deep.equal(['test'])
   })
@@ -40,7 +40,7 @@ describe('createControl', () => {
         value: ''
       }
     })
-    const wrapper = withContext(<Input name='test'/>)
+    const wrapper = mount(<Input name='test'/>)
     expect(wrapper).to.have.tagName('input')
     expect(wrapper).to.have.attr('name', 'test')
     expect(wrapper).to.have.value('')
@@ -50,7 +50,7 @@ describe('createControl', () => {
     const Input = createControl(({ control, ...props }) =>
       <input {...control} {...props}/>
     )()
-    const wrapper = withContext(
+    const wrapper = mount(
       <Input id='foo' name='test' className='form-control'/>
     )
     expect(wrapper).to.have.attr('id', 'foo')
@@ -61,7 +61,7 @@ describe('createControl', () => {
     const Input = createControl(({ control }) =>
       <input {...control}/>
     )()
-    const wrapper = withContext(<Input id name='test'/>)
+    const wrapper = mount(<Input id name='test'/>)
     expect(wrapper).to.have.attr('id', 'test')
   })
 
@@ -74,7 +74,7 @@ describe('createControl', () => {
         checked: true
       }
     })
-    const wrapper = withContext(<Input name='test' type='checkbox'/>)
+    const wrapper = mount(<Input name='test' type='checkbox'/>)
     expect(wrapper.find('input[type="checkbox"]')).to.be.checked()
   })
 
@@ -89,15 +89,15 @@ describe('createControl', () => {
     })({
       injectField: true
     })
-    withContext(<Simple name='test'/>)
-    withContext(<Advanced name='test'/>)
+    mount(<Simple name='test'/>)
+    mount(<Advanced name='test'/>)
   })
 
   it('receives value updates from its component', () => {
     const Input = createControl(({ control }) =>
       <input {...control}/>
     )()
-    const wrapper = withContext(<Input name='test'/>)
+    const wrapper = mount(<Input name='test'/>)
     const update = spy(wrapper.instance().field, 'update')
     const input = wrapper.find('input')
     const target = Object.assign(input.getDOMNode(), { value: 'foo' })
@@ -109,7 +109,7 @@ describe('createControl', () => {
     const Input = createControl(({ control }) =>
       <input {...control}/>
     )()
-    const wrapper = withContext(<Input name='test'/>)
+    const wrapper = mount(<Input name='test'/>)
     const update = spy(wrapper.instance().field, 'update')
     const input = wrapper.find('input')
     input.simulate('blur')
@@ -120,7 +120,7 @@ describe('createControl', () => {
     const Input = createControl(({ control }) =>
       <input {...control}/>
     )()
-    const wrapper = withContext(<Input name='test'/>)
+    const wrapper = mount(<Input name='test'/>)
     stub(Input.prototype, 'componentDidUpdate')
       .callThrough()
       .onCall(1)
@@ -144,7 +144,7 @@ describe('createControl', () => {
       .callsFake(() => done())
       .onCall(1)
       .callsFake(() => done())
-    const wrapper = withContext(<Input name='test'/>)
+    const wrapper = mount(<Input name='test'/>)
     wrapper.setProps({ id: true, className: 'form-control' })
     wrapper.setProps({ id: true, className: 'form-control' })
     wrapper.setProps({ id: true, className: 'form-control' })

@@ -14,6 +14,19 @@ export function isArray(value) {
   return Array.isArray(value)
 }
 
+export function keys(obj) {
+  return Object.keys(obj)
+}
+
+export function omit(obj, props) {
+  return keys(obj)
+    .filter(key => !props.includes(key))
+    .reduce((omitted, key) => ({
+      ...omitted,
+      [key]: obj[key]
+    }), {})
+}
+
 export function set(target, keyPath, value) {
   const [ key, index, ...path ] = keyPath
   if (isInteger(index)) {
@@ -52,7 +65,7 @@ export function mapProperties(target, transform, path = []) {
       return mapProperties(child, transform, [...path, i])
     })
   }
-  return Object.keys(target)
+  return keys(target)
     .reduce((mapped, key) => {
       const keyPath = [...path, key]
       return isObject(target[key]) || isArray(target[key])
@@ -67,7 +80,7 @@ export function someLeaves(target, predicate) {
     return isObject(target[0]) &&
            !!target.find(child => someLeaves(child, predicate))
   }
-  return !!Object.keys(target)
+  return !!keys(target)
     .find(key =>
       isObject(target[key]) || isArray(target)
         ? someLeaves(target[key], predicate)
@@ -87,13 +100,13 @@ export function createKey() {
   return Math.random().toString(36).substr(2, 10)
 }
 
-export function equalExcept(...keys) {
+export function equalExcept(...props) {
   return function (a, b) {
     if (a === b) return true
-    const aKeys = Object.keys(a)
-    const bKeys = Object.keys(b)
+    const aKeys = keys(a)
+    const bKeys = keys(b)
     return aKeys.length === bKeys.length &&
-           aKeys.every(key => keys.includes(key) || a[key] === b[key])
+           aKeys.every(key => props.includes(key) || a[key] === b[key])
   }
 }
 

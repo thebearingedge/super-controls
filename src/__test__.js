@@ -30,6 +30,12 @@ export function toThunks(path) {
   return path.split('.').map(key => () => key)
 }
 
+export function mountWith(options) {
+  return function (element) {
+    return mount(element, options)
+  }
+}
+
 export function mockField({ paths, value }) {
   const field = {
     get init() {
