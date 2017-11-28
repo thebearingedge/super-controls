@@ -10,6 +10,7 @@ describe('Text', () => {
 
   it('renders an input element of type text', () => {
     const wrapper = mount(<Text name='test' value='foo'/>)
+    expect(wrapper).to.have.tagName('input')
     expect(wrapper).to.have.attr('type', 'text')
     expect(wrapper).to.have.value('foo')
   })

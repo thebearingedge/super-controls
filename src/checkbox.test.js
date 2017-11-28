@@ -10,6 +10,7 @@ describe('Checkbox', () => {
 
   it('renders an input of type checkbox', () => {
     const wrapper = mount(<Checkbox name='test' checked/>)
+    expect(wrapper).to.have.tagName('input')
     expect(wrapper).to.have.attr('type', 'checkbox')
     expect(wrapper).to.be.checked()
   })
