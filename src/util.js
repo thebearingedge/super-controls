@@ -134,3 +134,5 @@ export function equalExcept(...skip) {
 }
 
 export const equalProps = equalExcept('name', 'children')
+
+export const shallowEqual = equalExcept()

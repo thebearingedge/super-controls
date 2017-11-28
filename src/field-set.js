@@ -9,7 +9,10 @@ export default class FieldSet extends Component {
       paths: [_ => this.props.name],
       value: this.props.values
     })
-    this.state = { mutations: this.fieldSet.mutations }
+    this.state = {
+      value: this.fieldSet.value,
+      mutations: this.fieldSet.mutations
+    }
     this.registerField = this.registerField.bind(this)
     this.registerFieldSet = this.registerFieldSet.bind(this)
     this.registerFieldArray = this.registerFieldArray.bind(this)
@@ -20,10 +23,14 @@ export default class FieldSet extends Component {
   }
   shouldComponentUpdate(nextProps, nextState) {
     return !equalProps(this.props, nextProps) ||
+           nextState.value !== this.fieldSet.value ||
            nextState.mutations !== this.fieldSet.mutations
   }
   componentDidUpdate() {
-    this.setState({ mutations: this.fieldSet.mutations })
+    this.setState({
+      value: this.fieldSet.value,
+      mutations: this.fieldSet.mutations
+    })
   }
   registerField({ paths, value }) {
     const field = this.context.registerField({

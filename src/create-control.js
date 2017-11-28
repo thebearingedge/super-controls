@@ -23,7 +23,10 @@ export default function createControl(component) {
           paths: [() => this.props.name],
           value: this.props[valueKey]
         })
-        this.state = { mutations: this.field.mutations }
+        this.state = {
+          value: this.field.value,
+          isTouched: this.field.isTouched
+        }
         this.onBlur = this.onBlur.bind(this)
         this.onChange = this.onChange.bind(this)
       }
@@ -34,12 +37,16 @@ export default function createControl(component) {
         this.field.isTouched ||
         this.field.update({ isTouched: true })
       }
-      componentDidUpdate() {
-        this.setState({ mutations: this.field.mutations })
-      }
       shouldComponentUpdate(nextProps, nextState) {
         return !equalProps(this.props, nextProps) ||
-               nextState.mutations !== this.field.mutations
+               nextState.value !== this.field.value ||
+               nextState.isTouched !== this.field.isTouched
+      }
+      componentDidUpdate() {
+        this.setState({
+          value: this.field.value,
+          isTouched: this.field.isTouched
+        })
       }
       render() {
         const { id, name, ...props } = this.props
