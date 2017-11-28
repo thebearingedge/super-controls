@@ -130,7 +130,7 @@ describe('createControl', () => {
     const { field } = wrapper.instance()
     field.mutations++
     wrapper.setState({ mutations: 0 })
-    wrapper.setState({ mutations: 1 })
+    wrapper.setState({ mutations: 0 })
     wrapper.setState({ mutations: 1 })
   })
 

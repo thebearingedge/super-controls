@@ -24,10 +24,11 @@ export default class Form extends Component {
     }
     this.registerField = this.registerField.bind(this)
     this.registerFieldSet = this.registerFieldSet.bind(this)
+    this.registerFieldArray = this.registerFieldArray.bind(this)
   }
   getChildContext() {
-    const { registerField, registerFieldSet } = this
-    return { registerField, registerFieldSet }
+    const { registerField, registerFieldSet, registerFieldArray } = this
+    return { registerField, registerFieldSet, registerFieldArray }
   }
   update(path, state) {
     this.setState(({ values, touched }) => {
@@ -99,5 +100,6 @@ Form.defaultProps = {
 
 Form.childContextTypes = {
   registerField: func,
-  registerFieldSet: func
+  registerFieldSet: func,
+  registerFieldArray: func
 }

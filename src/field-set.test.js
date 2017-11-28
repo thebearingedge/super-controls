@@ -4,6 +4,7 @@ import { mount, expect } from './__test__'
 import createControl from './create-control'
 import Form from './form'
 import FieldSet from './field-set'
+import FieldArray from './field-array'
 
 const Input = createControl(({ control, ...props }) =>
   <input {...control} {...props}/>
@@ -16,6 +17,27 @@ const Input = createControl(({ control, ...props }) =>
 
 describe('FieldSet', () => {
 
+  it('registers a field set model', done => {
+    class TestFieldSet extends FieldSet {
+      componentDidMount() {
+        expect(this.fieldSet).to.deep.equal({
+          fields: {},
+          init: {},
+          value: {},
+          isTouched: false,
+          isDirty: false,
+          isPristine: true
+        })
+        done()
+      }
+    }
+    mount(
+      <Form>
+        <TestFieldSet name='foo'/>
+      </Form>
+    )
+  })
+
   it('namespaces descendant fields', () => {
     const wrapper = mount(
       <Form>
@@ -24,8 +46,8 @@ describe('FieldSet', () => {
         </FieldSet>
       </Form>
     )
-    const { fields: { foo: { bar } } } = wrapper.instance()
-    expect(bar.path).to.deep.equal(['foo', 'bar'])
+    const { init: { foo: { bar } } } = wrapper.instance()
+    expect(bar).to.equal('')
   })
 
   it('namespaces descendant field sets', () => {
@@ -41,12 +63,36 @@ describe('FieldSet', () => {
     expect(bar).to.deep.equal({})
   })
 
-  it('namespaces descendant field arrays')
+  it('namespaces descendant field arrays', () => {
+    const wrapper = mount(
+      <Form>
+        <FieldSet name='foo'>
+          <FieldArray name='bar'>
+          </FieldArray>
+        </FieldSet>
+      </Form>
+    )
+    const { init: { foo: { bar } } } = wrapper.instance()
+    expect(bar).to.deep.equal([])
+  })
 
-  it('tracks descendant field mutations')
-
-  it('tracks descendant field set mutations')
-
-  it('tracks descendant field array mutations')
+  it('tracks mutations of its descendant fields', done => {
+    class TestFieldSet extends FieldSet {
+      componentDidUpdate() {
+        super.componentDidUpdate()
+        expect(this.fieldSet.mutations).to.equal(1)
+        done()
+      }
+    }
+    const wrapper = mount(
+      <Form>
+        <TestFieldSet name='foo'>
+          <Input name='bar'/>
+        </TestFieldSet>
+      </Form>
+    )
+    const { fields: { foo: { bar } } } = wrapper.instance()
+    bar.update({ isTouched: true })
+  })
 
 })

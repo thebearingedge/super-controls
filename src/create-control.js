@@ -38,8 +38,8 @@ export default function createControl(component) {
         this.setState({ mutations: this.field.mutations })
       }
       shouldComponentUpdate(nextProps, nextState) {
-        return this.state.mutations !== this.field.mutations ||
-               !equalProps(this.props, nextProps)
+        return !equalProps(this.props, nextProps) ||
+               nextState.mutations !== this.field.mutations
       }
       render() {
         const { id, name, ...props } = this.props

@@ -32,7 +32,7 @@ export default function modelField(form, paths) {
       value: 0
     },
     update: {
-      configurable: true,
+      writable: true,
       value(state) {
         field.mutations++
         form.update(field.path, state)

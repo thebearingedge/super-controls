@@ -2,7 +2,7 @@ import { someLeaves, fromThunks, createKey } from './util'
 
 export default function modelFieldArray(form, paths) {
 
-  const init = form.getValue(fromThunks(paths))
+  const init = form.getInit(fromThunks(paths))
 
   const fieldArray = {
     get fields() {
