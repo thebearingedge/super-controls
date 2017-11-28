@@ -11,16 +11,14 @@ describe('createControl', () => {
   it('accepts a configuration object', () => {
     const propTypes = { foo() {} }
     const defaultProps = { foo: 'foo' }
-    const Input = createControl(({ field, control, ...props }) =>
-      <input {...props}/>
-    )({
+    const Controlled = createControl(() => null)({
       propTypes,
       defaultProps
     })
-    expect(Input)
+    expect(Controlled)
       .to.have.property('propTypes')
       .that.includes(propTypes)
-    expect(Input)
+    expect(Controlled)
       .to.have.property('defaultProps')
       .that.includes(defaultProps)
   })
@@ -50,7 +48,7 @@ describe('createControl', () => {
 
   it('forwards props to its component', () => {
     const Input = createControl(({ control, ...props }) =>
-      <input {...props} {...control}/>
+      <input {...control} {...props}/>
     )()
     const wrapper = withContext(
       <Input id='foo' name='test' className='form-control'/>
@@ -69,7 +67,7 @@ describe('createControl', () => {
 
   it('accepts a custom valueKey', () => {
     const Input = createControl(({ control, ...props }) =>
-      <input {...props} {...control}/>
+      <input {...control} {...props}/>
     )({
       valueKey: 'checked',
       defaultProps: {
@@ -83,11 +81,11 @@ describe('createControl', () => {
   it('optionally injects a field object into its component', () => {
     const Simple = createControl(({ field, control }) => {
       expect(field).to.equal(void 0)
-      return <input {...control}/>
+      return null
     })()
     const Advanced = createControl(({ field, control }) => {
       expect(field).to.be.an('object')
-      return <input {...control}/>
+      return null
     })({
       injectField: true
     })
@@ -138,7 +136,7 @@ describe('createControl', () => {
 
   it('it re-renders when it receives new non-children props', done => {
     const Input = createControl(({ control, ...props }) =>
-      <input {...props} {...control}/>
+      <input {...control} {...props}/>
     )()
     stub(Input.prototype, 'componentDidUpdate')
       .callThrough()
