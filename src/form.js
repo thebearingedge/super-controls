@@ -3,7 +3,7 @@ import { object } from 'prop-types'
 import modelField from './model-field'
 import modelFieldSet from './model-field-set'
 import modelFieldArray from './model-field-array'
-import { id, get, set, fromThunks, isUndefined, mapProperties } from './_util'
+import { id, get, set, fromThunks, isUndefined, mapProperties } from './util'
 
 export default class Form extends Component {
   constructor(...args) {

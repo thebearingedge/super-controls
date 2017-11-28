@@ -1,4 +1,4 @@
-import { someLeaves, fromThunks } from './_util'
+import { someLeaves, fromThunks } from './util'
 
 export default function modelFieldSet(form, paths) {
   const fieldSet = {

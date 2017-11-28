@@ -1,9 +1,9 @@
 import React from 'react'
 import { describe, it } from 'mocha'
 import { mount, expect, toThunks } from './__test__'
-import Form from './_form'
+import Form from './form'
 
-describe('_Form', () => {
+describe('Form', () => {
 
   describe('render', () => {
 

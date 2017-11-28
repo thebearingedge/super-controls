@@ -1,4 +1,4 @@
-import { someLeaves, fromThunks, createKey } from './_util'
+import { someLeaves, fromThunks, createKey } from './util'
 
 export default function modelFieldArray(form, paths) {
 

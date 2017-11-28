@@ -1,4 +1,4 @@
-import { fromThunks } from './_util'
+import { fromThunks } from './util'
 
 export default function modelField(form, paths) {
   const field = {
