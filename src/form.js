@@ -22,6 +22,8 @@ export default class Form extends Component {
       values: mapProperties(this.props.values, id),
       touched: {}
     }
+    this.onReset = this.onReset.bind(this)
+    this.onSubmit = this.onSubmit.bind(this)
     this.registerField = this.registerField.bind(this)
     this.registerFieldSet = this.registerFieldSet.bind(this)
     this.registerFieldArray = this.registerFieldArray.bind(this)
@@ -29,6 +31,18 @@ export default class Form extends Component {
   getChildContext() {
     const { registerField, registerFieldSet, registerFieldArray } = this
     return { registerField, registerFieldSet, registerFieldArray }
+  }
+  onReset(event) {
+    event.preventDefault()
+    this.init = mapProperties(this.props.values, id)
+    this.setState({
+      values: mapProperties(this.props.values, id),
+      touched: {}
+    })
+  }
+  onSubmit(event) {
+    event.preventDefault()
+    this.props.onSubmit(mapProperties(this.state.values, id))
   }
   update(path, state) {
     this.setState(({ values, touched }) => {
@@ -86,16 +100,23 @@ export default class Form extends Component {
     return modelFieldArray(this, paths)
   }
   render() {
-    return createElement('form', omit(this.props, ['values']))
+    const { onReset, onSubmit } = this
+    return createElement('form', {
+      ...omit(this.props, ['values']),
+      onReset,
+      onSubmit
+    })
   }
 }
 
 Form.propTypes = {
-  values: object
+  values: object,
+  onSubmit: func
 }
 
 Form.defaultProps = {
-  values: {}
+  values: {},
+  onSubmit: () => {}
 }
 
 Form.childContextTypes = {
