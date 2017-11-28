@@ -6,8 +6,6 @@ export const equalExcept = (...keys) => (a, b) => {
          aKeys.every(key => keys.includes(key) || a[key] === b[key])
 }
 
-export const equalState = equalExcept()
-
 export const equalProps = equalExcept('children')
 
 export const set = (target, [ key, ...path ], value) => {

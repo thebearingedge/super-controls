@@ -6,6 +6,7 @@ import enzyme from 'enzyme'
 import sinonChai from 'sinon-chai'
 import chaiEnzyme from 'chai-enzyme'
 import Adapter from 'enzyme-adapter-react-16'
+import { fromThunks } from './util'
 
 before(() => {
   chai.use(chaiEnzyme())
@@ -27,4 +28,44 @@ export const { stub, spy } = sinon
 
 export function toThunks(path) {
   return path.split('.').map(key => () => key)
+}
+
+export function mockField({ paths, value }) {
+  const field = {
+    get init() {
+      return value
+    },
+    get value() {
+      return value
+    },
+    get isTouched() {
+      return false
+    },
+    get isDirty() {
+      return false
+    },
+    get isPristine() {
+      return true
+    }
+  }
+  return Object.defineProperties(field, {
+    form: {
+      value: null
+    },
+    path: {
+      get() {
+        return fromThunks(paths)
+      }
+    },
+    mutations: {
+      writable: true,
+      value: 0
+    },
+    update: {
+      configurable: true,
+      value() {
+        field.mutations++
+      }
+    }
+  })
 }

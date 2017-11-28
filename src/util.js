@@ -86,3 +86,15 @@ export function id(x) {
 export function createKey() {
   return Math.random().toString(36).substr(2, 10)
 }
+
+export function equalExcept(...keys) {
+  return function (a, b) {
+    if (a === b) return true
+    const aKeys = Object.keys(a)
+    const bKeys = Object.keys(b)
+    return aKeys.length === bKeys.length &&
+           aKeys.every(key => keys.includes(key) || a[key] === b[key])
+  }
+}
+
+export const equalProps = equalExcept('children')

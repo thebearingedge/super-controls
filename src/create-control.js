@@ -1,6 +1,6 @@
 import { createElement, Component } from 'react'
 import { func, string } from 'prop-types'
-import { equalState, equalProps } from '../util'
+import { isUndefined, equalProps } from './util'
 
 export default function createControl(component) {
 
@@ -20,10 +20,10 @@ export default function createControl(component) {
       constructor(...args) {
         super(...args)
         this.field = this.context.registerField({
-          name: this.props.name,
+          paths: [() => this.props.name],
           value: this.props[valueKey]
         })
-        this.state = { ...this.field }
+        this.state = { mutations: this.field.mutations }
         this.onBlur = this.onBlur.bind(this)
         this.onChange = this.onChange.bind(this)
       }
@@ -35,10 +35,10 @@ export default function createControl(component) {
         this.field.update({ isTouched: true })
       }
       componentDidUpdate() {
-        this.setState({ ...this.field })
+        this.setState({ mutations: this.field.mutations })
       }
       shouldComponentUpdate(nextProps, nextState) {
-        return !equalState(this.field, nextState) ||
+        return this.state.mutations !== this.field.mutations ||
                !equalProps(this.props, nextProps)
       }
       render() {
@@ -50,7 +50,7 @@ export default function createControl(component) {
           onChange,
           [valueKey]: field.value
         }
-        if (id !== void 0) control.id = id === true ? name : id
+        if (!isUndefined(id)) control.id = id === true ? name : id
         const componentProps = {
           ...props,
           control
