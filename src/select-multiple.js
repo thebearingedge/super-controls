@@ -1,6 +1,6 @@
 import { Component, createElement } from 'react'
-import { func, object, array } from 'prop-types'
-import createControl from '../create-control'
+import { object, array } from 'prop-types'
+import createControl from './create-control'
 
 class SelectMultiple extends Component {
   constructor(...args) {
@@ -16,18 +16,16 @@ class SelectMultiple extends Component {
     const { control, ...props } = this.props
     const { onChange } = this
     return createElement('select', {
-      ...props,
       ...control,
       onChange,
+      ...props,
       multiple: true
     })
   }
 }
 
 SelectMultiple.propTypes = {
-  field: object,
   control: object,
-  onChange: func,
   value: array
 }
 
