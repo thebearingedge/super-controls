@@ -350,36 +350,23 @@ describe('Form', () => {
     })
 
     it('"pushes" a new field into an array', () => {
-      const values = { foo: [{ bar: '' }] }
+      const values = { foo: [''] }
       const wrapper = mount(<Form values={values}/>)
       const form = wrapper.instance()
       const bars = form.registerFieldArray({
         paths: toThunks('foo')
       })
       form.registerField({
-        paths: toThunks('foo.0.bar'),
+        paths: toThunks('foo.0'),
         value: ''
       })
-      bars.push({ bar: 'baz' })
+      bars.push('bar')
       expect(form.init).to.deep.equal({
-        foo: [
-          { bar: '' },
-          { bar: 'baz' }
-        ]
+        foo: ['', 'bar']
       })
       expect(form.state).to.deep.equal({
-        values: {
-          foo: [
-            { bar: '' },
-            { bar: 'baz' }
-          ]
-        },
-        touched: {
-          foo: [
-            { bar: false },
-            {}
-          ]
-        }
+        values: { foo: ['', 'bar'] },
+        touched: { foo: [false, false] }
       })
     })
 
@@ -404,7 +391,7 @@ describe('Form', () => {
       })
       expect(form.state).to.deep.equal({
         values: { foo: [{ bar: 'baz' }] },
-        touched: { foo: [{ bar: false }, { bar: false }] }
+        touched: { foo: [{ bar: false }] }
       })
     })
 
@@ -424,7 +411,7 @@ describe('Form', () => {
       })
       expect(form.state).to.deep.equal({
         values: { foo: [{ bar: '' }, { bar: '' }] },
-        touched: { foo: [{}, { bar: false }] }
+        touched: { foo: [{ bar: false }, { bar: false }] }
       })
     })
 
@@ -444,7 +431,7 @@ describe('Form', () => {
       bars.shift()
       expect(form.state).to.deep.equal({
         values: { foo: [{ bar: 'baz' }] },
-        touched: { foo: [{ bar: false }, { bar: false }] }
+        touched: { foo: [{ bar: false }] }
       })
     })
 

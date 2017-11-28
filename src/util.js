@@ -27,37 +27,45 @@ export function omit(obj, props) {
     }), {})
 }
 
+export function insert(array, index, value) {
+  return [
+    ...array.slice(0, index),
+    value,
+    ...array.slice(index)
+  ]
+}
+
+export function sliceIn(array, index, value) {
+  return [
+    ...array.slice(0, index),
+    value,
+    ...array.slice(index + 1)
+  ]
+}
+
+export function sliceOut(array, index, value) {
+  return [...array.slice(0, index), ...array.slice(index + 1)]
+}
+
 export function set(target, [ key, index, ...path ], value) {
   if (isUndefined(index)) {
     return isObject(target)
       ? { ...target, [key]: value }
-      : [...target.slice(0, key), value, ...target.slice(key + 1)]
+      : sliceIn(target, key, value)
   }
   if (isInteger(index)) {
     const nested = target[key] || []
     if (isArray(target)) {
-      return [
-        ...target.slice(0, key),
-        set(nested, [index, ...path], value),
-        ...target.slice(key + 1)
-      ]
+      return sliceIn(target, key, set(nested, [index, ...path], value))
     }
     return {
       ...target,
-      [key]: [
-        ...nested.slice(0, index),
-        ...set(nested, [index, ...path], value),
-        ...nested.slice(index + 1)
-      ]
+      [key]: sliceIn(nested, index, set(nested, [index, ...path], value)[0])
     }
   }
   const nested = target[key] || {}
   if (isArray(target)) {
-    return [
-      ...target.slice(0, key),
-      set(nested, [index, ...path], value),
-      ...target.slice(key + 1)
-    ]
+    return sliceIn(target, key, set(nested, [index, ...path], value))
   }
   return {
     ...target,
@@ -73,18 +81,20 @@ export function get(source, [key, ...path], fallback) {
 
 export function mapProperties(target, transform, path = []) {
   if (isArray(target)) {
-    if (!isObject(target[0])) return transform(target, path)
     return target.map((child, i) =>
       mapProperties(child, transform, [...path, i])
     )
   }
-  return keys(target)
-    .reduce((mapped, key) => {
-      const keyPath = [...path, key]
-      return isObject(target[key]) || isArray(target[key])
-        ? { ...mapped, [key]: mapProperties(target[key], transform, keyPath) }
-        : { ...mapped, [key]: transform(target[key], keyPath) }
-    }, {})
+  if (isObject(target)) {
+    return keys(target)
+      .reduce((mapped, key) => {
+        const keyPath = [...path, key]
+        return isObject(target[key]) || isArray(target[key])
+          ? { ...mapped, [key]: mapProperties(target[key], transform, keyPath) }
+          : { ...mapped, [key]: transform(target[key], keyPath) }
+      }, {})
+  }
+  return transform(target, path)
 }
 
 export function someLeaves(target, predicate) {

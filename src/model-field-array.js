@@ -1,4 +1,11 @@
-import { someLeaves, fromThunks, createKey } from './util'
+import {
+  insert,
+  sliceOut,
+  createKey,
+  someLeaves,
+  fromThunks,
+  mapProperties
+} from './util'
 
 export default function modelFieldArray(form, paths) {
 
@@ -50,24 +57,17 @@ export default function modelFieldArray(form, paths) {
     insert: {
       value(index, values) {
         const { form, path, keys: oldKeys, value: oldValue } = this
+        this.mutations++
+        this.keys = insert(oldKeys, index, createKey())
         const oldInit = form.getInit(path)
         const oldTouched = form.getTouched(path, [])
-        const [ value, init ] = [oldValue, oldInit].map(collection => [
-          ...collection.slice(0, index),
-          values,
-          ...collection.slice(index)
-        ])
-        const isTouched = [
-          ...oldTouched.slice(0, index),
-          {},
-          ...oldTouched.slice(index)
-        ]
-        this.keys = [
-          ...oldKeys.slice(0, index),
-          createKey(),
-          ...oldKeys.slice(index)
-        ]
-        fieldArray.mutations++
+        const init = insert(oldInit, index, values)
+        const value = insert(oldValue, index, values)
+        const isTouched = insert(
+          oldTouched,
+          index,
+          mapProperties(values, _ => false)
+        )
         form.setInit(path, init)
         form.update(path, { value, isTouched })
       }
@@ -75,19 +75,13 @@ export default function modelFieldArray(form, paths) {
     remove: {
       value(index) {
         const { form, path, keys: oldKeys, value: oldValue } = this
+        this.mutations++
+        this.keys = sliceOut(oldKeys, index)
         const oldInit = form.getInit(path)
         const oldTouched = form.getTouched(path)
-        const [ init, keys, value, isTouched ] = [
-          oldInit,
-          oldKeys,
-          oldValue,
-          oldTouched
-        ].map(collection => [
-          ...collection.slice(0, index),
-          ...collection.slice(index + 1)
-        ])
-        fieldArray.mutations++
-        this.keys = keys
+        const init = sliceOut(oldInit, index)
+        const value = sliceOut(oldValue, index)
+        const isTouched = sliceOut(oldTouched, index)
         form.setInit(path, init)
         form.update(path, { value, isTouched })
       }
