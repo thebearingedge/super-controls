@@ -7,9 +7,15 @@ describe('util', () => {
   describe('add', () => {
 
     it('adds an element to an array', () => {
-      const input = freeze(['foo', 'baz'])
-      const output = add(input, [1], 'bar')
+      const input = freeze(['foo', 'bar'])
+      const output = add(input, [2], 'baz')
       expect(output).to.deep.equal(['foo', 'bar', 'baz'])
+    })
+
+    it('does not overwrite an element in an array', () => {
+      const input = freeze(['foo', 'bar'])
+      const output = add(input, [0], 'baz')
+      expect(output).to.deep.equal(['foo', 'bar'])
     })
 
     it('adds a property to an object', () => {
@@ -18,9 +24,15 @@ describe('util', () => {
       expect(output).to.deep.equal({ foo: 'bar', baz: 'qux' })
     })
 
+    it('does not overwrite a property on an object', () => {
+      const input = freeze({ foo: 'bar' })
+      const output = add(input, ['foo'], 'qux')
+      expect(output).to.deep.equal({ foo: 'bar' })
+    })
+
     it('adds an element to an array property', () => {
-      const input = freeze({ foo: ['bar', 'qux'] })
-      const output = add(input, ['foo', 1], 'baz')
+      const input = freeze({ foo: ['bar', 'baz'] })
+      const output = add(input, ['foo', 2], 'qux')
       expect(output).to.deep.equal({ foo: ['bar', 'baz', 'qux'] })
     })
 

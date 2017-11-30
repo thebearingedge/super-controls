@@ -18,9 +18,9 @@ export const omit = (obj, props) =>
 
 export const assign = (...args) => Object.assign({}, ...args)
 
-export const sliceIn = (array, index, val) => [
+export const sliceIn = (array, index, value) => [
   ...array.slice(0, index),
-  val,
+  value,
   ...array.slice(index)
 ]
 
@@ -35,10 +35,22 @@ export const sliceOver = (array, index, val) => [
   ...array.slice(index + 1)
 ]
 
-export const insert = (target, key, val) =>
+export const sliceAt = (array, index, val) => {
+  const sliced = Array(Math.max(index + 1, array.length))
+  array.slice(0, index).forEach((val, i) => {
+    sliced[i] = val
+  })
+  sliced[index] = val
+  array.slice(index).forEach((val, i) => {
+    sliced[index + i] = val
+  })
+  return sliced
+}
+
+export const ensure = (target, key, val) =>
   isArray(target)
-    ? sliceIn(target, key, val)
-    : assign(target, { [key]: val })
+    ? sliceAt(target, key, val)
+    : assign(target, { [key]: exists(target, key) ? target[key] : val })
 
 export const replace = (target, key, val) =>
   isArray(target)
@@ -55,7 +67,7 @@ export const remove = (target, key) =>
     ? sliceOut(target, key)
     : omit(target, [key])
 
-export const add = (...args) => update(insert, ...args)
+export const add = (...args) => update(ensure, ...args)
 
 export const set = (...args) => update(replace, ...args)
 

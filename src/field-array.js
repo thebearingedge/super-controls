@@ -1,6 +1,6 @@
-import { Component } from 'react'
+import { Component, createElement } from 'react'
 import { func, string, number, oneOfType } from 'prop-types'
-import { equalProps } from './util'
+import { equalProps, omit } from './util'
 
 export default class FieldArray extends Component {
   constructor(...args) {
@@ -54,7 +54,11 @@ export default class FieldArray extends Component {
     })
   }
   render() {
-    return this.props.children(this.model)
+    const children = this.props.children(this.model)
+    return createElement('fieldset', {
+      children,
+      ...omit(this.props, ['children'])
+    })
   }
 }
 

@@ -4,6 +4,7 @@ import Form from '../form'
 import Text from '../text'
 import Input from '../input'
 import FieldSet from '../field-set'
+import FieldArray from '../field-array'
 
 const handleSubmit = values =>
   console.log(JSON.stringify(values, null, 2))
@@ -17,7 +18,8 @@ const values = {
     contactInfo: {
       email: 'foo@bar.baz',
       phone: '800-800-8000'
-    }
+    },
+    friends: ['foo', 'bar', 'baz']
   }
 }
 
@@ -49,6 +51,23 @@ render(
           <Input type='phone' id name='phone' className='form-control'/>
         </div>
       </FieldSet>
+      <FieldArray name='friends'>
+        { friends =>
+          <div>
+            <legend><small>Friends</small></legend>
+            <hr/>
+            { friends.map((_, i, key) =>
+              <div className='form-group' key={key}>
+                <Text
+                  id={key}
+                  name={i}
+                  placeholder='Name'
+                  className='form-control'/>
+              </div>
+            )}
+          </div>
+        }
+      </FieldArray>
     </FieldSet>
     <button type='reset' className='btn btn-outline-secondary'>
       Reset

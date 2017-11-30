@@ -3,7 +3,7 @@ import { func, object } from 'prop-types'
 import modelField from './model-field'
 import modelFieldSet from './model-field-set'
 import modelFieldArray from './model-field-array'
-import { id, get, set, omit, noop, invoke, mapProperties } from './util'
+import { id, add, get, set, omit, noop, invoke, mapProperties } from './util'
 
 export default class Form extends Component {
   constructor(...args) {
@@ -46,7 +46,7 @@ export default class Form extends Component {
         nextState.values = set(values, path, state.value)
       }
       if ('isTouched' in state) {
-        nextState.touched = set(touched, path, state.isTouched)
+        nextState.touched = add(touched, path, state.isTouched)
       }
       if ('registered' in state) {
         nextState.fields = set(fields, path, state.registered)
