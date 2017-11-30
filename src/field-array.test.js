@@ -21,7 +21,7 @@ describe('FieldArray', () => {
   it('registers a field array model', done => {
     class TestFieldArray extends FieldArray {
       componentDidMount() {
-        expect(this.fieldArray).to.deep.equal({
+        expect(this.model).to.deep.equal({
           fields: [],
           init: [],
           value: [],
@@ -40,36 +40,40 @@ describe('FieldArray', () => {
     )
   })
 
-  it('namespaces descendant field sets', done => {
-    class TestFieldSet extends FieldSet {
+  it('namespaces descendant fields', done => {
+    class TestInput extends Input {
       componentDidMount() {
-        expect(this.fieldSet.path).to.deep.equal(['foo', 0])
+        expect(this.model.path).to.deep.equal(['foo', 0])
         done()
       }
     }
     mount(
-      <Form>
-        <FieldArray name='foo' value={[{}]}>
+      <Form values={{ foo: [''] }}>
+        <FieldArray name='foo'>
           { foo =>
-            foo.map((foo, i, key) => <TestFieldSet name={i} key={key}/>)
+            foo.map((_, i, key) => <TestInput name={i} key={key}/>)
           }
         </FieldArray>
       </Form>
     )
   })
 
-  it('namespaces descendant fields', done => {
+  it('namespaces descendant field sets', done => {
     class TestInput extends Input {
       componentDidMount() {
-        expect(this.field.path).to.deep.equal(['foo', 0])
+        expect(this.model.path).to.deep.equal(['foo', 0, 'bar'])
         done()
       }
     }
     mount(
-      <Form>
-        <FieldArray name='foo' value={['']}>
+      <Form values={{ foo: [''] }}>
+        <FieldArray name='foo'>
           { foo =>
-            foo.map((foo, i, key) => <TestInput name={i} key={key}/>)
+            foo.map((foo, i, key) =>
+              <FieldSet name={i} key={key}>
+                <TestInput name='bar'/>
+              </FieldSet>
+            )
           }
         </FieldArray>
       </Form>
@@ -79,16 +83,16 @@ describe('FieldArray', () => {
   it('namespaces descendant field arrays', done => {
     class TestInput extends Input {
       componentDidMount() {
-        expect(this.field.path).to.deep.equal(['foo', 0, 0])
+        expect(this.model.path).to.deep.equal(['foo', 0, 0])
         done()
       }
     }
     mount(
-      <Form>
-        <FieldArray name='foo' value={[['']]}>
+      <Form values={{ foo: [['']] }}>
+        <FieldArray name='foo'>
           { foo =>
             foo.map((_, i, key) =>
-              <FieldArray name={i} key={key} value={['']}>
+              <FieldArray name={i} key={key}>
                 { zero =>
                   zero.map((_, i, key) =>
                     <TestInput name={i} key={key}/>
@@ -102,25 +106,24 @@ describe('FieldArray', () => {
     )
   })
 
-  it('tracks mutations of its descendant fields', done => {
+  it('tracks touches of its descendant fields', done => {
     class TestFieldArray extends FieldArray {
       componentDidUpdate() {
         super.componentDidUpdate()
-        expect(this.fieldArray.mutations).to.equal(1)
-        done()
+        this.model.touches && done()
       }
     }
     const wrapper = mount(
-      <Form>
-        <TestFieldArray name='foo' value={['']}>
-          { foo =>
-            foo.map((_, i, key) => <Input name={i} key={key}/>)
+      <Form values={{ foos: [''] }}>
+        <TestFieldArray name='foos'>
+          { foos =>
+            foos.map((_, i, key) => <Input name={i} key={key}/>)
           }
         </TestFieldArray>
       </Form>
     )
-    const { fields: { foo: [ bar ] } } = wrapper.instance()
-    bar.update({ isTouched: true })
+    const { fields: { foos: [ foo ] } } = wrapper.state()
+    foo.update({ isTouched: true })
   })
 
 })

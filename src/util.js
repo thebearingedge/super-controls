@@ -1,3 +1,5 @@
+export const noop = () => {}
+
 export const isObject = val =>
   Object.prototype.toString.call(val) === '[object Object]'
 
@@ -68,8 +70,6 @@ export const get = (source, [key, ...path], fallback) => {
   if (!path.length) return source[key]
   return get(source[key], path, fallback)
 }
-
-export const has = (source, path) => !isUndefined(get(source, path))
 
 export const unset = (target, [key, ...path], val) => {
   if (!exists(target, key)) return target

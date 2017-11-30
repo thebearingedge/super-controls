@@ -1,9 +1,9 @@
-import { fromThunks } from './util'
+import { invoke } from './util'
 
-export default function modelField(form, paths) {
-  const field = {
+export default function modelField(form, init, paths) {
+  const model = {
     get init() {
-      return form.getInit(this.path)
+      return form.getInit(this.path, init)
     },
     get value() {
       return form.getValue(this.path, this.init)
@@ -18,25 +18,16 @@ export default function modelField(form, paths) {
       return !this.isDirty
     }
   }
-  return Object.defineProperties(field, {
+  return Object.defineProperties(model, {
     form: {
       value: form
     },
     path: {
-      get() {
-        return fromThunks(paths)
-      }
-    },
-    mutations: {
-      writable: true,
-      value: 0
+      get: () => paths.map(invoke)
     },
     update: {
       writable: true,
-      value(state) {
-        field.mutations++
-        form.update(field.path, state)
-      }
+      value: state => form.update(model.path, state)
     }
   })
 }

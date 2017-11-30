@@ -57,6 +57,10 @@ render(
     <button type='reset' className='btn btn-outline-secondary'>
       Reset
     </button>
+    { ' ' }
+    <button type='submit' className='btn btn-primary'>
+      Submit
+    </button>
   </Form>,
   document.querySelector('#app')
 )

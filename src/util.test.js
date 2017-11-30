@@ -2,7 +2,7 @@ import { describe, it } from 'mocha'
 import { expect, freeze } from './__test__'
 import { add, set, unset } from './util'
 
-describe.only('util', () => {
+describe('util', () => {
 
   describe('add', () => {
 

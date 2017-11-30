@@ -1,12 +1,12 @@
-import { someLeaves, fromThunks } from './util'
+import { invoke, someLeaves } from './util'
 
 export default function modelFieldSet(form, paths) {
-  const fieldSet = {
+  const model = {
     get fields() {
       return form.getField(this.path, {})
     },
     get init() {
-      return form.getInit(this.path)
+      return form.getInit(this.path, {})
     },
     get value() {
       return form.getValue(this.path, this.init)
@@ -21,18 +21,19 @@ export default function modelFieldSet(form, paths) {
       return !this.isDirty
     }
   }
-  return Object.defineProperties(fieldSet, {
+  return Object.defineProperties(model, {
     form: {
       value: form
     },
     path: {
-      get() {
-        return fromThunks(paths)
-      }
+      get: () => paths.map(invoke)
     },
-    mutations: {
+    touches: {
       writable: true,
       value: 0
+    },
+    touch: {
+      value: () => model.touches++
     }
   })
 }

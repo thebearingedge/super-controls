@@ -1,15 +1,17 @@
 import { Component } from 'react'
-import { func, array, string, number, oneOfType } from 'prop-types'
+import { func, string, number, oneOfType } from 'prop-types'
 import { equalProps } from './util'
 
 export default class FieldArray extends Component {
   constructor(...args) {
     super(...args)
-    this.fieldArray = this.context.registerFieldArray({
-      paths: [_ => this.props.name],
-      value: this.props.value
+    this.model = this.context.registerFieldArray({
+      paths: [_ => this.props.name]
     })
-    this.state = { mutations: this.fieldArray.mutations }
+    this.state = {
+      value: this.model.value,
+      touches: this.model.touches
+    }
     this.registerField = this.registerField.bind(this)
     this.registerFieldSet = this.registerFieldSet.bind(this)
     this.registerFieldArray = this.registerFieldArray.bind(this)
@@ -20,10 +22,14 @@ export default class FieldArray extends Component {
   }
   shouldComponentUpdate(nextProps, nextState) {
     return !equalProps(this.props, nextProps) ||
-           nextState.mutations !== this.fieldArray.mutations
+           nextState.value !== this.model.value ||
+           nextState.touches !== this.model.touches
   }
   componentDidUpdate() {
-    this.setState({ mutations: this.fieldArray.mutations })
+    this.setState({
+      value: this.model.value,
+      touches: this.model.touches
+    })
   }
   registerField({ paths, value }) {
     const field = this.context.registerField({
@@ -31,37 +37,33 @@ export default class FieldArray extends Component {
       value
     })
     const { update } = field
-    field.update = (...args) => {
-      this.fieldArray.mutations++
-      update(...args)
+    field.update = state => {
+      state.isTouched && this.model.touch()
+      update(state)
     }
     return field
   }
-  registerFieldSet({ paths, value }) {
+  registerFieldSet({ paths }) {
     return this.context.registerFieldSet({
-      paths: [_ => this.props.name, ...paths],
-      value
+      paths: [_ => this.props.name, ...paths]
     })
   }
-  registerFieldArray({ paths, value }) {
+  registerFieldArray({ paths }) {
     return this.context.registerFieldArray({
-      paths: [_ => this.props.name, ...paths],
-      value
+      paths: [_ => this.props.name, ...paths]
     })
   }
   render() {
-    return this.props.children(this.fieldArray)
+    return this.props.children(this.model)
   }
 }
 
 FieldArray.propTypes = {
   name: oneOfType([string, number]).isRequired,
-  children: func,
-  value: array
+  children: func
 }
 
 FieldArray.defaultProps = {
-  value: [],
   children: _ => null
 }
 

@@ -20,7 +20,7 @@ describe('FieldSet', () => {
   it('registers a field set model', done => {
     class TestFieldSet extends FieldSet {
       componentDidMount() {
-        expect(this.fieldSet).to.deep.equal({
+        expect(this.model).to.deep.equal({
           fields: {},
           init: {},
           value: {},
@@ -46,8 +46,14 @@ describe('FieldSet', () => {
         </FieldSet>
       </Form>
     )
-    const { init: { foo: { bar } } } = wrapper.instance()
-    expect(bar).to.equal('')
+    const { fields: { foo: { bar } } } = wrapper.state()
+    expect(bar).to.deep.equal({
+      init: '',
+      value: '',
+      isTouched: false,
+      isDirty: false,
+      isPristine: true
+    })
   })
 
   it('namespaces descendant field sets', () => {
@@ -55,33 +61,50 @@ describe('FieldSet', () => {
       <Form>
         <FieldSet name='foo'>
           <FieldSet name='bar'>
+            <Input name='baz'/>
           </FieldSet>
         </FieldSet>
       </Form>
     )
-    const { init: { foo: { bar } } } = wrapper.instance()
-    expect(bar).to.deep.equal({})
+    const { fields: { foo: { bar: { baz } } } } = wrapper.state()
+    expect(baz).to.deep.equal({
+      init: '',
+      value: '',
+      isTouched: false,
+      isDirty: false,
+      isPristine: true
+    })
   })
 
   it('namespaces descendant field arrays', () => {
     const wrapper = mount(
-      <Form>
+      <Form values={{ foo: { bars: [''] } }}>
         <FieldSet name='foo'>
-          <FieldArray name='bar'>
+          <FieldArray name='bars'>
+            { bars =>
+              bars.map((_, i, key) =>
+                <Input name={i} key={key}/>
+              )
+            }
           </FieldArray>
         </FieldSet>
       </Form>
     )
-    const { init: { foo: { bar } } } = wrapper.instance()
-    expect(bar).to.deep.equal([])
+    const { fields: { foo: { bars: [ bar ] } } } = wrapper.state()
+    expect(bar).to.deep.equal({
+      init: '',
+      value: '',
+      isTouched: false,
+      isDirty: false,
+      isPristine: true
+    })
   })
 
-  it('tracks mutations of its descendant fields', done => {
+  it('tracks touches of its descendant fields', done => {
     class TestFieldSet extends FieldSet {
       componentDidUpdate() {
         super.componentDidUpdate()
-        expect(this.fieldSet.mutations).to.equal(1)
-        done()
+        this.model.touches && done()
       }
     }
     const wrapper = mount(
@@ -91,7 +114,7 @@ describe('FieldSet', () => {
         </TestFieldSet>
       </Form>
     )
-    const { fields: { foo: { bar } } } = wrapper.instance()
+    const { fields: { foo: { bar } } } = wrapper.state()
     bar.update({ isTouched: true })
   })
 

@@ -7,7 +7,7 @@ import deepFreeze from 'deep-freeze'
 import sinonChai from 'sinon-chai'
 import chaiEnzyme from 'chai-enzyme'
 import Adapter from 'enzyme-adapter-react-16'
-import { fromThunks } from './util'
+import { invoke } from './util'
 
 before(() => {
   chai.use(chaiEnzyme())
@@ -43,12 +43,6 @@ export function mockField({ paths, value }) {
     get init() {
       return value
     },
-    get value() {
-      return value
-    },
-    get isTouched() {
-      return false
-    },
     get isDirty() {
       return false
     },
@@ -57,23 +51,21 @@ export function mockField({ paths, value }) {
     }
   }
   return Object.defineProperties(field, {
-    form: {
-      value: null
-    },
     path: {
-      get() {
-        return fromThunks(paths)
-      }
+      get: () => paths.map(invoke)
     },
-    mutations: {
+    value: {
       writable: true,
-      value: 0
+      value: value
+    },
+    isTouched: {
+      writable: true,
+      value: false
     },
     update: {
+      writeable: true,
       configurable: true,
-      value() {
-        field.mutations++
-      }
+      value() {}
     }
   })
 }

@@ -1,17 +1,16 @@
 import { Component, createElement } from 'react'
-import { func, object, string, number, oneOfType } from 'prop-types'
-import { equalProps, omit } from './util'
+import { func, string, number, oneOfType } from 'prop-types'
+import { equalProps } from './util'
 
 export default class FieldSet extends Component {
   constructor(...args) {
     super(...args)
-    this.fieldSet = this.context.registerFieldSet({
-      paths: [_ => this.props.name],
-      value: this.props.values
+    this.model = this.context.registerFieldSet({
+      paths: [_ => this.props.name]
     })
     this.state = {
-      value: this.fieldSet.value,
-      mutations: this.fieldSet.mutations
+      value: this.model.value,
+      touches: 0
     }
     this.registerField = this.registerField.bind(this)
     this.registerFieldSet = this.registerFieldSet.bind(this)
@@ -23,13 +22,13 @@ export default class FieldSet extends Component {
   }
   shouldComponentUpdate(nextProps, nextState) {
     return !equalProps(this.props, nextProps) ||
-           nextState.value !== this.fieldSet.value ||
-           nextState.mutations !== this.fieldSet.mutations
+           nextState.value !== this.model.value ||
+           nextState.touches !== this.model.touches
   }
   componentDidUpdate() {
     this.setState({
-      value: this.fieldSet.value,
-      mutations: this.fieldSet.mutations
+      value: this.model.value,
+      touches: this.model.touches
     })
   }
   registerField({ paths, value }) {
@@ -38,36 +37,29 @@ export default class FieldSet extends Component {
       value
     })
     const { update } = field
-    field.update = (...args) => {
-      this.fieldSet.mutations++
-      update(...args)
+    field.update = state => {
+      state.isTouched && this.model.touch()
+      update(state)
     }
     return field
   }
-  registerFieldSet({ paths, value }) {
+  registerFieldSet({ paths }) {
     return this.context.registerFieldSet({
-      paths: [_ => this.props.name, ...paths],
-      value
+      paths: [_ => this.props.name, ...paths]
     })
   }
-  registerFieldArray({ paths, value }) {
+  registerFieldArray({ paths }) {
     return this.context.registerFieldArray({
-      paths: [_ => this.props.name, ...paths],
-      value
+      paths: [_ => this.props.name, ...paths]
     })
   }
   render() {
-    return createElement('fieldset', omit(this.props, ['values']))
+    return createElement('fieldset', this.props)
   }
 }
 
 FieldSet.propTypes = {
-  name: oneOfType([string, number]).isRequired,
-  values: object
-}
-
-FieldSet.defaultProps = {
-  values: {}
+  name: oneOfType([string, number]).isRequired
 }
 
 FieldSet.childContextTypes = {

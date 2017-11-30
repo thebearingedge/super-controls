@@ -31,7 +31,7 @@ describe('SelectMultiple', () => {
         <option value='baz'/>
       </SelectMultiple>
     )
-    const update = spy(wrapper.instance().field, 'update')
+    const update = spy(wrapper.instance().model, 'update')
     wrapper.find('[value="baz"]').getDOMNode().checked = true
     wrapper.simulate('change')
     expect(update).to.have.been.calledWith({

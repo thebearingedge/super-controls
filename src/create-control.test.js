@@ -11,14 +11,14 @@ describe('createControl', () => {
   it('accepts a configuration object', () => {
     const propTypes = { foo() {} }
     const defaultProps = { foo: 'foo' }
-    const Controlled = createControl(() => null)({
+    const Control = createControl(() => null)({
       propTypes,
       defaultProps
     })
-    expect(Controlled)
+    expect(Control)
       .to.have.property('propTypes')
       .that.includes(propTypes)
-    expect(Controlled)
+    expect(Control)
       .to.have.property('defaultProps')
       .that.includes(defaultProps)
   })
@@ -28,8 +28,8 @@ describe('createControl', () => {
       <input {...control}/>
     )()
     const wrapper = mount(<Input name='test'/>)
-    const { field } = wrapper.instance()
-    expect(field.path).to.deep.equal(['test'])
+    const { model } = wrapper.instance()
+    expect(model.path).to.deep.equal(['test'])
   })
 
   it('renders a component', () => {
@@ -78,7 +78,7 @@ describe('createControl', () => {
     expect(wrapper.find('input[type="checkbox"]')).to.be.checked()
   })
 
-  it('optionally injects a field object into its component', () => {
+  it('optionally injects a field model into its component', () => {
     const Simple = createControl(({ field, control }) => {
       expect(field).to.equal(void 0)
       return null
@@ -98,7 +98,7 @@ describe('createControl', () => {
       <input {...control}/>
     )()
     const wrapper = mount(<Input name='test'/>)
-    const update = spy(wrapper.instance().field, 'update')
+    const update = spy(wrapper.instance().model, 'update')
     const input = wrapper.find('input')
     const target = Object.assign(input.getDOMNode(), { value: 'foo' })
     input.simulate('change', { target })
@@ -110,13 +110,13 @@ describe('createControl', () => {
       <input {...control}/>
     )()
     const wrapper = mount(<Input name='test'/>)
-    const update = spy(wrapper.instance().field, 'update')
+    const update = spy(wrapper.instance().model, 'update')
     const input = wrapper.find('input')
     input.simulate('blur')
     expect(update).to.have.been.calledWith({ isTouched: true })
   })
 
-  it('re-renders when its mutations state is out of sync', done => {
+  it('re-renders when its field is touched', done => {
     const Input = createControl(({ control }) =>
       <input {...control}/>
     )()
@@ -127,17 +127,43 @@ describe('createControl', () => {
       .callsFake(() => done())
       .onCall(2)
       .callsFake(() => done())
-    const { field } = wrapper.instance()
-    field.mutations++
-    wrapper.setState({ mutations: 0 })
-    wrapper.setState({ mutations: 0 })
-    wrapper.setState({ mutations: 1 })
+    const { model } = wrapper.instance()
+    model.isTouched = true
+    wrapper.setState({ isTouched: false })
+    wrapper.setState({ isTouched: false })
+    wrapper.setState({ isTouched: true })
+  })
+
+  it('re-renders when its field has a new value', done => {
+    const Input = createControl(({ control }) =>
+      <input {...control}/>
+    )({
+      defaultProps: {
+        value: ''
+      }
+    })
+    const wrapper = mount(<Input name='test'/>)
+    stub(Input.prototype, 'componentDidUpdate')
+      .callThrough()
+      .onCall(1)
+      .callsFake(() => done())
+      .onCall(2)
+      .callsFake(() => done())
+    const { model } = wrapper.instance()
+    model.value = ''
+    wrapper.setState({ value: 'foo' })
+    wrapper.setState({ value: 'foo' })
+    wrapper.setState({ value: '' })
   })
 
   it('it re-renders when it receives new non-children props', done => {
     const Input = createControl(({ control, ...props }) =>
       <input {...control} {...props}/>
-    )()
+    )({
+      defaultProps: {
+        value: ''
+      }
+    })
     stub(Input.prototype, 'componentDidUpdate')
       .callThrough()
       .onCall(0)

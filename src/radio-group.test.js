@@ -30,7 +30,7 @@ describe('RadioGroup', () => {
         <Radio value='baz'/>
       </RadioGroup>
     )
-    const update = spy(wrapper.instance().field, 'update')
+    const update = spy(wrapper.instance().model, 'update')
     wrapper.find('input[value="baz"]').simulate('change')
     expect(update).to.have.been.calledWith({
       value: 'baz',
@@ -46,7 +46,7 @@ describe('RadioGroup', () => {
         <Radio value='baz'/>
       </RadioGroup>
     )
-    stub(wrapper.instance().field, 'update')
+    stub(wrapper.instance().model, 'update')
       .callsFake(state => {
         expect(state).to.deep.equal({ isTouched: true })
         done()

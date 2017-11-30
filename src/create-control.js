@@ -19,50 +19,50 @@ export default function createControl(component) {
     class Control extends Component {
       constructor(...args) {
         super(...args)
-        this.field = this.context.registerField({
+        this.model = this.context.registerField({
           paths: [() => this.props.name],
           value: this.props[valueKey]
         })
         this.state = {
-          value: this.field.value,
-          isTouched: this.field.isTouched
+          value: this.model.value,
+          isTouched: this.model.isTouched
         }
         this.onBlur = this.onBlur.bind(this)
         this.onChange = this.onChange.bind(this)
       }
       onChange({ target }) {
-        this.field.update({ value: target[valueKey] })
+        this.model.update({ value: target[valueKey] })
       }
       onBlur() {
-        this.field.isTouched ||
-        this.field.update({ isTouched: true })
+        this.model.isTouched ||
+        this.model.update({ isTouched: true })
       }
       shouldComponentUpdate(nextProps, nextState) {
         return !equalProps(this.props, nextProps) ||
-               nextState.value !== this.field.value ||
-               nextState.isTouched !== this.field.isTouched
+               nextState.value !== this.model.value ||
+               nextState.isTouched !== this.model.isTouched
       }
       componentDidUpdate() {
         this.setState({
-          value: this.field.value,
-          isTouched: this.field.isTouched
+          value: this.model.value,
+          isTouched: this.model.isTouched
         })
       }
       render() {
         const { id, name, ...props } = this.props
-        const { field, onBlur, onChange } = this
+        const { model, onBlur, onChange } = this
         const control = {
           name,
           onBlur,
           onChange,
-          [valueKey]: field.value
+          [valueKey]: model.value
         }
         if (!isUndefined(id)) control.id = id === true ? name : id
         const componentProps = {
           ...omit(props, [valueKey]),
           control
         }
-        if (injectField) componentProps.field = field
+        if (injectField) componentProps.field = model
         return createElement(component, componentProps)
       }
     }

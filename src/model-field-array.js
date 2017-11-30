@@ -1,19 +1,21 @@
 import {
+  invoke,
   insert,
   sliceOut,
   createKey,
-  someLeaves,
-  fromThunks,
-  mapProperties
+  someLeaves
 } from './util'
 
 export default function modelFieldArray(form, paths) {
 
-  const init = form.getInit(fromThunks(paths))
+  const init = form.getInit(paths.map(invoke), [])
 
-  const fieldArray = {
+  const model = {
     get fields() {
       return form.getField(this.path, [])
+    },
+    get init() {
+      return form.getInit(this.path, [])
     },
     get value() {
       return form.getValue(this.path, this.init)
@@ -23,8 +25,7 @@ export default function modelFieldArray(form, paths) {
              someLeaves(this.fields, ({ isTouched }) => isTouched)
     },
     get isDirty() {
-      return this.value.length !== this.init.length ||
-             someLeaves(this.fields, ({ isDirty }) => isDirty)
+      return someLeaves(this.fields, ({ isDirty }) => isDirty)
     },
     get isPristine() {
       return !this.isDirty
@@ -33,85 +34,60 @@ export default function modelFieldArray(form, paths) {
       return this.value.length
     }
   }
-  return Object.defineProperties(fieldArray, {
+  return Object.defineProperties(model, {
     form: {
       value: form
     },
     path: {
-      get() {
-        return fromThunks(paths)
-      }
-    },
-    init: {
-      enumerable: true,
-      value: init
+      get: () => paths.map(invoke)
     },
     keys: {
       writable: true,
       value: init.map(_ => createKey())
     },
-    mutations: {
+    touches: {
       writable: true,
       value: 0
     },
+    touch: {
+      value: () => model.touches++
+    },
     insert: {
-      value(index, values) {
-        const { form, path, keys: oldKeys, value: oldValue } = this
-        this.mutations++
-        this.keys = insert(oldKeys, index, createKey())
-        const oldInit = form.getInit(path)
-        const oldTouched = form.getTouched(path, [])
-        const init = insert(oldInit, index, values)
-        const value = insert(oldValue, index, values)
-        const isTouched = insert(
-          oldTouched,
-          index,
-          mapProperties(values, _ => false)
-        )
-        form.setInit(path, init)
-        form.update(path, { value, isTouched })
+      value: (index, values) => {
+        const { init, path, keys, value } = model
+        model.keys = insert(keys, index, createKey())
+        form.update(path, {
+          init: insert(init, index, values),
+          value: insert(value, index, values)
+        })
       }
     },
     remove: {
-      value(index) {
-        const { form, path, keys: oldKeys, value: oldValue } = this
-        this.mutations++
-        this.keys = sliceOut(oldKeys, index)
-        const oldInit = form.getInit(path)
-        const oldTouched = form.getTouched(path)
-        const init = sliceOut(oldInit, index)
-        const value = sliceOut(oldValue, index)
-        const isTouched = sliceOut(oldTouched, index)
-        form.setInit(path, init)
-        form.update(path, { value, isTouched })
+      value: index => {
+        const { init, path, keys, value } = model
+        model.keys = sliceOut(keys, index)
+        form.update(path, {
+          init: sliceOut(init, index),
+          value: sliceOut(value, index)
+        })
       }
     },
     push: {
-      value(values) {
-        this.insert(this.length, values)
-      }
+      value: values => model.insert(model.length, values)
     },
     pop: {
-      value() {
-        this.remove(this.length - 1)
-      }
+      value: () => model.remove(model.length - 1)
     },
     unshift: {
-      value(values) {
-        this.insert(0, values)
-      }
+      value: values => model.insert(0, values)
     },
     shift: {
-      value() {
-        this.remove(0)
-      }
+      value: () => model.remove(0)
     },
     map: {
-      value(transform) {
-        return this.value.map((values, i) =>
-          transform(values, i, this.keys[i])
-        )
-      }
+      value: fn => model.value.map((values, i) =>
+        fn(values, i, model.keys[i])
+      )
     }
   })
 }
