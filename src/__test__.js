@@ -3,6 +3,7 @@ import { JSDOM } from 'jsdom'
 import sinon from 'sinon'
 import chai from 'chai'
 import enzyme from 'enzyme'
+import deepFreeze from 'deep-freeze'
 import sinonChai from 'sinon-chai'
 import chaiEnzyme from 'chai-enzyme'
 import Adapter from 'enzyme-adapter-react-16'
@@ -25,6 +26,7 @@ after(() => {
 export const { expect } = chai
 export const { mount } = enzyme
 export const { stub, spy } = sinon
+export const freeze = deepFreeze
 
 export function toThunks(path) {
   return path.split('.').map(key => () => key)
