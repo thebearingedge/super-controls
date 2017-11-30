@@ -3,11 +3,7 @@ import { render } from 'react-dom'
 import Form from '../form'
 import Text from '../text'
 import Input from '../input'
-import Radio from '../radio'
-import RadioGroup from '../radio-group'
-import SelectMultiple from '../select-multiple'
 import FieldSet from '../field-set'
-import FieldArray from '../field-array'
 
 const handleSubmit = values =>
   console.log(JSON.stringify(values, null, 2))
