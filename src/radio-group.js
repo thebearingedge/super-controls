@@ -1,6 +1,6 @@
 import { Component } from 'react'
 import { func, string, array, object } from 'prop-types'
-import createControl from '../create-control'
+import createControl from './create-control'
 
 class RadioGroup extends Component {
   constructor(...args) {

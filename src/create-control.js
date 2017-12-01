@@ -1,6 +1,6 @@
 import { createElement, Component } from 'react'
-import { func, string } from 'prop-types'
-import { equalState, equalProps } from '../util'
+import { func, string, number, oneOfType } from 'prop-types'
+import { isUndefined, equalProps, omit } from './util'
 
 export default function createControl(component) {
 
@@ -19,50 +19,60 @@ export default function createControl(component) {
     class Control extends Component {
       constructor(...args) {
         super(...args)
-        this.field = this.context.registerField({
-          name: this.props.name,
+        this.model = this.context.registerField({
+          paths: [() => this.props.name],
           value: this.props[valueKey]
         })
-        this.state = { ...this.field.state }
+        this.state = {
+          value: this.model.value,
+          isTouched: this.model.isTouched
+        }
         this.onBlur = this.onBlur.bind(this)
         this.onChange = this.onChange.bind(this)
       }
       onChange({ target }) {
-        this.field.update({ value: target[valueKey] })
+        this.model.update({ value: target[valueKey] })
       }
       onBlur() {
-        this.field.state.isTouched ||
-        this.field.update({ isTouched: true })
-      }
-      componentDidUpdate() {
-        this.setState(this.field.state)
+        this.model.isTouched ||
+        this.model.update({ isTouched: true })
       }
       shouldComponentUpdate(nextProps, nextState) {
-        return !equalState(this.field.state, nextState) ||
-               !equalProps(this.props, nextProps)
+        return !equalProps(this.props, nextProps) ||
+               nextState.value !== this.model.value ||
+               nextState.isTouched !== this.model.isTouched
+      }
+      componentDidUpdate() {
+        this.setState({
+          value: this.model.value,
+          isTouched: this.model.isTouched
+        })
+      }
+      componentWillUnmount() {
+        this.model.unregister()
       }
       render() {
         const { id, name, ...props } = this.props
-        const { field, onBlur, onChange } = this
+        const { model, onBlur, onChange } = this
         const control = {
           name,
           onBlur,
           onChange,
-          [valueKey]: field.state.value
+          [valueKey]: model.value
         }
-        if (id !== void 0) control.id = id === true ? name : id
+        if (!isUndefined(id)) control.id = id === true ? name : id
         const componentProps = {
-          ...props,
+          ...omit(props, [valueKey]),
           control
         }
-        if (injectField) componentProps.field = field
+        if (injectField) componentProps.field = model
         return createElement(component, componentProps)
       }
     }
 
     Control.propTypes = {
       ...propTypes,
-      name: string.isRequired
+      name: oneOfType([string, number]).isRequired
     }
 
     Control.contextTypes = {

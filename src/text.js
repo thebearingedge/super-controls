@@ -1,11 +1,11 @@
 import { createElement } from 'react'
 import { string } from 'prop-types'
-import createControl from '../create-control'
+import createControl from './create-control'
 
 export default createControl(({ control, ...props }) =>
-  createElement('textarea', { ...props, ...control })
+  createElement('input', { ...control, ...props, type: 'text' })
 )({
-  displayName: 'TextArea',
+  displayName: 'Text',
   propTypes: {
     value: string
   },

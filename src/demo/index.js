@@ -2,9 +2,7 @@ import React from 'react'
 import { render } from 'react-dom'
 import Form from '../form'
 import Text from '../text'
-import Radio from '../radio'
-import RadioGroup from '../radio-group'
-import SelectMultiple from '../select-multiple'
+import Input from '../input'
 import FieldSet from '../field-set'
 import FieldArray from '../field-array'
 
@@ -12,121 +10,114 @@ const handleSubmit = values =>
   console.log(JSON.stringify(values, null, 2))
 
 const values = {
-  radioButtons: 'bar',
-  fieldSet: {
-    textInput: 'It has a "form-control" class!',
-    nested: {
-      selectMultiple: [
-        'io',
-        'maybe'
-      ]
+  user: {
+    credentials: {
+      username: 'foo',
+      password: 'bar'
     },
-    fieldArray: [
-      { name: 'clive' },
-      { name: 'nutmeg' },
-      { name: 'briscoe' }
-    ]
+    contactInfo: {
+      email: 'foo@bar.baz',
+      phone: '800-800-8000'
+    },
+    friends: ['foo', 'bar', 'baz']
   }
 }
 
 render(
   <Form onSubmit={handleSubmit} values={values} className='container'>
-    <div className='row'>
-      <div className='col-md-8 offset-md-2'>
+    <FieldSet name='user'>
+      <legend>User</legend>
+      <FieldSet name='credentials'>
+        <legend><small>Credentials</small></legend>
+        <hr/>
         <div className='form-group'>
-          <RadioGroup name='radioButtons'>
-            <label>Radio Group Lives Again</label>
-            <div className='form-check'>
-              <label className='form-check-label'>
-                <Radio value='foo' className='form-check-input' />
-                Foo
-              </label>
-            </div>
-            <div className='form-check'>
-              <label className='form-check-label'>
-                <Radio value='bar' className='form-check-input'/>
-                Bar
-              </label>
-            </div>
-            <div className='form-check'>
-              <label className='form-check-label'>
-                <Radio value='baz' className='form-check-input'/>
-                Baz
-              </label>
-            </div>
-          </RadioGroup>
+          <label htmlFor='username'>Username</label>
+          <Text id name='username' className='form-control'/>
         </div>
-        <FieldSet name='fieldSet'>
-          <div className='form-group'>
-            <label htmlFor='textInput'>My Bootstrap Input</label>
-            <Text id name='textInput' className='form-control'/>
-          </div>
-          <div className='form-group'>
-            <label htmlFor='selectMultiple'>Monads</label>
-            <FieldSet name='nested'>
-              <SelectMultiple id name='selectMultiple' className='form-control'>
-                <option value="io">IO</option>
-                <option value="list">List</option>
-                <option value="maybe">Maybe</option>
-                <option value="state">State</option>
-              </SelectMultiple>
-            </FieldSet>
-          </div>
-          <FieldArray name='fieldArray'>
-            { pets =>
-              <div className='form-group'>
-                <label>List Your Pets</label>
-                <div className='form-group'>
-                  { !!pets.length &&
-                    <button
-                      type='button'
-                      className='btn btn-secondary'
-                      onClick={() => pets.shift()}>
-                      Shift
-                    </button>
-                  }
-                  { ' ' }
-                  <button
-                    type='button'
-                    className='btn btn-success'
-                    onClick={() => pets.unshift({ name: '' })}>
-                    Unshift
-                  </button>
-                </div>
-                { pets.map((pet, index, key) =>
-                  <FieldSet name={index} key={key}>
-                    <div className='form-group'>
-                      <Text
-                        name='name'
-                        className='form-control'
-                        placeholder='Name'/>
-                    </div>
-                  </FieldSet>
-                )}
-                { !!pets.length &&
+        <div className='form-group'>
+          <label htmlFor='password'>Password</label>
+          <Input type='password' id name='password' className='form-control'/>
+        </div>
+      </FieldSet>
+      <FieldSet name='contactInfo'>
+        <legend><small>Contact Info</small></legend>
+        <hr/>
+        <div className='form-group'>
+          <label htmlFor='email'>Email</label>
+          <Text id name='email' className='form-control'/>
+        </div>
+        <div className='form-group'>
+          <label htmlFor='phone'>Phone</label>
+          <Input type='phone' id name='phone' className='form-control'/>
+        </div>
+      </FieldSet>
+      <FieldArray name='friends'>
+        { friends =>
+          <div>
+            <legend><small>{ friends.length } Friends</small></legend>
+            <hr/>
+            <div className='form-group'>
+              { !!friends.length &&
+                <button
+                  type='button'
+                  onClick={() => friends.shift()}
+                  className='btn btn-outline-danger'>
+                  <i className='oi oi-minus'></i>
+                </button>
+              }
+              { ' ' }
+              <button
+                type='button'
+                onClick={() => friends.unshift('')}
+                className='btn btn-outline-success'>
+                <i className='oi oi-plus'></i>
+              </button>
+            </div>
+            { friends.map((friend, index) =>
+              <div className='form-group input-group' key={index}>
+                <Text
+                  name={index}
+                  placeholder='Name'
+                  className='form-control'/>
+                <span className='input-group-btn'>
                   <button
                     type='button'
                     className='btn btn-secondary'
-                    onClick={() => pets.pop()}>
-                    Pop
+                    onClick={() => friends.remove(index)}>
+                    <i className='oi oi-x'></i>
                   </button>
-                }
+                </span>
+              </div>
+            )}
+            { !!friends.length &&
+              <div className='form-group'>
+                <legend><small>{ friends.length } Friends</small></legend>
+                <button
+                  type='button'
+                  onClick={() => friends.pop()}
+                  className='btn btn-outline-danger'>
+                  <i className='oi oi-minus'></i>
+                </button>
                 { ' ' }
                 <button
                   type='button'
-                  className='btn btn-success'
-                  onClick={() => pets.push({ name: '' })}>
-                  Push
+                  onClick={() => friends.push('')}
+                  className='btn btn-outline-success'>
+                  <i className='oi oi-plus'></i>
                 </button>
               </div>
             }
-          </FieldArray>
-        </FieldSet>
-        <button type='submit' className='btn btn-primary'>Submit</button>
-        { ' ' }
-        <button type='reset' className='btn btn-outline-secondary'>Reset</button>
-      </div>
-    </div>
+          </div>
+        }
+      </FieldArray>
+    </FieldSet>
+    <button type='reset' className='btn btn-outline-secondary'>
+      Reset
+    </button>
+    { ' ' }
+    <button type='submit' className='btn btn-primary'>
+      Submit
+    </button>
   </Form>,
   document.querySelector('#app')
 )

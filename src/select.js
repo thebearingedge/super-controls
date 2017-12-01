@@ -1,11 +1,11 @@
 import { createElement } from 'react'
 import { string } from 'prop-types'
-import createControl from '../create-control'
+import createControl from './create-control'
 
 export default createControl(({ control, ...props }) =>
-  createElement('input', { ...props, ...control })
+  createElement('select', { ...control, ...props })
 )({
-  displayName: 'Input',
+  displayName: 'Select',
   propTypes: {
     value: string
   },

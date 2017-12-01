@@ -3,9 +3,11 @@ import { JSDOM } from 'jsdom'
 import sinon from 'sinon'
 import chai from 'chai'
 import enzyme from 'enzyme'
+import deepFreeze from 'deep-freeze'
 import sinonChai from 'sinon-chai'
 import chaiEnzyme from 'chai-enzyme'
 import Adapter from 'enzyme-adapter-react-16'
+import { invoke } from './util'
 
 before(() => {
   chai.use(chaiEnzyme())
@@ -24,17 +26,50 @@ after(() => {
 export const { expect } = chai
 export const { mount } = enzyme
 export const { stub, spy } = sinon
-export const mockField = value => {
-  let isTouched
-  return {
-    state: {
-      get value() {
-        return value
-      },
-      get isTouched() {
-        return !!isTouched
-      }
-    },
-    update() {}
+export const freeze = deepFreeze
+
+export function toThunks(path) {
+  return path.split('.').map(key => () => key)
+}
+
+export function mountWith(options) {
+  return function (element) {
+    return mount(element, options)
   }
+}
+
+export function mockField({ paths, value }) {
+  const field = {
+    get init() {
+      return value
+    },
+    get isDirty() {
+      return false
+    },
+    get isPristine() {
+      return true
+    }
+  }
+  return Object.defineProperties(field, {
+    path: {
+      get: () => paths.map(invoke)
+    },
+    value: {
+      writable: true,
+      value: value
+    },
+    isTouched: {
+      writable: true,
+      value: false
+    },
+    update: {
+      writeable: true,
+      configurable: true,
+      value() {}
+    },
+    unregister: {
+      configurable: true,
+      value() {}
+    }
+  })
 }
