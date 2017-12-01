@@ -110,11 +110,10 @@ export const mapValues = (target, transform) => {
   }
   if (isObject(target)) {
     return keys(target)
-      .reduce((mapped, key) => {
-        return isObject(target[key]) || isArray(target[key])
-          ? { ...mapped, [key]: mapValues(target[key], transform) }
-          : { ...mapped, [key]: transform(target[key]) }
-      }, {})
+      .reduce((mapped, key) => ({
+        ...mapped,
+        [key]: mapValues(target[key], transform)
+      }), {})
   }
   return transform(target)
 }
