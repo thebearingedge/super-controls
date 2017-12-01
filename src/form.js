@@ -3,14 +3,25 @@ import { func, object } from 'prop-types'
 import modelField from './model-field'
 import modelFieldSet from './model-field-set'
 import modelFieldArray from './model-field-array'
-import { id, add, get, set, omit, noop, invoke, mapProperties } from './util'
+import {
+  id,
+  add,
+  get,
+  set,
+  unset,
+  omit,
+  noop,
+  pruneTo,
+  invoke,
+  mapValues
+} from './util'
 
 export default class Form extends Component {
   constructor(...args) {
     super(...args)
     this.state = {
-      init: mapProperties(this.props.values, id),
-      values: mapProperties(this.props.values, id),
+      init: this.props.values,
+      values: mapValues(this.props.values, id),
       fields: {},
       touched: {}
     }
@@ -26,15 +37,15 @@ export default class Form extends Component {
   }
   onReset(event) {
     event.preventDefault()
-    this.init = mapProperties(this.props.values, id)
-    this.setState({
-      values: mapProperties(this.props.values, id),
-      touched: {}
-    })
+    const init = this.props.values
+    const fields = pruneTo(init, this.state.fields)
+    const values = init
+    const touched = {}
+    this.setState({ init, fields, values, touched })
   }
   onSubmit(event) {
     event.preventDefault()
-    this.props.onSubmit(mapProperties(this.state.values, id))
+    this.props.onSubmit(mapValues(this.state.values, id))
   }
   update(path, state) {
     this.setState(({ init, fields, values, touched }) => {
@@ -50,6 +61,9 @@ export default class Form extends Component {
       }
       if ('registered' in state) {
         nextState.fields = set(fields, path, state.registered)
+      }
+      if ('unregistered' in state) {
+        nextState.fields = unset(fields, path, state.unregistered)
       }
       return nextState
     })

@@ -93,6 +93,16 @@ describe('createControl', () => {
     mount(<Advanced name='test'/>)
   })
 
+  it('unregisters its field model when it unmounts', () => {
+    const Input = createControl(({ control }) =>
+      <input {...control}/>
+    )()
+    const wrapper = mount(<Input name='test'/>)
+    const unregister = spy(wrapper.instance().model, 'unregister')
+    wrapper.unmount()
+    expect(unregister).to.have.callCount(1)
+  })
+
   it('receives value updates from its component', () => {
     const Input = createControl(({ control }) =>
       <input {...control}/>

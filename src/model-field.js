@@ -28,6 +28,10 @@ export default function modelField(form, init, paths) {
     update: {
       writable: true,
       value: state => form.update(model.path, state)
+    },
+    unregister: {
+      configurable: true,
+      value: () => form.update(model.path, { unregistered: model })
     }
   })
 }

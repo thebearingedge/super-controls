@@ -1,7 +1,9 @@
 import React from 'react'
 import { describe, it } from 'mocha'
-import { mount, expect, toThunks } from './__test__'
+import { mount, expect, stub, toThunks } from './__test__'
 import Form from './form'
+import FieldSet from './field-set'
+import FieldArray from './field-array'
 import createControl from './create-control'
 
 describe('Form', () => {
@@ -98,6 +100,36 @@ describe('Form', () => {
         isTouched: false,
         isDirty: false,
         isPristine: true
+      })
+      expect(form.state.fields).to.deep.equal({
+        foo: {
+          bar: {
+            baz: [{ qux: field }]
+          }
+        }
+      })
+    })
+
+    it('unregisters fields by path', () => {
+      const values = {
+        foo: {
+          bar: {
+            baz: [{ qux: '' }]
+          }
+        }
+      }
+      const wrapper = mount(<Form values={values}/>)
+      const form = wrapper.instance()
+      const field = form.registerField({
+        paths: toThunks('foo.bar.baz.0.qux')
+      })
+      field.unregister()
+      expect(form.state.fields).to.deep.equal({
+        foo: {
+          bar: {
+            baz: [{}]
+          }
+        }
       })
     })
 
@@ -367,10 +399,10 @@ describe('Form', () => {
         paths: toThunks('foo')
       })
       const mapped = bars.map((...args) => args)
-      mapped.forEach(([bar, index, key]) => {
+      mapped.forEach(([bar, index, bars]) => {
         expect(bar).to.deep.equal({ bar: '' })
         expect(index).to.be.a('number')
-        expect(key).to.be.a('string')
+        expect(bars).to.be.an('object')
       })
     })
 
@@ -400,7 +432,7 @@ describe('Form', () => {
 
   describe('onReset', () => {
 
-    it('resets to its initial state', () => {
+    it('resets to its initial state', done => {
       const Input = createControl(({ control }) =>
         <input {...control}/>
       )({
@@ -408,29 +440,49 @@ describe('Form', () => {
           value: ''
         }
       })
+      class TestForm extends Form {
+        componentDidUpdate() {}
+      }
       const wrapper = mount(
-        <Form values={{ foo: '' }}>
-          <Input name='foo'/>
-        </Form>
+        <TestForm values={{ foos: [{ bar: '' }] }}>
+          <FieldArray name='foos'>
+            { foos =>
+              foos.map((foo, index) =>
+                <FieldSet name={index} key={index}>
+                  <Input name='bar' value='baz'/>
+                </FieldSet>
+              )
+            }
+          </FieldArray>
+        </TestForm>
       )
-      wrapper.find(Input)
+      stub(TestForm.prototype, 'componentDidUpdate')
+        .onCall(2)
+        .callsFake(() => {
+          expect(wrapper.state()).to.deep.equal({
+            touched: {},
+            init: { foos: [{ bar: '' }] },
+            values: { foos: [{ bar: '' }] },
+            fields: {
+              foos: [{
+                bar: {
+                  init: '',
+                  value: '',
+                  isTouched: false,
+                  isDirty: false,
+                  isPristine: true
+                }
+              }]
+            }
+          })
+          done()
+        })
+      wrapper
+        .find(Input)
         .simulate('change', { target: { value: 'foo' } })
         .simulate('blur')
-      wrapper.simulate('reset')
-      expect(wrapper.state()).to.deep.equal({
-        touched: {},
-        init: { foo: '' },
-        values: { foo: '' },
-        fields: {
-          foo: {
-            init: '',
-            value: '',
-            isTouched: false,
-            isDirty: false,
-            isPristine: true
-          }
-        }
-      })
+      wrapper
+        .simulate('reset')
     })
 
   })

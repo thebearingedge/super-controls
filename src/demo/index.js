@@ -54,17 +54,59 @@ render(
       <FieldArray name='friends'>
         { friends =>
           <div>
-            <legend><small>Friends</small></legend>
+            <legend><small>{ friends.length } Friends</small></legend>
             <hr/>
-            { friends.map((_, i, key) =>
-              <div className='form-group' key={key}>
+            <div className='form-group'>
+              { !!friends.length &&
+                <button
+                  type='button'
+                  onClick={() => friends.shift()}
+                  className='btn btn-outline-danger'>
+                  <i className='oi oi-minus'></i>
+                </button>
+              }
+              { ' ' }
+              <button
+                type='button'
+                onClick={() => friends.unshift('')}
+                className='btn btn-outline-success'>
+                <i className='oi oi-plus'></i>
+              </button>
+            </div>
+            { friends.map((friend, index) =>
+              <div className='form-group input-group' key={index}>
                 <Text
-                  id={key}
-                  name={i}
+                  name={index}
                   placeholder='Name'
                   className='form-control'/>
+                <span className='input-group-btn'>
+                  <button
+                    type='button'
+                    className='btn btn-secondary'
+                    onClick={() => friends.remove(index)}>
+                    <i className='oi oi-x'></i>
+                  </button>
+                </span>
               </div>
             )}
+            { !!friends.length &&
+              <div className='form-group'>
+                <legend><small>{ friends.length } Friends</small></legend>
+                <button
+                  type='button'
+                  onClick={() => friends.pop()}
+                  className='btn btn-outline-danger'>
+                  <i className='oi oi-minus'></i>
+                </button>
+                { ' ' }
+                <button
+                  type='button'
+                  onClick={() => friends.push('')}
+                  className='btn btn-outline-success'>
+                  <i className='oi oi-plus'></i>
+                </button>
+              </div>
+            }
           </div>
         }
       </FieldArray>

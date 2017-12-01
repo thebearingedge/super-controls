@@ -1,4 +1,4 @@
-import { invoke, sliceIn, sliceOut, createKey, someLeaves } from './util'
+import { invoke, sliceIn, sliceOut, someLeaves } from './util'
 
 export default function modelFieldArray(form, paths) {
 
@@ -33,10 +33,6 @@ export default function modelFieldArray(form, paths) {
     path: {
       get: () => paths.map(invoke)
     },
-    keys: {
-      writable: true,
-      value: form.getInit(paths.map(invoke), []).map(_ => createKey())
-    },
     touches: {
       writable: true,
       value: 0
@@ -46,8 +42,7 @@ export default function modelFieldArray(form, paths) {
     },
     insert: {
       value: (index, values) => {
-        const { init, path, keys, value } = model
-        model.keys = sliceIn(keys, index, createKey())
+        const { path, init, value } = model
         form.update(path, {
           init: sliceIn(init, index, values),
           value: sliceIn(value, index, values)
@@ -56,8 +51,7 @@ export default function modelFieldArray(form, paths) {
     },
     remove: {
       value: index => {
-        const { init, path, keys, value } = model
-        model.keys = sliceOut(keys, index)
+        const { path, init, value } = model
         form.update(path, {
           init: sliceOut(init, index),
           value: sliceOut(value, index)
@@ -77,8 +71,8 @@ export default function modelFieldArray(form, paths) {
       value: () => model.remove(0)
     },
     map: {
-      value: fn => model.value.map((values, i) =>
-        fn(values, i, model.keys[i])
+      value: transform => model.value.map((value, index) =>
+        transform(value, index, model)
       )
     }
   })

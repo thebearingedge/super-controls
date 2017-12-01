@@ -48,6 +48,9 @@ export default function createControl(component) {
           isTouched: this.model.isTouched
         })
       }
+      componentWillUnmount() {
+        this.model.unregister()
+      }
       render() {
         const { id, name, ...props } = this.props
         const { model, onBlur, onChange } = this

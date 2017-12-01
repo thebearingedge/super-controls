@@ -89,42 +89,50 @@ export const unset = (target, [key, ...path], val) => {
   return target[key] === val ? remove(target, key) : target
 }
 
-export const mapProperties = (target, fn, path = []) => {
+export const pruneTo = (source, target) => {
+  if (isObject(source)) {
+    return keys(source)
+      .reduce((pruned, key) => ({
+        ...pruned,
+        [key]: pruneTo(source[key], target[key])
+      }), {})
+  }
+  return target.slice(0, source.length)
+}
+
+export const mapValues = (target, transform) => {
   if (isArray(target)) {
     return target.map((child, i) =>
-      mapProperties(child, fn, [...path, i])
+      mapValues(child, transform)
     )
   }
   if (isObject(target)) {
     return keys(target)
       .reduce((mapped, key) => {
-        const keyPath = [...path, key]
         return isObject(target[key]) || isArray(target[key])
-          ? { ...mapped, [key]: mapProperties(target[key], fn, keyPath) }
-          : { ...mapped, [key]: fn(target[key], keyPath) }
+          ? { ...mapped, [key]: mapValues(target[key], transform) }
+          : { ...mapped, [key]: transform(target[key]) }
       }, {})
   }
-  return fn(target, path)
+  return transform(target)
 }
 
-export const someLeaves = (target, fn) => {
+export const someLeaves = (target, predicate) => {
   if (isArray(target)) {
     return isObject(target[0]) &&
-           !!target.find(child => someLeaves(child, fn))
+           !!target.find(child => someLeaves(child, predicate))
   }
   return !!keys(target)
     .find(key =>
       isObject(target[key]) || isArray(target[key])
-        ? someLeaves(target[key], fn)
-        : fn(target)
+        ? someLeaves(target[key], predicate)
+        : predicate(target)
     )
 }
 
 export const id = x => x
 
 export const invoke = (fn, ...args) => fn(...args)
-
-export const createKey = _ => Math.random().toString(36).substr(2, 10)
 
 export const equalExcept = (...ignore) => (a, b) => {
   if (a === b) return true
@@ -135,5 +143,3 @@ export const equalExcept = (...ignore) => (a, b) => {
 }
 
 export const equalProps = equalExcept('name', 'children')
-
-export const shallowEqual = equalExcept()

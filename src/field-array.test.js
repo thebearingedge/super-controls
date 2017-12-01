@@ -35,7 +35,7 @@ describe('FieldArray', () => {
     }
     mount(
       <Form>
-        <TestFieldArray name='foo'/>
+        <TestFieldArray name='foos'/>
       </Form>
     )
   })
@@ -43,15 +43,15 @@ describe('FieldArray', () => {
   it('namespaces descendant fields', done => {
     class TestInput extends Input {
       componentDidMount() {
-        expect(this.model.path).to.deep.equal(['foo', 0])
+        expect(this.model.path).to.deep.equal(['foos', 0])
         done()
       }
     }
     mount(
-      <Form values={{ foo: [''] }}>
-        <FieldArray name='foo'>
-          { foo =>
-            foo.map((_, i, key) => <TestInput name={i} key={key}/>)
+      <Form values={{ foos: [''] }}>
+        <FieldArray name='foos'>
+          { foos =>
+            foos.map((foo, index) => <TestInput name={index} key={index}/>)
           }
         </FieldArray>
       </Form>
@@ -61,16 +61,16 @@ describe('FieldArray', () => {
   it('namespaces descendant field sets', done => {
     class TestInput extends Input {
       componentDidMount() {
-        expect(this.model.path).to.deep.equal(['foo', 0, 'bar'])
+        expect(this.model.path).to.deep.equal(['foos', 0, 'bar'])
         done()
       }
     }
     mount(
-      <Form values={{ foo: [''] }}>
-        <FieldArray name='foo'>
-          { foo =>
-            foo.map((foo, i, key) =>
-              <FieldSet name={i} key={key}>
+      <Form values={{ foos: [''] }}>
+        <FieldArray name='foos'>
+          { foos =>
+            foos.map((foo, index) =>
+              <FieldSet name={index} key={index}>
                 <TestInput name='bar'/>
               </FieldSet>
             )
@@ -83,19 +83,19 @@ describe('FieldArray', () => {
   it('namespaces descendant field arrays', done => {
     class TestInput extends Input {
       componentDidMount() {
-        expect(this.model.path).to.deep.equal(['foo', 0, 0])
+        expect(this.model.path).to.deep.equal(['foos', 0, 0])
         done()
       }
     }
     mount(
-      <Form values={{ foo: [['']] }}>
-        <FieldArray name='foo'>
-          { foo =>
-            foo.map((_, i, key) =>
-              <FieldArray name={i} key={key}>
-                { zero =>
-                  zero.map((_, i, key) =>
-                    <TestInput name={i} key={key}/>
+      <Form values={{ foos: [['']] }}>
+        <FieldArray name='foos'>
+          { foos =>
+            foos.map((foo, index) =>
+              <FieldArray name={index} key={index}>
+                { zeroes =>
+                  zeroes.map((zero, index) =>
+                    <TestInput name={index} key={index}/>
                   )
                 }
               </FieldArray>
@@ -117,7 +117,7 @@ describe('FieldArray', () => {
       <Form values={{ foos: [''] }}>
         <TestFieldArray name='foos'>
           { foos =>
-            foos.map((_, i, key) => <Input name={i} key={key}/>)
+            foos.map((foo, index) => <Input name={index} key={index}/>)
           }
         </TestFieldArray>
       </Form>

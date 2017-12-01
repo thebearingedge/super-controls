@@ -66,6 +66,10 @@ export function mockField({ paths, value }) {
       writeable: true,
       configurable: true,
       value() {}
+    },
+    unregister: {
+      configurable: true,
+      value() {}
     }
   })
 }
