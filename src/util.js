@@ -97,7 +97,9 @@ export const pruneTo = (source, target) => {
         [key]: pruneTo(source[key], target[key])
       }), {})
   }
-  return target.slice(0, source.length)
+  return isArray(source) && isArray(target)
+    ? target.slice(0, source.length)
+    : target
 }
 
 export const mapValues = (target, transform) => {
