@@ -1,20 +1,32 @@
+export const id = x => x
+
 export const noop = () => {}
 
-export const isObject = val =>
-  Object.prototype.toString.call(val) === '[object Object]'
-
-export const isInteger = val => +val === parseInt(val, 10)
-
-export const isUndefined = val => val === void 0
+export const invoke = (fn, ...args) => fn(...args)
 
 export const isArray = val => Array.isArray(val)
 
+export const isObject = val => ({}).toString.call(val) === '[object Object]'
+
+export const isString = val => typeof val === 'string'
+
+export const isBoolean = val => typeof val === 'boolean'
+
+export const isFunction = val => typeof val === 'function'
+
+export const isUndefined = val => val === void 0
+
+export const isIndex = val => Number.isInteger(val)
+
 export const keys = obj => Object.keys(obj)
 
-export const omit = (obj, props) =>
-  keys(obj)
-    .filter(key => !props.includes(key))
-    .reduce((omitted, key) => assign(omitted, { [key]: obj[key] }), {})
+export const omit = (source, props) =>
+  keys(source)
+    .reduce((omitted, key) =>
+      props.includes(key)
+        ? omitted
+        : assign(omitted, { [key]: source[key] })
+      , {})
 
 export const assign = (...args) => Object.assign({}, ...args)
 
@@ -29,111 +41,67 @@ export const sliceOut = (array, index) => [
   ...array.slice(index + 1)
 ]
 
-export const sliceOver = (array, index, val) => [
-  ...array.slice(0, index),
-  val,
-  ...array.slice(index + 1)
-]
-
-export const sliceAt = (array, index, val) => {
-  const sliced = Array(Math.max(index + 1, array.length))
-  array.slice(0, index).forEach((val, i) => {
-    sliced[i] = val
-  })
+export const sliceOver = (array, index, val) => {
+  const sliced = [...array]
+  sliced.length = Math.max(sliced.length, index)
   sliced[index] = val
-  array.slice(index).forEach((val, i) => {
-    sliced[index + i] = val
-  })
   return sliced
 }
-
-export const ensure = (target, key, val) =>
-  isArray(target)
-    ? sliceAt(target, key, val)
-    : assign(target, { [key]: exists(target, key) ? target[key] : val })
-
-export const replace = (target, key, val) =>
-  isArray(target)
-    ? sliceOver(target, key, val)
-    : assign(target, { [key]: val })
 
 export const exists = (target, key) =>
   isArray(target)
     ? !isUndefined(target[key])
     : target.hasOwnProperty(key)
 
+export const replace = (target, key, val) =>
+  isArray(target)
+    ? sliceOver(target, key, val)
+    : assign(target, { [key]: val })
+
 export const remove = (target, key) =>
   isArray(target)
     ? sliceOut(target, key)
     : omit(target, [key])
 
-export const add = (...args) => update(ensure, ...args)
-
-export const set = (...args) => update(replace, ...args)
-
-export const update = (modify, target, [key, index, ...path], val) => {
-  if (isUndefined(index)) return modify(target, key, val)
-  const nested = target[key] || (isInteger(index) ? [] : {})
-  return replace(target, key, update(modify, nested, [index, ...path], val))
-}
-
 export const get = (source, [key, ...path], fallback) => {
-  if (!exists(source, key)) return fallback
+  if (isUndefined(source) || !exists(source, key)) return fallback
   if (!path.length) return source[key]
   return get(source[key], path, fallback)
 }
 
+export const set = (target, [key, index, ...path], val) => {
+  if (isUndefined(index)) return replace(target, key, val)
+  const nested = target[key] || (isIndex(index) ? [] : {})
+  return replace(target, key, set(nested, [index, ...path], val))
+}
+
 export const unset = (target, [key, ...path], val) => {
   if (!exists(target, key)) return target
-  if (path.length) return replace(target, key, unset(target[key], path, val))
-  return target[key] === val ? remove(target, key) : target
+  if (!path.length) return remove(target, key)
+  return replace(target, key, unset(target[key], path, val))
 }
 
-export const pruneTo = (source, target) => {
+export const clone = source => {
+  if (isArray(source)) return source.map(clone)
   if (isObject(source)) {
     return keys(source)
-      .reduce((pruned, key) => ({
-        ...pruned,
-        [key]: pruneTo(source[key], target[key])
-      }), {})
+      .reduce((cloned, key) => assign(
+        cloned,
+        { [key]: clone(source[key]) }
+      ), {})
   }
-  return isArray(source) && isArray(target)
-    ? target.slice(0, source.length)
-    : target
+  return source
 }
 
-export const mapValues = (target, transform) => {
+export const someValues = (target, predicate) => {
   if (isArray(target)) {
-    return target.map((child, i) =>
-      mapValues(child, transform)
-    )
+    return !!target.find(child => someValues(child, predicate))
   }
   if (isObject(target)) {
-    return keys(target)
-      .reduce((mapped, key) => ({
-        ...mapped,
-        [key]: mapValues(target[key], transform)
-      }), {})
+    return !!keys(target).find(key => someValues(target[key], predicate))
   }
-  return transform(target)
+  return !!predicate(target)
 }
-
-export const someLeaves = (target, predicate) => {
-  if (isArray(target)) {
-    return isObject(target[0]) &&
-           !!target.find(child => someLeaves(child, predicate))
-  }
-  return !!keys(target)
-    .find(key =>
-      isObject(target[key]) || isArray(target[key])
-        ? someLeaves(target[key], predicate)
-        : predicate(target)
-    )
-}
-
-export const id = x => x
-
-export const invoke = (fn, ...args) => fn(...args)
 
 export const equalExcept = (...ignore) => (a, b) => {
   if (a === b) return true
@@ -144,3 +112,21 @@ export const equalExcept = (...ignore) => (a, b) => {
 }
 
 export const equalProps = equalExcept('name', 'children')
+
+export const shallowEqual = equalExcept()
+
+export const deepEqual = (a, b) => {
+  if (isArray(a) && isArray(b)) {
+    return a.length === b.length &&
+           a.every((_, index) => deepEqual(a[index], b[index]))
+  }
+  if (isObject(a) && isObject(b)) {
+    const aKeys = keys(a)
+    const bKeys = keys(b)
+    return aKeys.length === bKeys.length &&
+           aKeys.every(key => deepEqual(a[key], b[key]))
+  }
+  return a === b
+}
+
+export const KEY = '@@controlled-components'

@@ -1,84 +1,111 @@
-import { Component, createElement } from 'react'
-import { func, string, number, oneOfType } from 'prop-types'
-import { equalProps, omit } from './util'
+import { createElement } from 'react'
+import { func, array } from 'prop-types'
+import { FieldSet } from './field-set'
+import {
+  id,
+  set,
+  invoke,
+  sliceIn,
+  sliceOut,
+  deepEqual,
+  someValues
+} from './util'
 
-export default class FieldArray extends Component {
-  constructor(...args) {
-    super(...args)
-    this.model = this.context.registerFieldArray({
-      paths: [_ => this.props.name]
-    })
-    this.state = {
-      value: this.model.value,
-      touches: this.model.touches
-    }
-    this.registerField = this.registerField.bind(this)
-    this.registerFieldSet = this.registerFieldSet.bind(this)
-    this.registerFieldArray = this.registerFieldArray.bind(this)
-  }
-  getChildContext() {
-    const { registerField, registerFieldSet, registerFieldArray } = this
-    return { registerField, registerFieldSet, registerFieldArray }
-  }
-  shouldComponentUpdate(nextProps, nextState) {
-    return !equalProps(this.props, nextProps) ||
-           nextState.value !== this.model.value ||
-           nextState.touches !== this.model.touches
-  }
-  componentDidUpdate() {
-    this.setState({
-      value: this.model.value,
-      touches: this.model.touches
-    })
-  }
-  registerField({ paths, value }) {
-    const field = this.context.registerField({
-      paths: [_ => this.props.name, ...paths],
-      value
-    })
-    const { update } = field
-    field.update = state => {
-      state.isTouched && this.model.touch()
-      update(state)
-    }
-    return field
-  }
-  registerFieldSet({ paths }) {
-    return this.context.registerFieldSet({
-      paths: [_ => this.props.name, ...paths]
-    })
-  }
-  registerFieldArray({ paths }) {
-    return this.context.registerFieldArray({
-      paths: [_ => this.props.name, ...paths]
-    })
+export class FieldArray extends FieldSet {
+  modelField(form, init, paths) {
+    return modelFieldArray(form, init, paths)
   }
   render() {
-    const children = this.props.children(this.model)
-    return createElement('fieldset', {
-      children,
-      ...omit(this.props, ['children'])
+    const { component, children, ...props } = this.props
+    const { model: fields } = this
+    return createElement(component || children, {
+      fields,
+      ...props
     })
+  }
+  static get propTypes() {
+    return {
+      init: array,
+      children: func,
+      component: func
+    }
+  }
+  static get defaultProps() {
+    return {
+      init: [],
+      children: _ => null
+    }
   }
 }
 
-FieldArray.propTypes = {
-  name: oneOfType([string, number]).isRequired,
-  children: func
-}
-
-FieldArray.defaultProps = {
-  children: _ => null
-}
-
-FieldArray.contextTypes = {
-  registerFieldArray: func.isRequired,
-  registerFieldSet: func.isRequired,
-  registerField: func.isRequired
-}
-
-FieldArray.childContextTypes = {
-  registerFieldArray: func,
-  registerFieldSet: func,
-  registerField: func
+export const modelFieldArray = (form, init, paths) => {
+  const model = {
+    get init() {
+      return form.getInit(this.path, init)
+    },
+    get value() {
+      return form.getValue(this.path, this.init)
+    },
+    get isTouched() {
+      return someValues(this.touched, id)
+    },
+    get isDirty() {
+      return !deepEqual(this.init, this.value)
+    },
+    get isPristine() {
+      return !this.isDirty
+    },
+    get length() {
+      return this.value.length
+    }
+  }
+  return Object.defineProperties(model, {
+    path: {
+      get: () => paths.map(invoke)
+    },
+    touched: {
+      get: () => form.getTouched(model.path, [])
+    },
+    unregister: {
+      configurable: true,
+      value: _ => form.unregister(model)
+    },
+    insert: {
+      value: (index, newValue) => {
+        const { path, init, value, touched } = model
+        form.update(path, {
+          init: sliceIn(init, index, newValue),
+          value: sliceIn(value, index, newValue),
+          isTouched: set(touched, [index], void 0)
+        })
+      }
+    },
+    remove: {
+      value: index => {
+        const { path, init, value, touched } = model
+        form.update(path, {
+          init: sliceOut(init, index),
+          value: sliceOut(value, index),
+          isTouched: sliceOut(touched, index)
+        })
+      }
+    },
+    push: {
+      value: value => model.insert(model.length, value)
+    },
+    pop: {
+      value: () => model.remove(model.length - 1)
+    },
+    unshift: {
+      value: value => model.insert(0, value)
+    },
+    shift: {
+      value: () => model.remove(0)
+    },
+    map: {
+      value: transform => model.value.map((value, index) =>
+        transform(value, index, model)
+      )
+    }
+  })
 }

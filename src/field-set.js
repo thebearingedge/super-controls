@@ -1,75 +1,144 @@
 import { Component, createElement } from 'react'
-import { func, string, number, oneOfType } from 'prop-types'
-import { equalProps } from './util'
+import {
+  oneOfType,
+  func,
+  array,
+  object,
+  number,
+  shape,
+  string
+} from 'prop-types'
+import {
+  id,
+  KEY,
+  invoke,
+  isFunction,
+  someValues,
+  equalProps,
+  deepEqual,
+  shallowEqual
+} from './util'
 
-export default class FieldSet extends Component {
+export class FieldSet extends Component {
   constructor(...args) {
     super(...args)
-    this.model = this.context.registerFieldSet({
+    this.model = this.context[KEY].register({
+      init: this.props.init,
+      model: this.modelField,
       paths: [_ => this.props.name]
     })
     this.state = {
       value: this.model.value,
-      touches: 0
+      touched: this.model.touched
     }
-    this.registerField = this.registerField.bind(this)
-    this.registerFieldSet = this.registerFieldSet.bind(this)
-    this.registerFieldArray = this.registerFieldArray.bind(this)
+    this.register = this.register.bind(this)
   }
   getChildContext() {
-    const { registerField, registerFieldSet, registerFieldArray } = this
-    return { registerField, registerFieldSet, registerFieldArray }
+    const { register } = this
+    return { [KEY]: { register } }
   }
   shouldComponentUpdate(nextProps, nextState) {
     return !equalProps(this.props, nextProps) ||
-           nextState.value !== this.model.value ||
-           nextState.touches !== this.model.touches
+           !shallowEqual(this.model.value, nextState.value) ||
+           !shallowEqual(this.model.touched, nextState.touched)
   }
   componentDidUpdate() {
     this.setState({
       value: this.model.value,
-      touches: this.model.touches
+      touched: this.model.touched
     })
   }
-  registerField({ paths, value }) {
-    const field = this.context.registerField({
-      paths: [_ => this.props.name, ...paths],
-      value
-    })
-    const { update } = field
-    field.update = state => {
-      state.isTouched && this.model.touch()
-      update(state)
-    }
-    return field
+  componentWillUnmount() {
+    this.model.unregister()
   }
-  registerFieldSet({ paths }) {
-    return this.context.registerFieldSet({
-      paths: [_ => this.props.name, ...paths]
-    })
+  modelField(form, init, paths) {
+    return modelFieldSet(form, init, paths)
   }
-  registerFieldArray({ paths }) {
-    return this.context.registerFieldArray({
+  register({ paths, init, model }) {
+    return this.context[KEY].register({
+      init,
+      model,
       paths: [_ => this.props.name, ...paths]
     })
   }
   render() {
-    return createElement('fieldset', this.props)
+    const { component, children, init, ...props } = this.props
+    const { model: fields } = this
+    if (isFunction(component)) {
+      return createElement(component, {
+        fields,
+        ...props
+      })
+    }
+    if (isFunction(children)) {
+      return createElement(children, {
+        fields,
+        ...props
+      })
+    }
+    return createElement(component, {
+      ...props,
+      children
+    })
+  }
+  static get propTypes() {
+    return {
+      init: object,
+      children: oneOfType([object, func, array]),
+      name: oneOfType([string, number]).isRequired,
+      component: oneOfType([string, func]).isRequired
+    }
+  }
+  static get defaultProps() {
+    return {
+      init: {},
+      component: 'fieldset'
+    }
+  }
+  static get contextTypes() {
+    return {
+      [KEY]: shape({
+        register: func.isRequired
+      })
+    }
+  }
+  static get childContextTypes() {
+    return {
+      [KEY]: shape({
+        register: func
+      })
+    }
   }
 }
 
-FieldSet.propTypes = {
-  name: oneOfType([string, number]).isRequired
-}
-
-FieldSet.childContextTypes = {
-  registerField: func,
-  registerFieldSet: func,
-  registerFieldArray: func
-}
-
-FieldSet.contextTypes = {
-  registerField: func.isRequired,
-  registerFieldSet: func.isRequired,
-  registerFieldArray: func.isRequired
+export const modelFieldSet = (form, init, paths) => {
+  const model = {
+    get init() {
+      return form.getInit(this.path, init)
+    },
+    get value() {
+      return form.getValue(this.path, this.init)
+    },
+    get isTouched() {
+      return someValues(this.touched, id)
+    },
+    get isDirty() {
+      return !deepEqual(this.init, this.value)
+    },
+    get isPristine() {
+      return !this.isDirty
+    }
+  }
+  return Object.defineProperties(model, {
+    path: {
+      get: () => paths.map(invoke)
+    },
+    touched: {
+      get: () => form.getTouched(model.path, {})
+    },
+    unregister: {
+      configurable: true,
+      value: _ => form.unregister(model)
+    }
+  })
 }

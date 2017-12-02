@@ -38,10 +38,10 @@ export function mountWith(options) {
   }
 }
 
-export function mockField({ paths, value }) {
+export function mockField({ paths, init }) {
   const field = {
     get init() {
-      return value
+      return init
     },
     get isDirty() {
       return false
@@ -56,7 +56,8 @@ export function mockField({ paths, value }) {
     },
     value: {
       writable: true,
-      value: value
+      enumerable: true,
+      value: init
     },
     isTouched: {
       writable: true,
