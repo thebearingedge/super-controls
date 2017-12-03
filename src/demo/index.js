@@ -13,7 +13,7 @@ const values = {
   contactInfo: {
     email: 'foo@bar.baz'
   },
-  friends: ['foo', 'bar', 'baz']
+  friends: [{ name: 'foo' }, { name: 'bar' }, { name: 'baz' }]
 }
 
 render(
@@ -46,26 +46,28 @@ render(
         <div className='form-group'>
           <legend><small>Friends ({ fields.length })</small></legend>
           { fields.map((friend, index) =>
-            <div className='input-group form-group' key={index}>
-              <Field
-                type='text'
-                name={index}
-                component='input'
-                placeholder='Name'
-                className='form-control'/>
-              <span className='input-group-btn'>
-                <button
-                  type='button'
-                  onClick={_ => fields.remove(index)}
-                  className='btn btn-secondary'>
-                  <i className='oi oi-x'/>
-                </button>
-              </span>
-            </div>
+            <FieldSet name={index} key={index}>
+              <div className='input-group form-group'>
+                <Field
+                  type='text'
+                  name='name'
+                  component='input'
+                  placeholder='Name'
+                  className='form-control'/>
+                <span className='input-group-btn'>
+                  <button
+                    type='button'
+                    onClick={_ => fields.remove(index)}
+                    className='btn btn-secondary'>
+                    <i className='oi oi-x'/>
+                  </button>
+                </span>
+              </div>
+            </FieldSet>
           )}
           <button
             type='button'
-            onClick={_ => fields.push('')}
+            onClick={_ => fields.push({ name: '' })}
             className='btn btn-outline-success'>
             <i className='oi oi-plus'/>
           </button>
