@@ -1,17 +1,11 @@
 {
-  "all": true,
-  "lines": 100,
-  "branches": 100,
-  "functions": 100,
-  "statements": 100,
   "include": [
     "src/**/*",
     "src/*"
   ],
   "exclude": [
     "src/demo/",
-    "src/*test*",
-    "src/index.js"
+    "**/*test*"
   ],
   "reporter": [
     "lcov",

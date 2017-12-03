@@ -1,5 +1,5 @@
 {
-  "name": "controlled",
+  "name": "controlled-components",
   "version": "1.0.0-alpha.1",
   "description": "Streamlined form controls for React.",
   "main": "dist/index.js",
@@ -8,10 +8,9 @@
   ],
   "scripts": {
     "lint": "eslint src/",
-    "test": "mocha -r babel-register src/*.test.js",
+    "test": "cd src/ && mocha -r babel-register '*.test.js'",
     "tdd": "npm -s t -- -w -R min",
     "cover": "nyc npm -s t",
-    "check": "nyc check-coverage",
     "report": "codecov",
     "build:dist": "babel src/ -d dist/ --ignore test.js,__test__.js",
     "prebuild:dist": "rimraf dist/ && mkdirp dist/",
@@ -25,7 +24,7 @@
     "watch:sync": "browser-sync start -c sync.js",
     "demo": "run-p -s watch:*",
     "predemo": "run-s -s build:demo",
-    "travis": "run-s -s lint cover check build",
+    "travis": "run-s -s lint cover build",
     "precommit": "run-s -s lint test",
     "prepublishOnly": "run-s -s travis"
   },
@@ -52,33 +51,35 @@
     "chai": "^4.1.2",
     "chai-enzyme": "^1.0.0-beta.0",
     "codecov": "^3.0.0",
+    "deep-freeze": "0.0.1",
     "dotenv": "^4.0.0",
-    "enzyme": "^3.1.1",
-    "enzyme-adapter-react-16": "^1.0.4",
-    "eslint": "^4.10.0",
+    "enzyme": "^3.2.0",
+    "enzyme-adapter-react-16": "^1.1.0",
+    "eslint": "^4.12.0",
     "eslint-config-standard": "^10.2.1",
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-node": "^5.2.1",
     "eslint-plugin-promise": "^3.6.0",
-    "eslint-plugin-react": "^7.4.0",
+    "eslint-plugin-react": "^7.5.1",
     "eslint-plugin-standard": "^3.0.1",
     "husky": "^0.14.3",
-    "jsdom": "^11.3.0",
+    "jsdom": "^11.4.0",
     "mkdirp": "^0.5.1",
     "mocha": "^4.0.1",
     "npm-run-all": "^4.1.2",
     "nyc": "^11.3.0",
-    "prop-types": "^15.6.0",
     "pug-cli": "^1.0.0-alpha6",
-    "react": "^16.0.0",
-    "react-dom": "^16.0.0",
+    "react": "^16.2.0",
+    "react-dom": "^16.1.1",
     "rimraf": "^2.6.2",
     "sinon": "^4.1.1",
     "sinon-chai": "^2.14.0",
     "watchify": "^3.9.0"
   },
   "peerDependencies": {
-    "react": "^16.0.0",
-    "prop-types": "^15.6.0"
+    "react": "^16.0.0"
+  },
+  "dependencies": {
+    "prop-types": "^15.5.7"
   }
 }
