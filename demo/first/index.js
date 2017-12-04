@@ -1,9 +1,9 @@
 import React from 'react'
 import { render } from 'react-dom'
-import { Form } from '../src/form'
-import { Field } from '../src/field'
-import { FieldSet } from '../src/field-set'
-import { FieldArray } from '../src/field-array'
+import { Form } from '~/src/form'
+import { Field } from '~/src/field'
+import { FieldSet } from '~/src/field-set'
+import { FieldArray } from '~/src/field-array'
 
 const handleSubmit = values =>
   console.log(JSON.stringify(values, null, 2))

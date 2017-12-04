@@ -6,6 +6,7 @@
   "env": {
     "development": {
       "plugins": [
+        "root-import",
         "transform-es2015-modules-commonjs"
       ]
     },
