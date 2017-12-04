@@ -1,6 +1,6 @@
 {
   "name": "controlled-components",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.3",
   "description": "Streamlined form controls for React.",
   "main": "cjs/index.js",
   "module": "es/index.js",
@@ -31,12 +31,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thebearingedge/control-components.git"
+    "url": "git+https://github.com/thebearingedge/controlled-components.git"
   },
   "bugs": {
-    "url": "https://github.com/thebearingedge/control-components/issues"
+    "url": "https://github.com/thebearingedge/controlled-components/issues"
   },
-  "homepage": "https://github.com/thebearingedge/control-components#readme",
+  "homepage": "https://github.com/thebearingedge/controlled-components#readme",
   "peerDependencies": {
     "react": "^16.0.0"
   },
