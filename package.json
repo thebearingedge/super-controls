@@ -22,11 +22,10 @@
     "watch:js": "watchify demo/ -vd -t babelify -o demo/main.js",
     "watch:sync": "browser-sync start -c sync.js",
     "demo": "run-p -s watch:*",
-    "travis": "run-s -s lint cover build docs:init docs:build",
+    "travis": "run-s -s lint cover build docs:build",
     "precommit": "run-s -s lint test",
     "prepublishOnly": "run-s -s travis",
     "docs:clean": "rimraf _book/",
-    "docs:init": "gitbook install",
     "docs:build": "gitbook build",
     "docs:watch": "gitbook serve",
     "docs:publish": "./docs.bash"
@@ -46,7 +45,6 @@
     "react": "^16.0.0"
   },
   "dependencies": {
-    "gitbook-plugin-github": "^2.0.0",
     "prop-types": "^15.6.0"
   },
   "devDependencies": {
@@ -76,7 +74,7 @@
     "eslint-plugin-standard": "^3.0.1",
     "gitbook-cli": "^2.3.2",
     "gitbook-plugin-collapsible-menu": "^1.0.3",
-    "gitbook-plugin-github": "^3.0.0",
+    "gitbook-plugin-github": "^2.0.0",
     "gzip-size": "^4.1.0",
     "husky": "^0.14.3",
     "jsdom": "^11.5.1",
