@@ -1,8 +1,10 @@
+demo/index.html
+demo/main.js
 node_modules/
 .nyc_output/
 .DS_Store
-demo/
-!src/demo/
 coverage/
-dist/
 .env
+cjs/
+umd/
+es/

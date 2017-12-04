@@ -1,7 +1,37 @@
 {
   "plugins": [
     "transform-react-jsx",
-    "transform-object-rest-spread",
-    "transform-es2015-modules-commonjs"
-  ]
+    "transform-object-rest-spread"
+  ],
+  "env": {
+    "development": {
+      "plugins": [
+        "transform-es2015-modules-commonjs"
+      ]
+    },
+    "es": {
+      "ignore": [
+        "test"
+      ]
+    },
+    "cjs": {
+      "ignore": [
+        "test"
+      ],
+      "plugins": [
+        "transform-es2015-modules-commonjs"
+      ]
+    },
+    "umd": {
+      "ignore": [
+        "test"
+      ],
+      "plugins": [
+        "external-helpers"
+      ],
+      "presets": [
+        ["env", { "modules": false }]
+      ]
+    }
+  }
 }
