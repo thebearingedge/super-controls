@@ -2,9 +2,14 @@
   "name": "controlled-components",
   "version": "1.0.0-alpha.1",
   "description": "Streamlined form controls for React.",
-  "main": "dist/index.js",
+  "main": "cjs/index.js",
+  "module": "es/index.js",
   "files": [
-    "dist/"
+    "README.md",
+    "LICENSE",
+    "umd/",
+    "cjs/",
+    "es/"
   ],
   "scripts": {
     "lint": "eslint src/",
@@ -12,18 +17,11 @@
     "tdd": "npm -s t -- -w -R min",
     "cover": "nyc npm -s t",
     "report": "codecov",
-    "build:dist": "babel src/ -d dist/ --ignore test.js,__test__.js",
-    "prebuild:dist": "rimraf dist/ && mkdirp dist/",
-    "build:pug": "pug src/demo/ -o demo/ -P",
-    "build:js": "browserify src/demo/ -t babelify -o demo/main.js",
-    "build:demo": "run-p -s build:pug build:js",
-    "build": "run-s -s build:dist build:demo",
-    "prebuild:demo": "rimraf demo/ && mkdirp demo/",
-    "watch:pug": "run-s -s 'build:pug -- -w'",
-    "watch:js": "watchify src/demo/ -vd -t babelify -o demo/main.js",
+    "build": "babel-node build.js",
+    "watch:pug": "pug demo/ -o demo/ -P -w",
+    "watch:js": "watchify demo/ -vd -t babelify -o demo/main.js",
     "watch:sync": "browser-sync start -c sync.js",
     "demo": "run-p -s watch:*",
-    "predemo": "run-s -s build:demo",
     "travis": "run-s -s lint cover build",
     "precommit": "run-s -s lint test",
     "prepublishOnly": "run-s -s travis"
@@ -39,11 +37,19 @@
     "url": "https://github.com/thebearingedge/control-components/issues"
   },
   "homepage": "https://github.com/thebearingedge/control-components#readme",
+  "peerDependencies": {
+    "react": "^16.0.0"
+  },
+  "dependencies": {
+    "prop-types": "^15.6.0"
+  },
   "devDependencies": {
     "babel-cli": "^6.26.0",
+    "babel-plugin-external-helpers": "^6.22.0",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.26.0",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-plugin-transform-react-jsx": "^6.24.1",
+    "babel-preset-env": "^1.6.1",
     "babel-register": "^6.26.0",
     "babelify": "^8.0.0",
     "browser-sync": "^2.18.13",
@@ -62,25 +68,24 @@
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-react": "^7.5.1",
     "eslint-plugin-standard": "^3.0.1",
+    "gzip-size": "^4.1.0",
     "husky": "^0.14.3",
     "jsdom": "^11.5.1",
     "mkdirp": "^0.5.1",
     "mocha": "^4.0.1",
     "npm-run-all": "^4.1.2",
     "nyc": "^11.4.0",
+    "pretty-bytes": "^4.0.2",
     "pug-cli": "^1.0.0-alpha6",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "rimraf": "^2.6.2",
+    "rollup": "^0.52.0",
+    "rollup-plugin-babel": "^3.0.2",
+    "rollup-plugin-commonjs": "^8.2.6",
+    "rollup-plugin-uglify": "^2.0.1",
     "sinon": "^4.1.1",
     "sinon-chai": "^2.14.0",
     "watchify": "^3.9.0"
-  },
-  "peerDependencies": {
-    "react": "^16.0.0",
-    "react-dom": "^16.0.0"
-  },
-  "dependencies": {
-    "prop-types": "^15.5.7"
   }
 }
