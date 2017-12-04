@@ -1,6 +1,6 @@
 {
   "name": "controlled-components",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "description": "Streamlined form controls for React.",
   "main": "cjs/index.js",
   "module": "es/index.js",
