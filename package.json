@@ -1,7 +1,7 @@
 {
   "name": "controlled-components",
   "version": "1.0.0-alpha.3",
-  "description": "Streamlined form controls for React.",
+  "description": "React form control system.",
   "main": "cjs/index.js",
   "module": "es/index.js",
   "files": [
@@ -24,7 +24,11 @@
     "demo": "run-p -s watch:*",
     "travis": "run-s -s lint cover build",
     "precommit": "run-s -s lint test",
-    "prepublishOnly": "run-s -s travis"
+    "prepublishOnly": "run-s -s travis",
+    "docs:clean": "rimraf _book/",
+    "docs:build": "gitbook build",
+    "docs:watch": "gitbook serve",
+    "docs:publish": "./docs.bash"
   },
   "keywords": [],
   "author": "Tim Davis",
@@ -41,6 +45,7 @@
     "react": "^16.0.0"
   },
   "dependencies": {
+    "gitbook-plugin-github": "^2.0.0",
     "prop-types": "^15.6.0"
   },
   "devDependencies": {
@@ -68,6 +73,9 @@
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-react": "^7.5.1",
     "eslint-plugin-standard": "^3.0.1",
+    "gitbook-cli": "^2.3.2",
+    "gitbook-plugin-collapsible-menu": "^1.0.3",
+    "gitbook-plugin-github": "^3.0.0",
     "gzip-size": "^4.1.0",
     "husky": "^0.14.3",
     "jsdom": "^11.5.1",

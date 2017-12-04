@@ -1,0 +1,15 @@
+{
+  "gitbook": "3.2.3",
+  "title": "Controlled Components",
+  "description": "React form control system.",
+  "plugins": [
+    "github",
+    "collapsible-menu"
+  ],
+  "pluginsConfig": {
+    "github": {
+      "url": "https://github.com/thebearingedge/controlled-components"
+    }
+  },
+  "root": "./docs"
+}
