@@ -4,6 +4,7 @@ node_modules/
 .nyc_output/
 .DS_Store
 coverage/
+_demo/
 _book/
 .env
 cjs/
