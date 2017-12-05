@@ -40,7 +40,8 @@
   "browserify": {
     "transform": [
       "babelify",
-      "browserify-shim"
+      "browserify-shim",
+      "source-map-path-normalizify"
     ]
   },
   "browserify-shim": {
@@ -110,6 +111,7 @@
     "rollup-plugin-commonjs": "^8.2.6",
     "rollup-plugin-uglify": "^2.0.1",
     "sinon": "^4.1.1",
-    "sinon-chai": "^2.14.0"
+    "sinon-chai": "^2.14.0",
+    "source-map-path-normalizify": "0.0.3"
   }
 }
