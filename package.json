@@ -1,7 +1,7 @@
 {
-  "name": "controlled-components",
+  "name": "super-controls",
   "version": "1.0.0-alpha.3",
-  "description": "React form control system.",
+  "description": "Form component system",
   "main": "cjs/index.js",
   "module": "es/index.js",
   "files": [
@@ -51,12 +51,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thebearingedge/controlled-components.git"
+    "url": "git+https://github.com/thebearingedge/super-controls.git"
   },
   "bugs": {
-    "url": "https://github.com/thebearingedge/controlled-components/issues"
+    "url": "https://github.com/thebearingedge/super-controls/issues"
   },
-  "homepage": "https://github.com/thebearingedge/controlled-components#readme",
+  "homepage": "https://github.com/thebearingedge/super-controls#readme",
   "peerDependencies": {
     "react": "^16.0.0",
     "react-dom": "^16.0.0"
