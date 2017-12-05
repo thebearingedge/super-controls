@@ -91,6 +91,7 @@
     "gitbook-cli": "2.3.2",
     "gitbook-plugin-collapsible-menu": "1.0.3",
     "gitbook-plugin-github": "2.0.0",
+    "gitbook-plugin-prism": "^2.3.0",
     "globify": "^2.2.1",
     "gzip-size": "^4.1.0",
     "husky": "^0.14.3",

@@ -4,6 +4,8 @@
   "description": "React form control system.",
   "plugins": [
     "github",
+    "-highlight",
+    "prism",
     "collapsible-menu"
   ],
   "pluginsConfig": {
