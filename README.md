@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="controlled-components" src="https://cdn.rawgit.com/thebearingedge/controlled-components/master/docs/images/logo.svg"/>
+  <img alt="controlled-components" src="docs/images/logo.svg"/>
 </p>
 
 <p align="center">
