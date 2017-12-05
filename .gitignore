@@ -1,12 +1,9 @@
-demo/index.html
-demo/main.js
 node_modules/
 .nyc_output/
 .DS_Store
 coverage/
 _demo/
 _book/
-.env
 cjs/
 umd/
 es/
