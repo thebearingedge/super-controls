@@ -21,21 +21,21 @@ exec('babel src/ -d cjs/', {
   BABEL_ENV: 'cjs'
 })
 
-console.log('\nBuilding UMD controlled-components.js...')
+console.log('\nBuilding UMD super-controls.js...')
 
-exec('rollup -c -f umd -o umd/controlled-components.js', {
+exec('rollup -c -f umd -o umd/super-controls.js', {
   BABEL_ENV: 'umd',
   NODE_ENV: 'development'
 })
 
-console.log('\nBuilding UMD controlled-components.min.js...')
+console.log('\nBuilding UMD super-controls.min.js...')
 
-exec('rollup -c -f umd -o umd/controlled-components.min.js', {
+exec('rollup -c -f umd -o umd/super-controls.min.js', {
   BABEL_ENV: 'umd',
   NODE_ENV: 'production'
 })
 
-const min = readFileSync('umd/controlled-components.min.js', 'utf8')
+const min = readFileSync('umd/super-controls.min.js', 'utf8')
 const size = gzipSize.sync(min)
 const bytes = prettyBytes(size)
 

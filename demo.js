@@ -3,6 +3,6 @@ module.exports = {
   open: false,
   files: '_demo/',
   server: '_demo/',
-  logPrefix: 'controlled-components',
+  logPrefix: 'super-controls',
   port: 4001
 }

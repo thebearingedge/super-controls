@@ -129,4 +129,4 @@ export const deepEqual = (a, b) => {
   return a === b
 }
 
-export const KEY = '@@controlled-components'
+export const KEY = '@@super-controls'
