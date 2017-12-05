@@ -4,7 +4,7 @@ import commonjs from 'rollup-plugin-commonjs'
 
 const config = {
   input: 'src/index.js',
-  name: 'Controlled',
+  name: 'ControlledComponents',
   sourcemap: true,
   globals: {
     'react': 'React',
