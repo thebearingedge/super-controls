@@ -10,7 +10,7 @@
   ],
   "pluginsConfig": {
     "github": {
-      "url": "https://github.com/thebearingedge/controlled-components"
+      "url": "https://github.com/thebearingedge/super-controls"
     }
   },
   "root": "./docs"
