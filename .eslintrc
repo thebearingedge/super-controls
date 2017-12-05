@@ -6,7 +6,6 @@
   "extends": ["standard", "plugin:react/recommended"],
   "rules": {
     "padded-blocks": 0,
-    "no-fallthrough": 0,
     "curly": ["error", "multi-line"],
     "brace-style": ["error", "stroustrup"],
     "space-before-function-paren": ["error", {
