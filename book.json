@@ -3,14 +3,20 @@
   "title": "Controlled Components",
   "description": "React form control system.",
   "plugins": [
-    "github",
-    "-highlight",
     "prism",
+    "github",
+    "favicon",
+    "-highlight",
     "collapsible-menu"
   ],
   "pluginsConfig": {
     "github": {
       "url": "https://github.com/thebearingedge/super-controls"
+    },
+    "favicon": {
+      "shortcut": "images/favicon.ico",
+      "bookmark": "images/favicon.ico",
+      "appleTouch": "images/apple-touch-icon.png"
     }
   },
   "root": "./docs"
