@@ -12,21 +12,24 @@ export const isString = val => typeof val === 'string'
 
 export const isBoolean = val => typeof val === 'boolean'
 
-export const isFunction = val => typeof val === 'function'
-
 export const isUndefined = val => val === void 0
 
 export const isIndex = val => Number.isInteger(val)
 
 export const keys = obj => Object.keys(obj)
 
-export const omit = (source, props) =>
-  keys(source)
-    .reduce((omitted, key) =>
-      props.includes(key)
-        ? omitted
-        : assign(omitted, { [key]: source[key] })
-      , {})
+export const omit = (source, props) => keys(source)
+  .reduce((omitted, key) =>
+    props.includes(key)
+      ? omitted
+      : assign(omitted, { [key]: source[key] })
+    , {})
+
+export const pick = (source, props) =>
+  props.reduce((picked, prop) => assign(
+    picked,
+    { [prop]: source[prop] }
+  ), {})
 
 export const assign = (...args) => Object.assign({}, ...args)
 
@@ -41,9 +44,7 @@ export const sliceOut = (array, index) => [
   ...array.slice(index + 1)
 ]
 
-export const sliceOver = (array, index, val) => {
-  const sliced = [...array]
-  sliced.length = Math.max(sliced.length, index)
+export const sliceOver = ([ ...sliced ], index, val) => {
   sliced[index] = val
   return sliced
 }
@@ -116,6 +117,7 @@ export const equalProps = equalExcept('name', 'children')
 export const shallowEqual = equalExcept()
 
 export const deepEqual = (a, b) => {
+  if (a === b) return true
   if (isArray(a) && isArray(b)) {
     return a.length === b.length &&
            a.every((_, index) => deepEqual(a[index], b[index]))
@@ -126,7 +128,5 @@ export const deepEqual = (a, b) => {
     return aKeys.length === bKeys.length &&
            aKeys.every(key => deepEqual(a[key], b[key]))
   }
-  return a === b
+  return false
 }
-
-export const KEY = '@@super-controls'

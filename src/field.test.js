@@ -1,12 +1,11 @@
 import React from 'react'
 import { describe, it } from 'mocha'
-import { KEY } from './util'
 import { mockField, mountWith, expect, spy, stub } from './__test__'
 import { Field } from './field'
 
 describe('Field', () => {
 
-  const context = { [KEY]: { register: mockField } }
+  const context = { '@@super-controls': { register: mockField } }
   const mount = mountWith({ context })
 
   it('registers its path and value via context', () => {
@@ -19,15 +18,6 @@ describe('Field', () => {
   it('renders a component prop', () => {
     const wrapper = mount(
       <Field name='foo' init='bar' component={_ => <input/>}/>
-    )
-    expect(wrapper).to.have.tagName('input')
-  })
-
-  it('renders a child function', () => {
-    const wrapper = mount(
-      <Field name='foo' init='bar'>
-        { _ => <input/> }
-      </Field>
     )
     expect(wrapper).to.have.tagName('input')
   })
@@ -56,6 +46,19 @@ describe('Field', () => {
     )
   })
 
+  it('passes its id prop to its control', done => {
+    const Test = ({ control }) => {
+      expect(control).to.include({
+        id: 'test'
+      })
+      done()
+      return null
+    }
+    mount(
+      <Field id='test' name='foo' component={Test}/>
+    )
+  })
+
   it('automatically set its control id to its name', done => {
     const Test = ({ control }) => {
       expect(control).to.include({
@@ -72,12 +75,11 @@ describe('Field', () => {
   it('injects a field model into its component', done => {
     const Test = ({ field }) => {
       expect(field).to.deep.include({
-        path: ['foo'],
         init: 'bar',
         value: 'bar',
-        isTouched: false,
         isDirty: false,
-        isPristine: true
+        isPristine: true,
+        isTouched: false
       })
       done()
       return null
@@ -90,18 +92,13 @@ describe('Field', () => {
   it('forwards other props to its component', done => {
     const Test = ({ field, control, ...props }) => {
       expect(props).to.include({
-        id: 'test',
         className: 'form-control'
       })
       done()
       return null
     }
     mount(
-      <Field
-        id='test'
-        name='foo'
-        component={Test}
-        className='form-control'/>
+      <Field name='foo' className='form-control' component={Test}/>
     )
   })
 
@@ -115,15 +112,27 @@ describe('Field', () => {
       return null
     }
     mount(
-      <Field name='foo' init={true} component={Test}/>
+      <Field name='foo' type='checkbox' init={true} component={Test}/>
+    )
+  })
+
+  it('decides whether a radio button is checked', done => {
+    const Test = ({ control }) => {
+      expect(control).to.include({
+        value: 'bar',
+        checked: false
+      })
+      done()
+      return null
+    }
+    mount(
+      <Field name='foo' type='radio' value='bar' init='baz' component={Test}/>
     )
   })
 
   it('receives value updates from its component', () => {
     const wrapper = mount(
-      <Field name='foo' init='bar'>
-        { ({ control }) => <input {...control}/> }
-      </Field>
+      <Field name='foo' init='bar' component='input'/>
     )
     const { model } = wrapper.instance()
     const update = spy(model, 'update')
@@ -133,9 +142,7 @@ describe('Field', () => {
 
   it('receives checked updates from its component', () => {
     const wrapper = mount(
-      <Field name='foo' init={false}>
-        { ({ control }) => <input type='checkbox' {...control}/> }
-      </Field>
+      <Field name='foo' type='checkbox' init={false} component='input'/>
     )
     const { model } = wrapper.instance()
     const update = spy(model, 'update')
@@ -146,9 +153,7 @@ describe('Field', () => {
 
   it('receives touch updates from its component', () => {
     const wrapper = mount(
-      <Field name='foo' init='bar'>
-        { ({ control }) => <input {...control}/> }
-      </Field>
+      <Field name='foo' init='bar' component='input'/>
     )
     const { model } = wrapper.instance()
     const update = spy(model, 'update')
@@ -158,9 +163,7 @@ describe('Field', () => {
 
   it('unregisters its model when it unmounts', () => {
     const wrapper = mount(
-      <Field name='foo' init='bar'>
-        { ({ control }) => <input {...control}/> }
-      </Field>
+      <Field name='foo' init='bar'/>
     )
     const { model } = wrapper.instance()
     const unregister = spy(model, 'unregister')

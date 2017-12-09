@@ -23,39 +23,13 @@ describe('Form', () => {
       expect(form.state).to.deep.equal({
         init: {},
         values: {},
+        errors: {},
+        notices: {},
         touched: {}
       })
     })
 
     it('reads its initial values from props', () => {
-      const values = { foo: '', bar: '' }
-      const wrapper = mount(<Form values={values}/>)
-      const form = wrapper.instance()
-      expect(form.state).to.deep.equal({
-        touched: {},
-        values,
-        init: values
-      })
-    })
-
-    it('reads an intial nested values state', () => {
-      const values = {
-        foo: {
-          bar: {
-            baz: ''
-          }
-        }
-      }
-      const wrapper = mount(<Form values={values}/>)
-      const form = wrapper.instance()
-      expect(form.state).to.deep.equal({
-        touched: {},
-        values,
-        init: values
-      })
-    })
-
-    it('reads an initial values state containing arrays', () => {
       const values = {
         foo: [
           { bar: '' },
@@ -65,6 +39,8 @@ describe('Form', () => {
       const wrapper = mount(<Form values={values}/>)
       const form = wrapper.instance()
       expect(form.state).to.deep.equal({
+        errors: {},
+        notices: {},
         touched: {},
         values,
         init: values
@@ -89,12 +65,10 @@ describe('Form', () => {
         model: modelField,
         paths: toThunks('foo.bar.baz.0.qux')
       })
-      expect(field).to.deep.equal({
+      expect(field).to.deep.include({
         init: '',
         value: '',
-        isTouched: false,
-        isDirty: false,
-        isPristine: true
+        isTouched: false
       })
     })
 
@@ -106,17 +80,17 @@ describe('Form', () => {
         paths: toThunks('foo'),
         init: 'foo'
       })
-      expect(field).to.deep.equal({
+      expect(field).to.deep.include({
         init: 'foo',
         value: 'foo',
-        isTouched: false,
-        isDirty: false,
-        isPristine: true
+        isTouched: false
       })
       expect(form.state).to.deep.equal({
-        values: { foo: 'foo' },
+        touched: {},
+        errors: {},
+        notices: {},
         init: { foo: 'foo' },
-        touched: {}
+        values: { foo: 'foo' }
       })
     })
 
@@ -130,16 +104,16 @@ describe('Form', () => {
       })
       field.update({ value: 'bar' })
       expect(form.state).to.deep.equal({
-        values: { foo: 'bar' },
+        errors: {},
+        notices: {},
+        touched: {},
         init: { foo: '' },
-        touched: {}
+        values: { foo: 'bar' }
       })
-      expect(field).to.deep.equal({
+      expect(field).to.deep.include({
         init: '',
         value: 'bar',
-        isTouched: false,
-        isDirty: true,
-        isPristine: false
+        isTouched: false
       })
     })
 
@@ -153,16 +127,16 @@ describe('Form', () => {
       })
       field.update({ isTouched: true })
       expect(form.state).to.deep.equal({
+        errors: {},
+        notices: {},
         values: { foo: '' },
         init: { foo: '' },
         touched: { foo: true }
       })
-      expect(field).to.deep.equal({
+      expect(field).to.deep.include({
         init: '',
         value: '',
-        isTouched: true,
-        isDirty: false,
-        isPristine: true
+        isTouched: true
       })
     })
 
@@ -194,6 +168,8 @@ describe('Form', () => {
           expect(this.state).to.deep.equal({
             init: {},
             values: {},
+            errors: {},
+            notices: {},
             touched: {}
           })
           done()
@@ -214,6 +190,8 @@ describe('Form', () => {
           expect(this.state).to.deep.equal({
             init: {},
             values: {},
+            errors: {},
+            notices: {},
             touched: {}
           })
           done()
@@ -270,6 +248,8 @@ describe('Form', () => {
             expect(wrapper.state()).to.deep.equal({
               init: {},
               values: {},
+              errors: {},
+              notices: {},
               touched: {}
             })
             done()

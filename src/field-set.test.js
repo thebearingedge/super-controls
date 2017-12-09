@@ -1,14 +1,10 @@
 import React from 'react'
-import { object } from 'prop-types'
 import { describe, it } from 'mocha'
 import { mount, expect, stub, spy, toThunks } from './__test__'
 import { Form } from './form'
 import { Field } from './field'
-import { FieldSet, modelFieldSet } from './field-set'
 import { FieldArray } from './field-array'
-
-const Input = ({ control }) => <input {...control}/>
-Input.propTypes = { control: object }
+import { FieldSet, modelFieldSet } from './field-set'
 
 describe('FieldSet', () => {
 
@@ -52,17 +48,6 @@ describe('FieldSet', () => {
     expect(wrapper).to.contain(<noscript/>)
   })
 
-  it('renders a function child', () => {
-    const wrapper = mount(
-      <Form>
-        <FieldSet name='foo'>
-          { _ => <noscript/> }
-        </FieldSet>
-      </Form>
-    )
-    expect(wrapper).to.contain(<noscript/>)
-  })
-
   it('namespaces descendant fields', () => {
     const wrapper = mount(
       <Form>
@@ -72,6 +57,8 @@ describe('FieldSet', () => {
       </Form>
     )
     expect(wrapper.state()).to.deep.equal({
+      errors: {},
+      notices: {},
       touched: {},
       init: {
         foo: {
@@ -95,6 +82,8 @@ describe('FieldSet', () => {
       </Form>
     )
     expect(wrapper.state()).to.deep.equal({
+      errors: {},
+      notices: {},
       touched: {},
       init: {
         foo: {
@@ -118,6 +107,8 @@ describe('FieldSet', () => {
       </Form>
     )
     expect(wrapper.state()).to.deep.equal({
+      errors: {},
+      notices: {},
       touched: {},
       init: {
         foo: {
@@ -139,13 +130,13 @@ describe('FieldSet', () => {
     const wrapper = mount(
       <Form>
         <TestFieldSet name='foo'>
-          <Field name='bar' component={Input}/>
+          <Field name='bar' component='input'/>
         </TestFieldSet>
       </Form>
     )
     stub(TestFieldSet.prototype, 'componentDidUpdate')
       .callsFake(() => done())
-    wrapper.find(Input).simulate('blur')
+    wrapper.find('input').simulate('blur')
   })
 
 })
@@ -161,49 +152,10 @@ describe('modelFieldSet', () => {
       paths: toThunks('foo'),
       value: {}
     })
-    expect(model).to.deep.equal({
+    expect(model).to.deep.include({
       init: { bar: '' },
       value: { bar: '' },
-      isTouched: false,
-      isDirty: false,
-      isPristine: true
-    })
-  })
-
-  it('is touched if any of its descendant fields are touched', done => {
-    const wrapper = mount(<Form/>)
-    const form = wrapper.instance()
-    const model = form.register({
-      model: modelFieldSet,
-      paths: toThunks('foo')
-    })
-    wrapper.setState({
-      touched: {
-        foo: { bar: [{ baz: [{ qux: true }] }] }
-      }
-    }, _ => {
-      expect(model.isTouched).to.equal(true)
-      done()
-    })
-  })
-
-  it('is dirty if any of its descendant fields are dirty', done => {
-    const wrapper = mount(<Form values={{ foo: { bar: 'baz' } }}/>)
-    const form = wrapper.instance()
-    const model = form.register({
-      model: modelFieldSet,
-      paths: toThunks('foo')
-    })
-    wrapper.setState({
-      values: {
-        foo: { bar: 'qux' }
-      }
-    }, _ => {
-      expect(model).to.include({
-        isDirty: true,
-        isPristine: false
-      })
-      done()
+      touched: {}
     })
   })
 

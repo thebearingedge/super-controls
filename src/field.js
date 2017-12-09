@@ -1,19 +1,11 @@
-import { Component, createElement } from 'react'
-import { oneOfType, any, bool, func, string, number, shape } from 'prop-types'
-import { KEY, invoke, equalProps, isBoolean, isString } from './util'
+import { createElement } from 'react'
+import { oneOfType, any, bool, func, string, number } from 'prop-types'
+import { pick, deepEqual, isBoolean, isString } from './util'
+import * as SuperControl from './super-control'
 
-export class Field extends Component {
+export class Field extends SuperControl.View {
   constructor(...args) {
     super(...args)
-    this.model = this.context[KEY].register({
-      init: this.props.init,
-      model: this.modelField,
-      paths: [_ => this.props.name]
-    })
-    this.state = {
-      value: this.model.value,
-      isTouched: this.model.isTouched
-    }
     this.onBlur = this.onBlur.bind(this)
     this.onChange = this.onChange.bind(this)
   }
@@ -23,102 +15,91 @@ export class Field extends Component {
     })
   }
   onBlur() {
-    this.model.isTouched ||
+    this.state.isTouched ||
     this.model.update({ isTouched: true })
   }
-  shouldComponentUpdate(nextProps, nextState) {
-    return !equalProps(this.props, nextProps) ||
-           this.model.value !== nextState.value ||
-           this.model.isTouched !== nextState.isTouched
+  getInit() {
+    const { init, type } = this.props
+    return type === 'checkbox' || isBoolean(init) ? !!init : init
   }
-  componentDidUpdate() {
-    const { value, isTouched } = this.model
-    this.setState({ value, isTouched })
-  }
-  componentWillUnmount() {
-    this.model.unregister()
+  getState(model) {
+    return pick(model, ['init', 'value', 'isTouched'])
   }
   modelField(form, init, paths) {
     return modelField(form, init, paths)
   }
+  getFieldProp(model) {
+    const state = this.getState(model)
+    const extra = pick(model, ['update'])
+    const isDirty = !deepEqual(state.init, state.value)
+    const isPristine = !isDirty
+    return { ...state, ...extra, isDirty, isPristine }
+  }
+  getControlProp({
+    id, type, name, onBlur, onChange, propValue, fieldValue
+  }) {
+    const control = { type, name, onBlur, onChange }
+    if (id) control.id = id === true ? name : id
+    if (type === 'checkbox') {
+      control.checked = !!fieldValue
+      return control
+    }
+    if (type === 'radio') {
+      control.value = propValue
+      control.checked = propValue === fieldValue
+      return control
+    }
+    control.value = fieldValue
+    return control
+  }
   render() {
-    const { id, name, init, component, children, ...props } = this.props
-    const { onBlur, onChange, model } = this
-    const { value } = model
-    const control = {
-      name,
-      onBlur,
-      onChange,
-      [isBoolean(value) ? 'checked' : 'value']: value
-    }
-    if (id && isBoolean(id)) control.id = name
-    if (isString(component)) {
-      return createElement(component, {
-        id,
-        ...control,
-        ...props
-      })
-    }
-    return createElement(component || children, {
-      field: model,
-      control,
+    const {
       id,
+      name,
+      init,
+      type,
+      notify,
+      validate,
+      component,
+      value: propValue,
       ...props
+    } = this.props
+    const { model, onBlur, onChange } = this
+    const field = this.getFieldProp(model)
+    const { value: fieldValue } = field
+    const control = this.getControlProp({
+      id, type, name, onBlur, onChange, propValue, fieldValue
     })
+    if (isString(component)) {
+      return createElement(component, { ...control, ...props })
+    }
+    return createElement(component, { field, control, ...props })
   }
   static get propTypes() {
     return {
+      ...super.propTypes,
       init: any,
-      children: func,
-      id: oneOfType([string, bool]),
+      value: any,
+      type: string,
       component: oneOfType([string, func]),
-      name: oneOfType([string, number]).isRequired
+      id: oneOfType([number, string, bool])
     }
   }
   static get defaultProps() {
     return {
-      init: '',
-      children: _ => null
-    }
-  }
-  static get contextTypes() {
-    return {
-      [KEY]: shape({
-        register: func.isRequired
-      }).isRequired
+      ...super.defaultProps,
+      init: ''
     }
   }
 }
 
-export const modelField = (form, init, paths) => {
-  const model = {
-    get init() {
-      return form.getInit(this.path, init)
-    },
-    get value() {
-      return form.getValue(this.path, this.init)
-    },
-    get isTouched() {
-      return !!form.getTouched(this.path)
-    },
-    get isDirty() {
-      return this.value !== this.init
-    },
-    get isPristine() {
-      return !this.isDirty
-    }
+export class FieldModel extends SuperControl.Model {
+  get isTouched() {
+    return this.form.getTouched(this.path, false)
   }
-  return Object.defineProperties(model, {
-    path: {
-      get: _ => paths.map(invoke)
-    },
-    update: {
-      configurable: true,
-      value: state => form.update(model.path, state)
-    },
-    unregister: {
-      configurable: true,
-      value: _ => form.unregister(model)
-    }
-  })
+  update(state) {
+    this.form.update(this.path, state)
+  }
 }
+
+export const modelField = (...args) => new FieldModel(...args)
