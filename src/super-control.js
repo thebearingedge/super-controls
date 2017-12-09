@@ -5,13 +5,15 @@ import { noop, invoke, equalProps, deepEqual } from './util'
 export class View extends Component {
   constructor(...args) {
     super(...args)
+    this.register = this.register.bind(this)
+  }
+  componentWillMount() {
     this.model = this.context['@@super-controls'].register({
       init: this.getInit(),
       model: this.modelField,
       paths: [_ => this.props.name]
     })
-    this.state = this.getState(this.model)
-    this.register = this.register.bind(this)
+    this.setState(this.getState(this.model))
   }
   shouldComponentUpdate(nextProps, nextState) {
     return !equalProps(this.props, nextProps) ||
