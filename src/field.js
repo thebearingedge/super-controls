@@ -29,19 +29,15 @@ export class Field extends SuperControl.View {
     return modelField(...args)
   }
   getFieldProp(model) {
+    const name = this.props.name
     const state = this.getState(model)
-    const extra = pick(model, ['update'])
+    const extra = pick(model, ['form', 'update'])
     const isValid = !state.error
     const isInvalid = !isValid
     const isDirty = !deepEqual(state.init, state.value)
     const isPristine = !isDirty
     return {
-      ...state,
-      ...extra,
-      isDirty,
-      isValid,
-      isInvalid,
-      isPristine
+      ...state, ...extra, name, isDirty, isValid, isInvalid, isPristine
     }
   }
   getControlProp({

@@ -8,10 +8,28 @@ export class FieldSet extends SuperControl.View {
     return this.props.init
   }
   getState() {
-    return _.pick(this.model, ['init', 'value', 'touched'])
+    return _.pick(this.model, ['init', 'value', 'touched', 'error', 'notice'])
   }
   modelField(...args) {
     return modelFieldSet(...args)
+  }
+  getFieldsProp(model) {
+    const name = this.props.name
+    const state = this.getState(model)
+    const extra = _.pick(model, ['form', 'isTouched'])
+    const isDirty = !_.deepEqual(state.init, state.value)
+    const isPristine = !isDirty
+    const isValid = !state.error
+    const isInvalid = !isValid
+    return {
+      ...state,
+      ...extra,
+      name,
+      isDirty,
+      isValid,
+      isInvalid,
+      isPristine
+    }
   }
   render() {
     const { init, notify, validate, component, ...props } = this.props

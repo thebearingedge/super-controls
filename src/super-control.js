@@ -82,10 +82,10 @@ export class Model {
     return this.form.getValue(this.path, this.init)
   }
   get error() {
-    return this.form.getError(this.path, null)
+    return this.form.getError(this.path)
   }
   get notice() {
-    return this.form.getNotice(this.path, null)
+    return this.form.getNotice(this.path)
   }
   check(value, values, method) {
     return { [this.path.join('.')]: this[`_${method}`](value, values) || null }

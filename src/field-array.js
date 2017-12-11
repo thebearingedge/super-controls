@@ -4,19 +4,16 @@ import { FieldSet, FieldSetModel } from './field-set'
 import * as _ from './util'
 
 export class FieldArray extends FieldSet {
-  modelField(id, form, init, paths) {
-    return modelFieldArray(id, form, init, paths)
+  modelField(...args) {
+    return modelFieldArray(...args)
   }
   getFieldsProp(model) {
-    const state = this.getState(model)
+    const fields = super.getFieldsProp(model)
     const extra = _.pick(model, [
-      'isTouched',
       'insert', 'remove', 'push', 'pop',
       'unshift', 'shift', 'map', 'length'
     ])
-    const isDirty = !_.deepEqual(state.init, state.value)
-    const isPristine = !isDirty
-    return { ...state, ...extra, isDirty, isPristine }
+    return { ...fields, ...extra }
   }
   render() {
     const { component, children, ...props } = this.props
