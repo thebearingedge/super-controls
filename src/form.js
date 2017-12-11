@@ -5,6 +5,7 @@ import * as _ from './util'
 export class Form extends Component {
   constructor(...args) {
     super(...args)
+    this.fields = new Fields()
     this.state = this.getInitialState()
     this.onReset = this.onReset.bind(this)
     this.onSubmit = this.onSubmit.bind(this)
@@ -31,13 +32,26 @@ export class Form extends Component {
     this.props.onSubmit(_.clone(this.state.values))
   }
   update(path, state) {
-    this.setState(({ init, values, touched }) => {
-      const nextState = { init, values, touched }
+    const { check } = this.fields
+    this.setState(({ init, values, errors, notices, touched }) => {
+      const nextState = { init, values, errors, notices, touched }
       if ('init' in state) {
         nextState.init = _.set(init, path, state.init)
       }
       if ('value' in state) {
         nextState.values = _.set(values, path, state.value)
+        if (state.validate) {
+          nextState.errors = _.assign(
+            errors,
+            check(state.value, values, 'validate', path)
+          )
+        }
+        if (state.notify) {
+          nextState.notices = _.assign(
+            notices,
+            check(state.value, values, 'notify', path)
+          )
+        }
       }
       if ('isTouched' in state) {
         nextState.touched = _.set(touched, path, state.isTouched)
@@ -59,14 +73,23 @@ export class Form extends Component {
   getTouched(path, fallback) {
     return _.get(this.state.touched, path, fallback)
   }
+  getError(path) {
+    return this.state.errors[path.join('.')] || null
+  }
+  getNotice(path) {
+    return this.state.notices[path.join('.')] || null
+  }
   register({ init, model, paths }) {
     const path = paths.map(_.invoke)
     const value = this.getInit(path)
     if (!_.isUndefined(value)) {
-      return model(this, value, paths)
+      const field = model(this, value, paths)
+      return this.fields.register(field, path)
     }
+    const field = model(this, init, paths)
+    this.fields.register(field, path)
     this.update(path, { init, value: init })
-    return model(this, init, paths)
+    return field
   }
   unregister({ path }) {
     if (_.isUndefined(this.getValue(path)) &&
@@ -78,7 +101,7 @@ export class Form extends Component {
   }
   render() {
     return createElement('form', {
-      ..._.omit(this.props, ['values']),
+      ..._.omit(this.props, ['values', 'notify', 'validate']),
       onReset: this.onReset,
       onSubmit: this.onSubmit
     })
@@ -86,6 +109,8 @@ export class Form extends Component {
   static get propTypes() {
     return {
       name: string,
+      notify: func,
+      validate: func,
       values: object,
       onSubmit: func
     }
@@ -93,6 +118,8 @@ export class Form extends Component {
   static get defaultProps() {
     return {
       values: {},
+      notify: _.noop,
+      validate: _.noop,
       onSubmit: _.noop
     }
   }
@@ -102,5 +129,22 @@ export class Form extends Component {
         register: func
       })
     }
+  }
+}
+
+export class Fields {
+  constructor() {
+    this.fields = {}
+    this.check = this.check.bind(this)
+  }
+  register(field, [ key, ...path ]) {
+    const { fields } = this
+    this.fields = path.length
+      ? _.assign(fields, { [key]: fields[key].register(field, path) })
+      : _.assign(fields, { [key]: field })
+    return field
+  }
+  check(value, values, method, [ key, ...path ]) {
+    return this.fields[key].check(value, values, method, path)
   }
 }

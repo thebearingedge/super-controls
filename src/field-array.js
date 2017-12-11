@@ -1,20 +1,20 @@
 import { createElement } from 'react'
 import { func, array } from 'prop-types'
 import { FieldSet, FieldSetModel } from './field-set'
-import { set, pick, sliceIn, sliceOut, deepEqual } from './util'
+import * as _ from './util'
 
 export class FieldArray extends FieldSet {
-  modelField(form, init, paths) {
-    return modelFieldArray(form, init, paths)
+  modelField(id, form, init, paths) {
+    return modelFieldArray(id, form, init, paths)
   }
   getFieldsProp(model) {
     const state = this.getState(model)
-    const extra = pick(model, [
+    const extra = _.pick(model, [
       'isTouched',
       'insert', 'remove', 'push', 'pop',
       'unshift', 'shift', 'map', 'length'
     ])
-    const isDirty = !deepEqual(state.init, state.value)
+    const isDirty = !_.deepEqual(state.init, state.value)
     const isPristine = !isDirty
     return { ...state, ...extra, isDirty, isPristine }
   }
@@ -44,6 +44,7 @@ export class FieldArray extends FieldSet {
 class FieldArrayModel extends FieldSetModel {
   constructor(...args) {
     super(...args)
+    this.fields = []
     this.insert = this.insert.bind(this)
     this.remove = this.remove.bind(this)
     this.push = this.push.bind(this)
@@ -61,17 +62,17 @@ class FieldArrayModel extends FieldSetModel {
   insert(index, newValue) {
     const { form, path, init, value, touched } = this
     form.update(path, {
-      init: sliceIn(init, index, newValue),
-      value: sliceIn(value, index, newValue),
-      isTouched: set(touched, [index], void 0)
+      init: _.sliceIn(init, index, newValue),
+      value: _.sliceIn(value, index, newValue),
+      isTouched: _.set(touched, [index], void 0)
     })
   }
   remove(index) {
     const { form, path, init, value, touched } = this
     form.update(path, {
-      init: sliceOut(init, index),
-      value: sliceOut(value, index),
-      isTouched: sliceOut(touched, index)
+      init: _.sliceOut(init, index),
+      value: _.sliceOut(value, index),
+      isTouched: _.sliceOut(touched, index)
     })
   }
   push(newValue) {

@@ -3,7 +3,7 @@ import { describe, it } from 'mocha'
 import { mount, expect, stub, spy, toThunks } from './__test__'
 import { Form } from './form'
 import { Field, modelField } from './field'
-import { FieldSet } from './field-set'
+import { FieldSet, modelFieldSet } from './field-set'
 import { FieldArray, modelFieldArray } from './field-array'
 
 describe('FieldArray', () => {
@@ -176,7 +176,7 @@ describe('modelFieldArray', () => {
   })
 
   it('is touched if any of its descendant fields are touched', done => {
-    const wrapper = mount(<Form/>)
+    const wrapper = mount(<Form values={{ foo: [] }}/>)
     const form = wrapper.instance()
     const model = form.register({
       model: modelFieldArray,
@@ -206,9 +206,7 @@ describe('modelFieldArray', () => {
       value: ''
     })
     bars.push('bar')
-    expect(form.state).to.deep.equal({
-      errors: {},
-      notices: {},
+    expect(form.state).to.deep.include({
       init: { foo: ['', 'bar'] },
       values: { foo: ['', 'bar'] },
       touched: { foo: [void 0, void 0] }
@@ -224,17 +222,23 @@ describe('modelFieldArray', () => {
       paths: toThunks('foo')
     })
     form.register({
+      model: modelFieldSet,
+      paths: toThunks('foo.0')
+    })
+    form.register({
       model: modelField,
       paths: toThunks('foo.0.bar')
+    })
+    form.register({
+      model: modelFieldSet,
+      paths: toThunks('foo.1')
     })
     form.register({
       model: modelField,
       paths: toThunks('foo.1.bar')
     })
     bars.pop()
-    expect(form.state).to.deep.equal({
-      errors: {},
-      notices: {},
+    expect(form.state).to.deep.include({
       touched: { foo: [] },
       init: { foo: [{ bar: 'baz' }] },
       values: { foo: [{ bar: 'baz' }] }
@@ -250,13 +254,15 @@ describe('modelFieldArray', () => {
       paths: toThunks('foo')
     })
     form.register({
+      model: modelFieldSet,
+      paths: toThunks('foo.0')
+    })
+    form.register({
       model: modelField,
       paths: toThunks('foo.0.bar')
     })
     bars.unshift({ bar: '' })
-    expect(form.state).to.deep.equal({
-      errors: {},
-      notices: {},
+    expect(form.state).to.deep.include({
       touched: { foo: [void 0] },
       init: { foo: [{ bar: '' }, { bar: '' }] },
       values: { foo: [{ bar: '' }, { bar: '' }] }
@@ -272,17 +278,23 @@ describe('modelFieldArray', () => {
       paths: toThunks('foo')
     })
     form.register({
+      model: modelFieldSet,
+      paths: toThunks('foo.0')
+    })
+    form.register({
       model: modelField,
       paths: toThunks('foo.0.bar')
+    })
+    form.register({
+      model: modelFieldSet,
+      paths: toThunks('foo.1')
     })
     form.register({
       model: modelField,
       paths: toThunks('foo.1.bar')
     })
     bars.shift()
-    expect(form.state).to.deep.equal({
-      errors: {},
-      notices: {},
+    expect(form.state).to.deep.include({
       touched: { foo: [] },
       init: { foo: [{ bar: 'baz' }] },
       values: { foo: [{ bar: 'baz' }] }

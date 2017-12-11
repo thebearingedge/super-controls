@@ -139,6 +139,22 @@ describe('FieldSet', () => {
     wrapper.find('input').simulate('blur')
   })
 
+  it('tracks changes of its descendant fields', done => {
+    class TestFieldSet extends FieldSet {
+      componentDidUpdate() {}
+    }
+    const wrapper = mount(
+      <Form>
+        <TestFieldSet name='foo'>
+          <Field name='bar' component='input'/>
+        </TestFieldSet>
+      </Form>
+    )
+    stub(TestFieldSet.prototype, 'componentDidUpdate')
+      .callsFake(() => done())
+    wrapper.find('input').simulate('change', { target: { value: 'baz' } })
+  })
+
 })
 
 describe('modelFieldSet', () => {

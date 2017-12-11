@@ -10,8 +10,11 @@ export class View extends Component {
   componentWillMount() {
     this.model = this.context['@@super-controls'].register({
       init: this.getInit(),
-      model: this.modelField,
-      paths: [_ => this.props.name]
+      paths: [_ => this.props.name],
+      model: (...args) => this.modelField(...args, {
+        notify: this.props.notify,
+        validate: this.props.validate
+      })
     })
     this.setState(this.getState(this.model))
   }
@@ -65,18 +68,27 @@ export class Model {
   constructor(form, init, paths, { notify, validate } = {}) {
     this.form = form
     this._init = init
-    this.paths = paths
-    this.notify = notify || noop
-    this.validate = validate || noop
+    this._path = paths
+    this._notify = notify || noop
+    this._validate = validate || noop
   }
   get path() {
-    return this.paths.map(invoke)
+    return this._path.map(invoke)
   }
   get init() {
     return this.form.getInit(this.path, this._init)
   }
   get value() {
     return this.form.getValue(this.path, this.init)
+  }
+  get error() {
+    return this.form.getError(this.path, null)
+  }
+  get notice() {
+    return this.form.getNotice(this.path, null)
+  }
+  check(value, values, method) {
+    return { [this.path.join('.')]: this[`_${method}`](value, values) || null }
   }
   unregister() {
     this.form.unregister(this)

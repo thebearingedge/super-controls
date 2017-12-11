@@ -23,17 +23,26 @@ export class Field extends SuperControl.View {
     return type === 'checkbox' || isBoolean(init) ? !!init : init
   }
   getState(model) {
-    return pick(model, ['init', 'value', 'isTouched'])
+    return pick(model, ['init', 'value', 'isTouched', 'error', 'notice'])
   }
-  modelField(form, init, paths) {
-    return modelField(form, init, paths)
+  modelField(...args) {
+    return modelField(...args)
   }
   getFieldProp(model) {
     const state = this.getState(model)
     const extra = pick(model, ['update'])
+    const isValid = !state.error
+    const isInvalid = !isValid
     const isDirty = !deepEqual(state.init, state.value)
     const isPristine = !isDirty
-    return { ...state, ...extra, isDirty, isPristine }
+    return {
+      ...state,
+      ...extra,
+      isDirty,
+      isValid,
+      isInvalid,
+      isPristine
+    }
   }
   getControlProp({
     id, type, name, onBlur, onChange, propValue, fieldValue
@@ -98,7 +107,7 @@ export class FieldModel extends SuperControl.Model {
     return this.form.getTouched(this.path, false)
   }
   update(state) {
-    this.form.update(this.path, state)
+    this.form.update(this.path, { validate: true, notify: true, ...state })
   }
 }
 

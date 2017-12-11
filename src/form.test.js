@@ -3,6 +3,8 @@ import { describe, it } from 'mocha'
 import { mount, expect, stub, toThunks } from './__test__'
 import { Form } from './form'
 import { modelField } from './field'
+import { modelFieldSet } from './field-set'
+import { modelFieldArray } from './field-array'
 
 describe('Form', () => {
 
@@ -55,19 +57,35 @@ describe('Form', () => {
       const values = {
         foo: {
           bar: {
-            baz: [{ qux: '' }]
+            baz: [{ qux: 'quux' }]
           }
         }
       }
       const wrapper = mount(<Form values={values}/>)
       const form = wrapper.instance()
+      form.register({
+        model: modelFieldSet,
+        paths: toThunks('foo')
+      })
+      form.register({
+        model: modelFieldSet,
+        paths: toThunks('foo.bar')
+      })
+      form.register({
+        model: modelFieldArray,
+        paths: toThunks('foo.bar.baz')
+      })
+      form.register({
+        model: modelFieldSet,
+        paths: toThunks('foo.bar.baz.0')
+      })
       const field = form.register({
         model: modelField,
         paths: toThunks('foo.bar.baz.0.qux')
       })
       expect(field).to.deep.include({
-        init: '',
-        value: '',
+        init: 'quux',
+        value: 'quux',
         isTouched: false
       })
     })
@@ -85,10 +103,8 @@ describe('Form', () => {
         value: 'foo',
         isTouched: false
       })
-      expect(form.state).to.deep.equal({
+      expect(form.state).to.deep.include({
         touched: {},
-        errors: {},
-        notices: {},
         init: { foo: 'foo' },
         values: { foo: 'foo' }
       })
@@ -103,9 +119,7 @@ describe('Form', () => {
         paths: toThunks('foo')
       })
       field.update({ value: 'bar' })
-      expect(form.state).to.deep.equal({
-        errors: {},
-        notices: {},
+      expect(form.state).to.deep.include({
         touched: {},
         init: { foo: '' },
         values: { foo: 'bar' }
@@ -141,7 +155,7 @@ describe('Form', () => {
     })
 
     it('does not overwrite touched state for duplicate fields', () => {
-      const wrapper = mount(<Form/>)
+      const wrapper = mount(<Form values={{ foo: 'foo' }}/>)
       const form = wrapper.instance()
       const first = form.register({
         model: modelField,

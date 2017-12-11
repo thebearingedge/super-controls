@@ -1,4 +1,5 @@
-import React from 'react'
+/* eslint-disable react/prop-types */
+import React, { Fragment } from 'react'
 import { render } from 'react-dom'
 import { Form } from '~/src/form'
 import { Field } from '~/src/field'
@@ -8,30 +9,42 @@ import { FieldArray } from '~/src/field-array'
 const handleSubmit = values =>
   console.log(JSON.stringify(values, null, 2))
 
-const values = {
-  username: 'foobar',
-  contactInfo: {
-    email: 'foo@bar.baz'
-  },
-  friends: [{ name: 'foo' }, { name: 'bar' }, { name: 'baz' }]
-}
+const validateUsername = value =>
+  value.length < 3 &&
+  'Username must be at least 3 characters long'
+
+const notifyUsername = value =>
+  value.length > 5 &&
+  'That is a great username!'
+
+const Username = ({ field, control, ...props }) =>
+  <Fragment>
+    <div className='form-group'>
+      <label htmlFor={control.id}>Username</label>
+      <input type='text' className='form-control' {...control}/>
+    </div>
+    { field.isTouched &&
+      field.isInvalid &&
+      <div className='alert alert-danger'>{ field.error }</div>
+    }
+    { field.isValid &&
+      field.notice &&
+      <div className='alert alert-success'>{ field.notice }</div>
+    }
+  </Fragment>
 
 render(
   <Form
     name='signUp'
-    values={values}
     onSubmit={handleSubmit}
     className='container'>
     <legend>Join Up!</legend>
-    <div className='form-group'>
-      <label htmlFor='username'>Username</label>
-      <Field
-        id
-        type='text'
-        name='username'
-        component='input'
-        className='form-control'/>
-    </div>
+    <Field
+      id
+      name='username'
+      component={Username}
+      notify={notifyUsername}
+      validate={validateUsername}/>
     <FieldSet name='contactInfo' className='form-group'>
       <legend><small>Contact Info</small></legend>
       <label htmlFor='email'>Email</label>

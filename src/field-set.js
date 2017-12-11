@@ -1,6 +1,6 @@
 import { createElement } from 'react'
 import { oneOfType, func, object, string } from 'prop-types'
-import { id, pick, isString, someValues } from './util'
+import * as _ from './util'
 import * as SuperControl from './super-control'
 
 export class FieldSet extends SuperControl.View {
@@ -8,14 +8,14 @@ export class FieldSet extends SuperControl.View {
     return this.props.init
   }
   getState() {
-    return pick(this.model, ['init', 'value', 'touched'])
+    return _.pick(this.model, ['init', 'value', 'touched'])
   }
-  modelField(form, init, paths) {
-    return modelFieldSet(form, init, paths)
+  modelField(...args) {
+    return modelFieldSet(...args)
   }
   render() {
     const { init, notify, validate, component, ...props } = this.props
-    if (isString(component)) return createElement(component, props)
+    if (_.isString(component)) return createElement(component, props)
     return createElement(component, {
       ...props,
       fields: this.model
@@ -38,11 +38,27 @@ export class FieldSet extends SuperControl.View {
 }
 
 export class FieldSetModel extends SuperControl.Model {
+  constructor(...args) {
+    super(...args)
+    this.fields = {}
+  }
   get touched() {
     return this.form.getTouched(this.path, {})
   }
   get isTouched() {
-    return someValues(this.touched, id)
+    return _.someValues(this.touched, _.id)
+  }
+  register(field, [ key, ...path ]) {
+    this.fields = path.length
+      ? _.set(this.fields, [key], this.fields[key].register(field, path))
+      : _.set(this.fields, [key], field)
+    return this
+  }
+  check(value, values, method, [ key, ...path ]) {
+    return _.assign(
+      super.check(_.set(this.value, [key, ...path], value), values, method),
+      this.fields[key].check(value, values, method, path)
+    )
   }
 }
 
