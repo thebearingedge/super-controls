@@ -5,6 +5,7 @@ import * as _ from './util'
 export class Form extends Component {
   constructor(...args) {
     super(...args)
+    this.fieldId = 0
     this.fields = new Fields()
     this.state = this.getInitialState()
     this.onReset = this.onReset.bind(this)
@@ -73,20 +74,20 @@ export class Form extends Component {
   getTouched(path, fallback) {
     return _.get(this.state.touched, path, fallback)
   }
-  getError(path) {
-    return this.state.errors[path.join('.')] || null
+  getError(fieldId) {
+    return this.state.errors[fieldId] || null
   }
-  getNotice(path) {
-    return this.state.notices[path.join('.')] || null
+  getNotice(fieldId) {
+    return this.state.notices[fieldId] || null
   }
   register({ init, model, paths }) {
     const path = paths.map(_.invoke)
     const value = this.getInit(path)
     if (!_.isUndefined(value)) {
-      const field = model(this, value, paths)
+      const field = model(++this.fieldId, this, value, paths)
       return this.fields.register(field, path)
     }
-    const field = model(this, init, paths)
+    const field = model(++this.fieldId, this, init, paths)
     this.fields.register(field, path)
     this.update(path, { init, value: init })
     return field

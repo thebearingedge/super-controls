@@ -65,7 +65,8 @@ export class View extends Component {
 }
 
 export class Model {
-  constructor(form, init, paths, { notify, validate } = {}) {
+  constructor(id, form, init, paths, { notify, validate } = {}) {
+    this.id = id
     this.form = form
     this._init = init
     this._path = paths
@@ -82,13 +83,13 @@ export class Model {
     return this.form.getValue(this.path, this.init)
   }
   get error() {
-    return this.form.getError(this.path)
+    return this.form.getError(this.id)
   }
   get notice() {
-    return this.form.getNotice(this.path)
+    return this.form.getNotice(this.id)
   }
   check(value, values, method) {
-    return { [this.path.join('.')]: this[`_${method}`](value, values) || null }
+    return { [this.id]: this[`_${method}`](value, values) || null }
   }
   unregister() {
     this.form.unregister(this)
