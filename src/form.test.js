@@ -38,7 +38,7 @@ describe('Form', () => {
           { bar: '' }
         ]
       }
-      const wrapper = mount(<Form values={values}/>)
+      const wrapper = mount(<Form init={values}/>)
       const form = wrapper.instance()
       expect(form.state).to.deep.equal({
         errors: {},
@@ -61,7 +61,7 @@ describe('Form', () => {
           }
         }
       }
-      const wrapper = mount(<Form values={values}/>)
+      const wrapper = mount(<Form init={values}/>)
       const form = wrapper.instance()
       form.register({
         model: modelFieldSet,
@@ -112,7 +112,7 @@ describe('Form', () => {
 
     it('receives value updates from fields', () => {
       const values = { foo: '' }
-      const wrapper = mount(<Form values={values}/>)
+      const wrapper = mount(<Form init={values}/>)
       const form = wrapper.instance()
       const field = form.register({
         model: modelField,
@@ -133,7 +133,7 @@ describe('Form', () => {
 
     it('receives touch updates from fields', () => {
       const values = { foo: '' }
-      const wrapper = mount(<Form values={values}/>)
+      const wrapper = mount(<Form init={values}/>)
       const form = wrapper.instance()
       const field = form.register({
         model: modelField,
@@ -155,7 +155,7 @@ describe('Form', () => {
     })
 
     it('does not overwrite touched state for duplicate fields', () => {
-      const wrapper = mount(<Form values={{ foo: 'foo' }}/>)
+      const wrapper = mount(<Form init={{ foo: 'foo' }}/>)
       const form = wrapper.instance()
       const first = form.register({
         model: modelField,
@@ -189,7 +189,7 @@ describe('Form', () => {
           done()
         }
       }
-      const wrapper = mount(<TestForm values={{ foo: 'bar' }}/>)
+      const wrapper = mount(<TestForm init={{ foo: 'bar' }}/>)
       const form = wrapper.instance()
       const field = form.register({
         model: modelField,
@@ -211,7 +211,7 @@ describe('Form', () => {
           done()
         }
       }
-      const wrapper = mount(<TestForm values={{ foo: 'bar' }}/>)
+      const wrapper = mount(<TestForm init={{ foo: 'bar' }}/>)
       const form = wrapper.instance()
       const field = form.register({
         model: modelField,
@@ -238,7 +238,7 @@ describe('Form', () => {
         done()
       }
       const wrapper = mount(
-        <Form values={values} onSubmit={handleSubmit}/>
+        <Form init={values} onSubmit={handleSubmit}/>
       )
       wrapper.simulate('submit')
     })

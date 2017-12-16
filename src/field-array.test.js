@@ -67,7 +67,7 @@ describe('FieldArray', () => {
       }
     }
     mount(
-      <Form values={{ foos: [''] }}>
+      <Form init={{ foos: [''] }}>
         <FieldArray name='foos'>
           { ({ fields }) =>
             fields.map((foo, index) =>
@@ -87,7 +87,7 @@ describe('FieldArray', () => {
       }
     }
     mount(
-      <Form values={{ foos: [{}] }}>
+      <Form init={{ foos: [{}] }}>
         <FieldArray name='foos'>
           { ({ fields }) =>
             fields.map((foo, index) =>
@@ -107,7 +107,7 @@ describe('FieldArray', () => {
       }
     }
     mount(
-      <Form values={{ foos: [[]] }}>
+      <Form init={{ foos: [[]] }}>
         <FieldArray name='foos'>
           { ({ fields }) =>
             fields.map((foo, index) =>
@@ -124,7 +124,7 @@ describe('FieldArray', () => {
       componentDidUpdate() {}
     }
     const wrapper = mount(
-      <Form values={{ foos: ['foo'] }}>
+      <Form init={{ foos: ['foo'] }}>
         <TestFieldArray name='foos'/>
       </Form>
     )
@@ -138,7 +138,7 @@ describe('FieldArray', () => {
       componentDidUpdate() {}
     }
     const wrapper = mount(
-      <Form values={{ foos: [''] }}>
+      <Form init={{ foos: [''] }}>
         <TestFieldArray name='foos'>
           { ({ fields }) =>
             fields.map((foo, index) =>
@@ -159,7 +159,7 @@ describe('modelFieldArray', () => {
 
   it('returns a field array wrapper', () => {
     const values = { foo: [] }
-    const wrapper = mount(<Form values={values}/>)
+    const wrapper = mount(<Form init={values}/>)
     const form = wrapper.instance()
     const model = form.register({
       init: [],
@@ -176,7 +176,7 @@ describe('modelFieldArray', () => {
   })
 
   it('is touched if any of its descendant fields are touched', done => {
-    const wrapper = mount(<Form values={{ foo: [] }}/>)
+    const wrapper = mount(<Form init={{ foo: [] }}/>)
     const form = wrapper.instance()
     const model = form.register({
       model: modelFieldArray,
@@ -194,7 +194,7 @@ describe('modelFieldArray', () => {
 
   it('"pushes" a new field into an array', () => {
     const values = { foo: [''] }
-    const wrapper = mount(<Form values={values}/>)
+    const wrapper = mount(<Form init={values}/>)
     const form = wrapper.instance()
     const bars = form.register({
       model: modelFieldArray,
@@ -215,7 +215,7 @@ describe('modelFieldArray', () => {
 
   it('"pops" a field from an array', () => {
     const values = { foo: [{ bar: 'baz' }, { bar: '' }] }
-    const wrapper = mount(<Form values={values}/>)
+    const wrapper = mount(<Form init={values}/>)
     const form = wrapper.instance()
     const bars = form.register({
       model: modelFieldArray,
@@ -247,7 +247,7 @@ describe('modelFieldArray', () => {
 
   it('"unshifts" a new field into an array', () => {
     const values = { foo: [{ bar: '' }] }
-    const wrapper = mount(<Form values={values}/>)
+    const wrapper = mount(<Form init={values}/>)
     const form = wrapper.instance()
     const bars = form.register({
       model: modelFieldArray,
@@ -271,7 +271,7 @@ describe('modelFieldArray', () => {
 
   it('"shift"s a field from an array', () => {
     const values = { foo: [{ bar: '' }, { bar: 'baz' }] }
-    const wrapper = mount(<Form values={values}/>)
+    const wrapper = mount(<Form init={values}/>)
     const form = wrapper.instance()
     const bars = form.register({
       model: modelFieldArray,
@@ -303,7 +303,7 @@ describe('modelFieldArray', () => {
 
   it('"maps" over its values', () => {
     const values = { foo: [{ bar: '' }, { bar: '' }, { bar: '' }] }
-    const wrapper = mount(<Form values={values}/>)
+    const wrapper = mount(<Form init={values}/>)
     const form = wrapper.instance()
     const bars = form.register({
       model: modelFieldArray,

@@ -161,7 +161,7 @@ describe('modelFieldSet', () => {
 
   it('returns a field set model', () => {
     const values = { foo: { bar: '' } }
-    const wrapper = mount(<Form values={values}/>)
+    const wrapper = mount(<Form init={values}/>)
     const form = wrapper.instance()
     const model = form.register({
       model: modelFieldSet,

@@ -17,8 +17,8 @@ export class Form extends Component {
       errors: {},
       notices: {},
       touched: {},
-      init: this.props.values,
-      values: this.props.values
+      init: this.props.init,
+      values: this.props.init
     }
   }
   getChildContext() {
@@ -112,13 +112,13 @@ export class Form extends Component {
       name: string,
       notify: func,
       validate: func,
-      values: object,
+      init: object,
       onSubmit: func
     }
   }
   static get defaultProps() {
     return {
-      values: {},
+      init: {},
       notify: _.noop,
       validate: _.noop,
       onSubmit: _.noop
