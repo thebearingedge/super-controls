@@ -1,6 +1,6 @@
 {
   "name": "super-controls",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-alpha.5",
   "description": "Form component system",
   "main": "cjs/index.js",
   "module": "es/index.js",
@@ -9,7 +9,12 @@
     "cjs/",
     "es/"
   ],
-  "keywords": [],
+  "keywords": [
+    "react",
+    "form",
+    "control",
+    "components"
+  ],
   "author": "Tim Davis",
   "license": "MIT",
   "scripts": {
