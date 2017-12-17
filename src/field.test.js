@@ -213,8 +213,12 @@ describe('Field', () => {
       const update = spy(foo, 'update')
       wrapper.find('input').simulate('blur')
       expect(update).to.have.been.calledWith({
+        value: 'bar',
         isFocused: null,
         isTouched: true
+      }, {
+        notify: true,
+        validate: true
       })
     })
 

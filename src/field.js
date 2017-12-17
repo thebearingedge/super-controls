@@ -3,6 +3,9 @@ import { oneOfType, any, bool, func, string, number } from 'prop-types'
 import * as _ from './util'
 import * as SuperControl from './super-control'
 
+const getValue = ({ target: { type, value, checked } }) =>
+  type === 'checkbox' ? !!checked : value
+
 export class Field extends SuperControl.View {
   constructor(...args) {
     super(...args)
@@ -10,13 +13,23 @@ export class Field extends SuperControl.View {
     this.onFocus = this.onFocus.bind(this)
     this.onChange = this.onChange.bind(this)
   }
-  onChange({ target: { type, value, checked } }) {
+  onChange(event) {
     this.model.update({
-      value: type === 'checkbox' ? !!checked : value
-    }, { validate: true, notify: true })
+      value: getValue(event)
+    }, {
+      notify: true,
+      validate: true
+    })
   }
-  onBlur() {
-    this.model.update({ isFocused: null, isTouched: true })
+  onBlur(event) {
+    this.model.update({
+      isTouched: true,
+      isFocused: null,
+      value: getValue(event)
+    }, {
+      notify: true,
+      validate: true
+    })
   }
   onFocus() {
     this.model.update({ isFocused: this.model })
