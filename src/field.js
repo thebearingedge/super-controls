@@ -1,6 +1,6 @@
 import { createElement } from 'react'
 import { oneOfType, any, bool, func, string, number } from 'prop-types'
-import { pick, deepEqual, isBoolean, isString } from './util'
+import * as _ from './util'
 import * as SuperControl from './super-control'
 
 export class Field extends SuperControl.View {
@@ -23,7 +23,7 @@ export class Field extends SuperControl.View {
   }
   getInit() {
     const { init, type } = this.props
-    return type === 'checkbox' || isBoolean(init) ? !!init : init
+    return type === 'checkbox' || _.isBoolean(init) ? !!init : init
   }
   modelField(...args) {
     return modelField(...args)
@@ -31,10 +31,10 @@ export class Field extends SuperControl.View {
   getFieldProp(model) {
     const name = this.props.name
     const state = model.getState()
-    const extra = pick(model, ['form', 'update'])
+    const extra = _.pick(model, ['form', 'update'])
     const isValid = !state.error
     const isInvalid = !isValid
-    const isDirty = !deepEqual(state.init, state.value)
+    const isDirty = !_.deepEqual(state.init, state.value)
     const isPristine = !isDirty
     return {
       ...state, ...extra, name, isDirty, isValid, isInvalid, isPristine
@@ -75,7 +75,7 @@ export class Field extends SuperControl.View {
     const control = this.getControlProp({
       id, type, name, onBlur, onFocus, onChange, propValue, fieldValue
     })
-    if (isString(component)) {
+    if (_.isString(component)) {
       return createElement(component, { ...control, ...props })
     }
     return createElement(component, { field, control, ...props })
@@ -116,14 +116,9 @@ export class FieldModel extends SuperControl.Model {
     this.form.update(this.path, state, options)
   }
   getState() {
-    return pick(this, [
-      'init',
-      'value',
-      'error',
-      'notice',
-      'isFocused',
-      'isVisited',
-      'isTouched'
+    return _.pick(this, [
+      'init', 'value', 'error', 'notice',
+      'isFocused', 'isVisited', 'isTouched'
     ])
   }
 }
