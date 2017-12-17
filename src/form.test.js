@@ -20,8 +20,7 @@ describe('Form', () => {
   describe('constructor', () => {
 
     it('has an initial state', () => {
-      const wrapper = mount(<Form/>)
-      const form = wrapper.instance()
+      const form = mount(<Form/>).instance()
       expect(form.state).to.deep.equal({
         init: {},
         values: {},
@@ -38,8 +37,7 @@ describe('Form', () => {
           { bar: '' }
         ]
       }
-      const wrapper = mount(<Form init={values}/>)
-      const form = wrapper.instance()
+      const form = mount(<Form init={values}/>).instance()
       expect(form.state).to.deep.equal({
         errors: {},
         notices: {},
@@ -61,8 +59,7 @@ describe('Form', () => {
           }
         }
       }
-      const wrapper = mount(<Form init={values}/>)
-      const form = wrapper.instance()
+      const form = mount(<Form init={values}/>).instance()
       form.register({
         model: modelFieldSet,
         paths: toThunks('foo')
@@ -91,8 +88,7 @@ describe('Form', () => {
     })
 
     it('registers fields with intial values', () => {
-      const wrapper = mount(<Form/>)
-      const form = wrapper.instance()
+      const form = mount(<Form/>).instance()
       const field = form.register({
         model: modelField,
         paths: toThunks('foo'),
@@ -111,9 +107,7 @@ describe('Form', () => {
     })
 
     it('receives value updates from fields', () => {
-      const values = { foo: '' }
-      const wrapper = mount(<Form init={values}/>)
-      const form = wrapper.instance()
+      const form = mount(<Form init={{ foo: '' }}/>).instance()
       const field = form.register({
         model: modelField,
         paths: toThunks('foo')
@@ -132,9 +126,7 @@ describe('Form', () => {
     })
 
     it('receives touch updates from fields', () => {
-      const values = { foo: '' }
-      const wrapper = mount(<Form init={values}/>)
-      const form = wrapper.instance()
+      const form = mount(<Form init={{ foo: '' }}/>).instance()
       const field = form.register({
         model: modelField,
         paths: toThunks('foo')
@@ -155,8 +147,7 @@ describe('Form', () => {
     })
 
     it('does not overwrite touched state for duplicate fields', () => {
-      const wrapper = mount(<Form init={{ foo: 'foo' }}/>)
-      const form = wrapper.instance()
+      const form = mount(<Form init={{ foo: 'foo' }}/>).instance()
       const first = form.register({
         model: modelField,
         paths: toThunks('foo'),
@@ -176,49 +167,37 @@ describe('Form', () => {
 
   describe('unregister', () => {
 
-    it('unregisters fields by path', done => {
-      class TestForm extends Form {
-        componentDidUpdate() {
-          expect(this.state).to.deep.equal({
-            init: {},
-            values: {},
-            errors: {},
-            notices: {},
-            touched: {}
-          })
-          done()
-        }
-      }
-      const wrapper = mount(<TestForm init={{ foo: 'bar' }}/>)
-      const form = wrapper.instance()
+    it('unregisters fields by path', () => {
+      const form = mount(<Form init={{ foo: 'bar' }}/>).instance()
       const field = form.register({
         model: modelField,
         paths: toThunks('foo')
       })
       field.unregister()
+      expect(form.state).to.deep.equal({
+        init: {},
+        values: {},
+        errors: {},
+        notices: {},
+        touched: {}
+      })
     })
 
-    it('does not unregister fields that are not registered', done => {
-      class TestForm extends Form {
-        componentDidUpdate() {
-          expect(this.state).to.deep.equal({
-            init: {},
-            values: {},
-            errors: {},
-            notices: {},
-            touched: {}
-          })
-          done()
-        }
-      }
-      const wrapper = mount(<TestForm init={{ foo: 'bar' }}/>)
-      const form = wrapper.instance()
+    it('does not unregister fields that are not registered', () => {
+      const form = mount(<Form init={{ foo: 'bar' }}/>).instance()
       const field = form.register({
         model: modelField,
         paths: toThunks('foo')
       })
       field.unregister()
       field.unregister()
+      expect(form.state).to.deep.equal({
+        init: {},
+        values: {},
+        errors: {},
+        notices: {},
+        touched: {}
+      })
     })
 
   })
@@ -227,7 +206,7 @@ describe('Form', () => {
 
     it('does nothing by default', () => {
       const wrapper = mount(<Form/>)
-      wrapper.simulate('submit')
+      expect(() => wrapper.simulate('submit')).not.to.throw()
     })
 
     it('calls a submit handler prop with its values', done => {
