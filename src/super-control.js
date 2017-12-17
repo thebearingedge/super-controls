@@ -72,6 +72,7 @@ export class Model {
     this._path = paths
     this._notify = notify || noop
     this._validate = validate || noop
+    this.check = this.check.bind(this)
   }
   get path() {
     return this._path.map(invoke)

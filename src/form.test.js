@@ -1,9 +1,9 @@
 import React from 'react'
 import { describe, it } from 'mocha'
-import { mount, expect, stub, toThunks } from './__test__'
+import { mount, expect, stub, spy, toThunks } from './__test__'
 import { Form } from './form'
-import { modelField } from './field'
-import { modelFieldSet } from './field-set'
+import { Field, modelField } from './field'
+import { FieldSet, modelFieldSet } from './field-set'
 import { modelFieldArray } from './field-array'
 
 describe('Form', () => {
@@ -28,7 +28,8 @@ describe('Form', () => {
         notices: {},
         touched: {},
         visited: {},
-        focused: null
+        focused: null,
+        submitFailed: false
       })
     })
 
@@ -47,7 +48,8 @@ describe('Form', () => {
         touched: {},
         values,
         init: values,
-        focused: null
+        focused: null,
+        submitFailed: false
       })
     })
 
@@ -143,7 +145,8 @@ describe('Form', () => {
         focused: null,
         init: { foo: '' },
         values: { foo: '' },
-        touched: { foo: true }
+        touched: { foo: true },
+        submitFailed: false
       })
       expect(field).to.deep.include({
         init: '',
@@ -187,7 +190,8 @@ describe('Form', () => {
         notices: {},
         touched: {},
         visited: {},
-        focused: null
+        focused: null,
+        submitFailed: false
       })
     })
 
@@ -206,7 +210,8 @@ describe('Form', () => {
         notices: {},
         touched: {},
         visited: {},
-        focused: null
+        focused: null,
+        submitFailed: false
       })
     })
 
@@ -232,6 +237,54 @@ describe('Form', () => {
       wrapper.simulate('submit')
     })
 
+    it('does not submit if form-level validation fails', () => {
+      const handleSubmit = spy()
+      const validate = ({ username = '' }) =>
+        !username.trim() &&
+        'username is required'
+      const wrapper = mount(
+        <Form validate={validate} onSubmit={handleSubmit}/>
+      )
+      wrapper.simulate('submit')
+      expect(handleSubmit).to.have.callCount(0)
+      expect(wrapper)
+        .to.have.state('errors')
+        .that.deep.equals({
+          '0': 'username is required'
+        })
+    })
+
+    it('does not submit if field-level validation fails', () => {
+      const handleSubmit = spy()
+      const required = (username = '') =>
+        !username.trim() &&
+        'username is required'
+      const wrapper = mount(
+        <Form onSubmit={handleSubmit}>
+          <Field name='id' component='input' type='hidden'/>
+          <FieldSet name='user'>
+            <Field
+              type='text'
+              name='username'
+              component='input'
+              validate={required}/>
+          </FieldSet>
+        </Form>
+      )
+      wrapper.simulate('submit')
+      expect(handleSubmit).to.have.callCount(0)
+      const { state, submitFailed } = wrapper.instance()
+      expect(state).to.deep.include({
+        errors: {
+          '0': null,
+          '1': null,
+          '2': null,
+          '3': 'username is required'
+        }
+      })
+      expect(submitFailed).to.equal(true)
+    })
+
   })
 
   describe('onReset', () => {
@@ -255,7 +308,8 @@ describe('Form', () => {
               notices: {},
               touched: {},
               visited: {},
-              focused: null
+              focused: null,
+              submitFailed: false
             })
             done()
           })

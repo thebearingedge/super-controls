@@ -6,7 +6,9 @@ export class Form extends Component {
   constructor(...args) {
     super(...args)
     this.fieldId = 0
-    this.root = new Fields()
+    this.root = new Fields(this.fieldId, {
+      validate: this.props.validate
+    })
     this.state = this.getInitialState()
     this.onReset = this.onReset.bind(this)
     this.onSubmit = this.onSubmit.bind(this)
@@ -19,6 +21,7 @@ export class Form extends Component {
       touched: {},
       visited: {},
       focused: null,
+      submitFailed: false,
       init: this.props.init,
       values: this.props.init
     }
@@ -32,10 +35,17 @@ export class Form extends Component {
   }
   onSubmit(event) {
     event.preventDefault()
-    this.props.onSubmit(_.clone(this.state.values))
+    const { values } = this.state
+    const errors = this.root.checkAll(values, values, 'validate')
+    const hasErrors = _.keys(errors).some(key => errors[key])
+    if (hasErrors) return this.setState({ errors, submitFailed: true })
+    this.props.onSubmit(_.clone(values))
   }
   get fields() {
     return this.root.fields
+  }
+  get submitFailed() {
+    return this.state.submitFailed
   }
   update(path, state, options = {}) {
     const { check } = this.root
@@ -43,13 +53,7 @@ export class Form extends Component {
       init, values, focused, visited, errors, notices, touched
     }) => {
       const nextState = {
-        init,
-        values,
-        errors,
-        notices,
-        touched,
-        visited,
-        focused
+        init, values, errors, notices, touched, visited, focused
       }
       if ('init' in state) {
         nextState.init = _.set(init, path, state.init)
@@ -127,7 +131,7 @@ export class Form extends Component {
   }
   render() {
     return createElement('form', {
-      ..._.omit(this.props, ['values', 'notify', 'validate']),
+      ..._.omit(this.props, ['init', 'notify', 'validate']),
       onReset: this.onReset,
       onSubmit: this.onSubmit
     })
@@ -159,9 +163,10 @@ export class Form extends Component {
 }
 
 export class Fields {
-  constructor() {
-    this.nextId = 0
+  constructor(id, { validate }) {
+    this.id = id
     this.fields = {}
+    this._validate = validate
     this.check = this.check.bind(this)
   }
   register(field, [ key, ...path ]) {
@@ -171,7 +176,23 @@ export class Fields {
       : _.assign(fields, { [key]: field })
     return field
   }
-  check(value, values, method, [ key, ...path ]) {
+  check(value, values, method, [ key, ...path ] = []) {
+    if (_.isUndefined(key)) {
+      return { [this.id]: this[`_${method}`](value) || null }
+    }
     return this.fields[key].check(value, values, method, path)
+  }
+  checkAll(value, values, method) {
+    return _.assign(
+      this.check(value, values, method),
+      _.keys(this.fields)
+        .reduce((checked, key) => {
+          const { check, checkAll } = this.fields[key]
+          return _.assign(
+            checked,
+            (checkAll || check)(values[key], values, method)
+          )
+        }, {})
+    )
   }
 }

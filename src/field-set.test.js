@@ -76,7 +76,8 @@ describe('FieldSet', () => {
           bar: ''
         }
       },
-      focused: null
+      focused: null,
+      submitFailed: false
     })
   })
 
@@ -103,7 +104,8 @@ describe('FieldSet', () => {
           bar: {}
         }
       },
-      focused: null
+      focused: null,
+      submitFailed: false
     })
   })
 
@@ -130,7 +132,8 @@ describe('FieldSet', () => {
           bars: []
         }
       },
-      focused: null
+      focused: null,
+      submitFailed: false
     })
   })
 

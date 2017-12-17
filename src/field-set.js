@@ -56,6 +56,7 @@ export class FieldSetModel extends SuperControl.Model {
   constructor(...args) {
     super(...args)
     this.fields = {}
+    this.checkAll = this.checkAll.bind(this)
   }
   get visited() {
     return this.form.getVisited(this.path, {})
@@ -81,6 +82,19 @@ export class FieldSetModel extends SuperControl.Model {
     return _.assign(
       super.check(_.set(this.value, [key, ...path], value), values, method),
       this.fields[key].check(value, values, method, path)
+    )
+  }
+  checkAll(value, values, method) {
+    return _.assign(
+      { [this.id]: this[`_${method}`](value, values) || null },
+      _.keys(this.fields)
+        .reduce((checked, key) => {
+          const { check, checkAll } = this.fields[key]
+          return _.assign(
+            checked,
+            (checkAll || check)(values[key], values, method)
+          )
+        }, {})
     )
   }
 }

@@ -9,8 +9,8 @@ import { FieldArray } from '~/src/field-array'
 const handleSubmit = values =>
   console.log(JSON.stringify(values, null, 2))
 
-const validateUsername = value =>
-  value.length < 3 &&
+const validateUsername = (value = '') =>
+  value.trim().length < 3 &&
   'Username must be at least 3 characters long'
 
 const notifyUsername = value =>
@@ -23,8 +23,8 @@ const Username = ({ field, control, ...props }) =>
       <label htmlFor={control.id}>Username</label>
       <input type='text' className='form-control' {...control}/>
     </div>
-    { field.isTouched &&
-      field.isInvalid &&
+    { field.isInvalid &&
+      (field.isTouched || field.form.submitFailed) &&
       <div className='alert alert-danger'>{ field.error }</div>
     }
     { field.isValid &&
