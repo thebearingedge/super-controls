@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="super-controls" src="docs/images/logo.svg"/>
+  <img alt="super-controls" src="https://cdn.rawgit.com/thebearingedge/super-controls/917581f6/docs/images/logo.svg"/>
 </p>
 
 <p align="center">
