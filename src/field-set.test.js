@@ -1,21 +1,22 @@
 import React from 'react'
-import { object } from 'prop-types'
 import { describe, it } from 'mocha'
-import { mount, expect, stub, spy, toThunks } from './__test__'
+import { mount, expect, stub, spy } from './__test__'
 import { Form } from './form'
 import { Field } from './field'
-import { FieldSet, modelFieldSet } from './field-set'
 import { FieldArray } from './field-array'
-
-const Input = ({ control }) => <input {...control}/>
-Input.propTypes = { control: object }
+import { FieldSet } from './field-set'
 
 describe('FieldSet', () => {
 
   it('registers a field set model', done => {
     class TestFieldSet extends FieldSet {
       componentDidMount() {
-        expect(this.model).to.be.an('object')
+        expect(this.model).to.deep.include({
+          init: {},
+          value: {},
+          touched: {},
+          visited: {}
+        })
         done()
       }
     }
@@ -52,17 +53,6 @@ describe('FieldSet', () => {
     expect(wrapper).to.contain(<noscript/>)
   })
 
-  it('renders a function child', () => {
-    const wrapper = mount(
-      <Form>
-        <FieldSet name='foo'>
-          { _ => <noscript/> }
-        </FieldSet>
-      </Form>
-    )
-    expect(wrapper).to.contain(<noscript/>)
-  })
-
   it('namespaces descendant fields', () => {
     const wrapper = mount(
       <Form>
@@ -72,7 +62,10 @@ describe('FieldSet', () => {
       </Form>
     )
     expect(wrapper.state()).to.deep.equal({
+      errors: {},
+      notices: {},
       touched: {},
+      visited: {},
       init: {
         foo: {
           bar: ''
@@ -82,7 +75,9 @@ describe('FieldSet', () => {
         foo: {
           bar: ''
         }
-      }
+      },
+      focused: null,
+      submitFailed: false
     })
   })
 
@@ -95,7 +90,10 @@ describe('FieldSet', () => {
       </Form>
     )
     expect(wrapper.state()).to.deep.equal({
+      errors: {},
+      notices: {},
       touched: {},
+      visited: {},
       init: {
         foo: {
           bar: {}
@@ -105,7 +103,9 @@ describe('FieldSet', () => {
         foo: {
           bar: {}
         }
-      }
+      },
+      focused: null,
+      submitFailed: false
     })
   })
 
@@ -118,7 +118,10 @@ describe('FieldSet', () => {
       </Form>
     )
     expect(wrapper.state()).to.deep.equal({
+      errors: {},
+      notices: {},
       touched: {},
+      visited: {},
       init: {
         foo: {
           bars: []
@@ -128,7 +131,9 @@ describe('FieldSet', () => {
         foo: {
           bars: []
         }
-      }
+      },
+      focused: null,
+      submitFailed: false
     })
   })
 
@@ -139,72 +144,45 @@ describe('FieldSet', () => {
     const wrapper = mount(
       <Form>
         <TestFieldSet name='foo'>
-          <Field name='bar' component={Input}/>
+          <Field name='bar' component='input'/>
         </TestFieldSet>
       </Form>
     )
     stub(TestFieldSet.prototype, 'componentDidUpdate')
       .callsFake(() => done())
-    wrapper.find(Input).simulate('blur')
+    wrapper.find('input').simulate('blur')
   })
 
-})
-
-describe('modelFieldSet', () => {
-
-  it('returns a field set model', () => {
-    const values = { foo: { bar: '' } }
-    const wrapper = mount(<Form values={values}/>)
-    const form = wrapper.instance()
-    const model = form.register({
-      model: modelFieldSet,
-      paths: toThunks('foo'),
-      value: {}
-    })
-    expect(model).to.deep.equal({
-      init: { bar: '' },
-      value: { bar: '' },
-      isTouched: false,
-      isDirty: false,
-      isPristine: true
-    })
+  it('tracks changes of its descendant fields', done => {
+    class TestFieldSet extends FieldSet {
+      componentDidUpdate() {}
+    }
+    const wrapper = mount(
+      <Form>
+        <TestFieldSet name='foo'>
+          <Field name='bar' component='input'/>
+        </TestFieldSet>
+      </Form>
+    )
+    stub(TestFieldSet.prototype, 'componentDidUpdate')
+      .callsFake(() => done())
+    wrapper.find('input').simulate('change', { target: { value: 'baz' } })
   })
 
-  it('is touched if any of its descendant fields are touched', done => {
-    const wrapper = mount(<Form/>)
-    const form = wrapper.instance()
-    const model = form.register({
-      model: modelFieldSet,
-      paths: toThunks('foo')
-    })
-    wrapper.setState({
-      touched: {
-        foo: { bar: [{ baz: [{ qux: true }] }] }
-      }
-    }, _ => {
-      expect(model.isTouched).to.equal(true)
-      done()
-    })
-  })
-
-  it('is dirty if any of its descendant fields are dirty', done => {
-    const wrapper = mount(<Form values={{ foo: { bar: 'baz' } }}/>)
-    const form = wrapper.instance()
-    const model = form.register({
-      model: modelFieldSet,
-      paths: toThunks('foo')
-    })
-    wrapper.setState({
-      values: {
-        foo: { bar: 'qux' }
-      }
-    }, _ => {
-      expect(model).to.include({
-        isDirty: true,
-        isPristine: false
-      })
-      done()
-    })
+  it('tracks focuses of its descendant fields', done => {
+    class TestFieldSet extends FieldSet {
+      componentDidUpdate() {}
+    }
+    const wrapper = mount(
+      <Form init={{ foo: { bar: '' } }}>
+        <TestFieldSet name='foo'>
+          <Field name='bar' component='input'/>
+        </TestFieldSet>
+      </Form>
+    )
+    stub(TestFieldSet.prototype, 'componentDidUpdate')
+      .callsFake(() => done())
+    wrapper.find('input').simulate('focus')
   })
 
 })

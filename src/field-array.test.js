@@ -1,10 +1,9 @@
 import React from 'react'
-import { object } from 'prop-types'
 import { describe, it } from 'mocha'
 import { mount, expect, stub, spy, toThunks } from './__test__'
 import { Form } from './form'
 import { Field, modelField } from './field'
-import { FieldSet } from './field-set'
+import { FieldSet, modelFieldSet } from './field-set'
 import { FieldArray, modelFieldArray } from './field-array'
 
 describe('FieldArray', () => {
@@ -12,7 +11,14 @@ describe('FieldArray', () => {
   it('registers a field array model', done => {
     class TestFieldArray extends FieldArray {
       componentDidMount() {
-        expect(this.model).to.be.an('object')
+        expect(this.model).to.deep.include({
+          init: [],
+          value: [],
+          length: 0,
+          touched: [],
+          visited: [],
+          isTouched: false
+        })
         done()
       }
     }
@@ -68,7 +74,7 @@ describe('FieldArray', () => {
       }
     }
     mount(
-      <Form values={{ foos: [''] }}>
+      <Form init={{ foos: [''] }}>
         <FieldArray name='foos'>
           { ({ fields }) =>
             fields.map((foo, index) =>
@@ -88,7 +94,7 @@ describe('FieldArray', () => {
       }
     }
     mount(
-      <Form values={{ foos: [{}] }}>
+      <Form init={{ foos: [{}] }}>
         <FieldArray name='foos'>
           { ({ fields }) =>
             fields.map((foo, index) =>
@@ -108,7 +114,7 @@ describe('FieldArray', () => {
       }
     }
     mount(
-      <Form values={{ foos: [[]] }}>
+      <Form init={{ foos: [[]] }}>
         <FieldArray name='foos'>
           { ({ fields }) =>
             fields.map((foo, index) =>
@@ -120,18 +126,30 @@ describe('FieldArray', () => {
     )
   })
 
-  it('tracks touches of its descendant fields', done => {
-    const Input = ({ control }) => <input {...control}/>
-    Input.propTypes = { control: object }
+  it('tracks updates to its value', done => {
     class TestFieldArray extends FieldArray {
       componentDidUpdate() {}
     }
     const wrapper = mount(
-      <Form values={{ foos: [''] }}>
+      <Form init={{ foos: ['foo'] }}>
+        <TestFieldArray name='foos'/>
+      </Form>
+    )
+    stub(TestFieldArray.prototype, 'componentDidUpdate')
+      .callsFake(() => done())
+    wrapper.setState({ values: { foos: ['bar'] } })
+  })
+
+  it('tracks touches of its descendant fields', done => {
+    class TestFieldArray extends FieldArray {
+      componentDidUpdate() {}
+    }
+    const wrapper = mount(
+      <Form init={{ foos: [''] }}>
         <TestFieldArray name='foos'>
           { ({ fields }) =>
             fields.map((foo, index) =>
-              <Field name={index} key={index} component={Input}/>
+              <Field name={index} key={index} component='input'/>
             )
           }
         </TestFieldArray>
@@ -139,34 +157,35 @@ describe('FieldArray', () => {
     )
     stub(TestFieldArray.prototype, 'componentDidUpdate')
       .callsFake(() => done())
-    wrapper.find(Input).simulate('blur')
+    wrapper.find('input').simulate('blur')
+  })
+
+  it('tracks focuses of its descendant fields', done => {
+    class TestFieldArray extends FieldArray {
+      componentDidUpdate() {}
+    }
+    const wrapper = mount(
+      <Form init={{ foos: [''] }}>
+        <TestFieldArray name='foos'>
+          { ({ fields }) =>
+            fields.map((foo, index) =>
+              <Field name={index} key={index} component='input'/>
+            )
+          }
+        </TestFieldArray>
+      </Form>
+    )
+    stub(TestFieldArray.prototype, 'componentDidUpdate')
+      .callsFake(() => done())
+    wrapper.find('input').simulate('focus')
   })
 
 })
 
 describe('modelFieldArray', () => {
 
-  it('returns a field array wrapper', () => {
-    const values = { foo: [] }
-    const wrapper = mount(<Form values={values}/>)
-    const form = wrapper.instance()
-    const model = form.register({
-      init: [],
-      model: modelFieldArray,
-      paths: toThunks('foo')
-    })
-    expect(model).to.deep.equal({
-      init: [],
-      value: [],
-      length: 0,
-      isTouched: false,
-      isDirty: false,
-      isPristine: true
-    })
-  })
-
   it('is touched if any of its descendant fields are touched', done => {
-    const wrapper = mount(<Form/>)
+    const wrapper = mount(<Form init={{ foo: [] }}/>)
     const form = wrapper.instance()
     const model = form.register({
       model: modelFieldArray,
@@ -182,29 +201,9 @@ describe('modelFieldArray', () => {
     })
   })
 
-  it('isDirty if any of its descendant fields are dirty', done => {
-    const wrapper = mount(<Form values={{ foo: [{ bar: 'baz' }] }}/>)
-    const form = wrapper.instance()
-    const model = form.register({
-      model: modelFieldArray,
-      paths: toThunks('foo')
-    })
-    wrapper.setState({
-      values: {
-        foo: [{ bar: 'qux' }]
-      }
-    }, _ => {
-      expect(model).to.include({
-        isDirty: true,
-        isPristine: false
-      })
-      done()
-    })
-  })
-
   it('"pushes" a new field into an array', () => {
     const values = { foo: [''] }
-    const wrapper = mount(<Form values={values}/>)
+    const wrapper = mount(<Form init={values}/>)
     const form = wrapper.instance()
     const bars = form.register({
       model: modelFieldArray,
@@ -216,7 +215,7 @@ describe('modelFieldArray', () => {
       value: ''
     })
     bars.push('bar')
-    expect(form.state).to.deep.equal({
+    expect(form.state).to.deep.include({
       init: { foo: ['', 'bar'] },
       values: { foo: ['', 'bar'] },
       touched: { foo: [void 0, void 0] }
@@ -225,75 +224,95 @@ describe('modelFieldArray', () => {
 
   it('"pops" a field from an array', () => {
     const values = { foo: [{ bar: 'baz' }, { bar: '' }] }
-    const wrapper = mount(<Form values={values}/>)
+    const wrapper = mount(<Form init={values}/>)
     const form = wrapper.instance()
     const bars = form.register({
       model: modelFieldArray,
       paths: toThunks('foo')
     })
     form.register({
+      model: modelFieldSet,
+      paths: toThunks('foo.0')
+    })
+    form.register({
       model: modelField,
       paths: toThunks('foo.0.bar')
+    })
+    form.register({
+      model: modelFieldSet,
+      paths: toThunks('foo.1')
     })
     form.register({
       model: modelField,
       paths: toThunks('foo.1.bar')
     })
     bars.pop()
-    expect(form.state).to.deep.equal({
+    expect(form.state).to.deep.include({
+      touched: { foo: [] },
       init: { foo: [{ bar: 'baz' }] },
-      values: { foo: [{ bar: 'baz' }] },
-      touched: { foo: [] }
+      values: { foo: [{ bar: 'baz' }] }
     })
   })
 
   it('"unshifts" a new field into an array', () => {
     const values = { foo: [{ bar: '' }] }
-    const wrapper = mount(<Form values={values}/>)
+    const wrapper = mount(<Form init={values}/>)
     const form = wrapper.instance()
     const bars = form.register({
       model: modelFieldArray,
       paths: toThunks('foo')
+    })
+    form.register({
+      model: modelFieldSet,
+      paths: toThunks('foo.0')
     })
     form.register({
       model: modelField,
       paths: toThunks('foo.0.bar')
     })
     bars.unshift({ bar: '' })
-    expect(form.state).to.deep.equal({
+    expect(form.state).to.deep.include({
+      touched: { foo: [void 0] },
       init: { foo: [{ bar: '' }, { bar: '' }] },
-      values: { foo: [{ bar: '' }, { bar: '' }] },
-      touched: { foo: [void 0] }
+      values: { foo: [{ bar: '' }, { bar: '' }] }
     })
   })
 
   it('"shift"s a field from an array', () => {
     const values = { foo: [{ bar: '' }, { bar: 'baz' }] }
-    const wrapper = mount(<Form values={values}/>)
+    const wrapper = mount(<Form init={values}/>)
     const form = wrapper.instance()
     const bars = form.register({
       model: modelFieldArray,
       paths: toThunks('foo')
     })
     form.register({
+      model: modelFieldSet,
+      paths: toThunks('foo.0')
+    })
+    form.register({
       model: modelField,
       paths: toThunks('foo.0.bar')
+    })
+    form.register({
+      model: modelFieldSet,
+      paths: toThunks('foo.1')
     })
     form.register({
       model: modelField,
       paths: toThunks('foo.1.bar')
     })
     bars.shift()
-    expect(form.state).to.deep.equal({
+    expect(form.state).to.deep.include({
+      touched: { foo: [] },
       init: { foo: [{ bar: 'baz' }] },
-      values: { foo: [{ bar: 'baz' }] },
-      touched: { foo: [] }
+      values: { foo: [{ bar: 'baz' }] }
     })
   })
 
   it('"maps" over its values', () => {
     const values = { foo: [{ bar: '' }, { bar: '' }, { bar: '' }] }
-    const wrapper = mount(<Form values={values}/>)
+    const wrapper = mount(<Form init={values}/>)
     const form = wrapper.instance()
     const bars = form.register({
       model: modelFieldArray,

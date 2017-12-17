@@ -1,30 +1,30 @@
 import { createElement } from 'react'
 import { func, array } from 'prop-types'
-import { FieldSet } from './field-set'
-import {
-  id,
-  set,
-  invoke,
-  sliceIn,
-  sliceOut,
-  deepEqual,
-  someValues
-} from './util'
+import { FieldSet, FieldSetModel } from './field-set'
+import * as _ from './util'
 
 export class FieldArray extends FieldSet {
-  modelField(form, init, paths) {
-    return modelFieldArray(form, init, paths)
+  modelField(...args) {
+    return modelFieldArray(...args)
+  }
+  getFieldsProp(model) {
+    const fields = super.getFieldsProp(model)
+    const extra = _.pick(model, [
+      'insert', 'remove', 'push', 'pop',
+      'unshift', 'shift', 'map', 'length'
+    ])
+    return { ...fields, ...extra }
   }
   render() {
     const { component, children, ...props } = this.props
-    const { model: fields } = this
     return createElement(component || children, {
-      fields,
-      ...props
+      ...props,
+      fields: this.getFieldsProp(this.model)
     })
   }
   static get propTypes() {
     return {
+      ...super.propTypes,
       init: array,
       children: func,
       component: func
@@ -38,74 +38,60 @@ export class FieldArray extends FieldSet {
   }
 }
 
-export const modelFieldArray = (form, init, paths) => {
-  const model = {
-    get init() {
-      return form.getInit(this.path, init)
-    },
-    get value() {
-      return form.getValue(this.path, this.init)
-    },
-    get isTouched() {
-      return someValues(this.touched, id)
-    },
-    get isDirty() {
-      return !deepEqual(this.init, this.value)
-    },
-    get isPristine() {
-      return !this.isDirty
-    },
-    get length() {
-      return this.value.length
-    }
+class FieldArrayModel extends FieldSetModel {
+  constructor(...args) {
+    super(...args)
+    this.fields = []
+    this.insert = this.insert.bind(this)
+    this.remove = this.remove.bind(this)
+    this.push = this.push.bind(this)
+    this.pop = this.pop.bind(this)
+    this.unshift = this.unshift.bind(this)
+    this.shift = this.shift.bind(this)
+    this.map = this.map.bind(this)
   }
-  return Object.defineProperties(model, {
-    path: {
-      get: () => paths.map(invoke)
-    },
-    touched: {
-      get: () => form.getTouched(model.path, [])
-    },
-    unregister: {
-      configurable: true,
-      value: _ => form.unregister(model)
-    },
-    insert: {
-      value: (index, newValue) => {
-        const { path, init, value, touched } = model
-        form.update(path, {
-          init: sliceIn(init, index, newValue),
-          value: sliceIn(value, index, newValue),
-          isTouched: set(touched, [index], void 0)
-        })
-      }
-    },
-    remove: {
-      value: index => {
-        const { path, init, value, touched } = model
-        form.update(path, {
-          init: sliceOut(init, index),
-          value: sliceOut(value, index),
-          isTouched: sliceOut(touched, index)
-        })
-      }
-    },
-    push: {
-      value: value => model.insert(model.length, value)
-    },
-    pop: {
-      value: () => model.remove(model.length - 1)
-    },
-    unshift: {
-      value: value => model.insert(0, value)
-    },
-    shift: {
-      value: () => model.remove(0)
-    },
-    map: {
-      value: transform => model.value.map((value, index) =>
-        transform(value, index, model)
-      )
-    }
-  })
+  get visited() {
+    return this.form.getVisited(this.path, [])
+  }
+  get touched() {
+    return this.form.getTouched(this.path, [])
+  }
+  get length() {
+    return this.value.length
+  }
+  insert(index, newValue) {
+    const { form, path, init, value, touched } = this
+    form.update(path, {
+      init: _.sliceIn(init, index, newValue),
+      value: _.sliceIn(value, index, newValue),
+      isTouched: _.set(touched, [index], void 0)
+    })
+  }
+  remove(index) {
+    const { form, path, init, value, touched } = this
+    form.update(path, {
+      init: _.sliceOut(init, index),
+      value: _.sliceOut(value, index),
+      isTouched: _.sliceOut(touched, index)
+    })
+  }
+  push(newValue) {
+    this.insert(this.length, newValue)
+  }
+  pop() {
+    this.remove(this.length - 1)
+  }
+  unshift(newValue) {
+    this.insert(0, newValue)
+  }
+  shift() {
+    this.remove(0)
+  }
+  map(transform) {
+    return this.value.map((value, index) =>
+      transform(value, index, this)
+    )
+  }
 }
+
+export const modelFieldArray = (...args) => new FieldArrayModel(...args)

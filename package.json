@@ -1,6 +1,6 @@
 {
   "name": "super-controls",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-alpha.5",
   "description": "Form component system",
   "main": "cjs/index.js",
   "module": "es/index.js",
@@ -9,7 +9,12 @@
     "cjs/",
     "es/"
   ],
-  "keywords": [],
+  "keywords": [
+    "react",
+    "form",
+    "control",
+    "components"
+  ],
   "author": "Tim Davis",
   "license": "MIT",
   "scripts": {
@@ -82,8 +87,8 @@
     "deep-freeze": "0.0.1",
     "enzyme": "^3.2.0",
     "enzyme-adapter-react-16": "^1.1.0",
-    "eslint": "^4.12.1",
-    "eslint-config-standard": "^10.2.1",
+    "eslint": "^4.13.1",
+    "eslint-config-standard": "^11.0.0-beta.0",
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-node": "^5.2.1",
     "eslint-plugin-promise": "^3.6.0",
@@ -93,7 +98,7 @@
     "gitbook-plugin-collapsible-menu": "1.0.3",
     "gitbook-plugin-favicon": "0.0.2",
     "gitbook-plugin-github": "2.0.0",
-    "gitbook-plugin-prism": "^2.3.0",
+    "gitbook-plugin-prism": "2.3.0",
     "globify": "^2.2.1",
     "gzip-size": "^4.1.0",
     "husky": "^0.14.3",
@@ -101,17 +106,17 @@
     "mkdirp": "^0.5.1",
     "mocha": "^4.0.1",
     "npm-run-all": "^4.1.2",
-    "nyc": "^11.4.0",
+    "nyc": "^11.4.1",
     "pretty-bytes": "^4.0.2",
     "pug-cli": "^1.0.0-alpha6",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "rimraf": "^2.6.2",
-    "rollup": "^0.52.0",
+    "rollup": "^0.52.2",
     "rollup-plugin-babel": "^3.0.2",
     "rollup-plugin-commonjs": "^8.2.6",
     "rollup-plugin-uglify": "^2.0.1",
-    "sinon": "^4.1.1",
+    "sinon": "^4.1.3",
     "sinon-chai": "^2.14.0",
     "source-map-path-normalizify": "0.0.3"
   }

@@ -1,8 +1,10 @@
 import React from 'react'
 import { describe, it } from 'mocha'
-import { mount, expect, stub, toThunks } from './__test__'
+import { mount, expect, stub, spy, toThunks } from './__test__'
 import { Form } from './form'
-import { modelField } from './field'
+import { Field, modelField } from './field'
+import { FieldSet, modelFieldSet } from './field-set'
+import { modelFieldArray } from './field-array'
 
 describe('Form', () => {
 
@@ -18,56 +20,36 @@ describe('Form', () => {
   describe('constructor', () => {
 
     it('has an initial state', () => {
-      const wrapper = mount(<Form/>)
-      const form = wrapper.instance()
+      const form = mount(<Form/>).instance()
       expect(form.state).to.deep.equal({
         init: {},
         values: {},
-        touched: {}
+        errors: {},
+        notices: {},
+        touched: {},
+        visited: {},
+        focused: null,
+        submitFailed: false
       })
     })
 
     it('reads its initial values from props', () => {
-      const values = { foo: '', bar: '' }
-      const wrapper = mount(<Form values={values}/>)
-      const form = wrapper.instance()
-      expect(form.state).to.deep.equal({
-        touched: {},
-        values,
-        init: values
-      })
-    })
-
-    it('reads an intial nested values state', () => {
-      const values = {
-        foo: {
-          bar: {
-            baz: ''
-          }
-        }
-      }
-      const wrapper = mount(<Form values={values}/>)
-      const form = wrapper.instance()
-      expect(form.state).to.deep.equal({
-        touched: {},
-        values,
-        init: values
-      })
-    })
-
-    it('reads an initial values state containing arrays', () => {
       const values = {
         foo: [
           { bar: '' },
           { bar: '' }
         ]
       }
-      const wrapper = mount(<Form values={values}/>)
-      const form = wrapper.instance()
+      const form = mount(<Form init={values}/>).instance()
       expect(form.state).to.deep.equal({
+        errors: {},
+        visited: {},
+        notices: {},
         touched: {},
         values,
-        init: values
+        init: values,
+        focused: null,
+        submitFailed: false
       })
     })
 
@@ -79,96 +61,102 @@ describe('Form', () => {
       const values = {
         foo: {
           bar: {
-            baz: [{ qux: '' }]
+            baz: [{ qux: 'quux' }]
           }
         }
       }
-      const wrapper = mount(<Form values={values}/>)
-      const form = wrapper.instance()
+      const form = mount(<Form init={values}/>).instance()
+      form.register({
+        model: modelFieldSet,
+        paths: toThunks('foo')
+      })
+      form.register({
+        model: modelFieldSet,
+        paths: toThunks('foo.bar')
+      })
+      form.register({
+        model: modelFieldArray,
+        paths: toThunks('foo.bar.baz')
+      })
+      form.register({
+        model: modelFieldSet,
+        paths: toThunks('foo.bar.baz.0')
+      })
       const field = form.register({
         model: modelField,
         paths: toThunks('foo.bar.baz.0.qux')
       })
-      expect(field).to.deep.equal({
-        init: '',
-        value: '',
-        isTouched: false,
-        isDirty: false,
-        isPristine: true
+      expect(field).to.deep.include({
+        init: 'quux',
+        value: 'quux',
+        isTouched: false
       })
     })
 
     it('registers fields with intial values', () => {
-      const wrapper = mount(<Form/>)
-      const form = wrapper.instance()
+      const form = mount(<Form/>).instance()
       const field = form.register({
         model: modelField,
         paths: toThunks('foo'),
         init: 'foo'
       })
-      expect(field).to.deep.equal({
+      expect(field).to.deep.include({
         init: 'foo',
         value: 'foo',
-        isTouched: false,
-        isDirty: false,
-        isPristine: true
+        isTouched: false
       })
-      expect(form.state).to.deep.equal({
-        values: { foo: 'foo' },
+      expect(form.state).to.deep.include({
+        touched: {},
         init: { foo: 'foo' },
-        touched: {}
+        values: { foo: 'foo' }
       })
     })
 
     it('receives value updates from fields', () => {
-      const values = { foo: '' }
-      const wrapper = mount(<Form values={values}/>)
-      const form = wrapper.instance()
+      const form = mount(<Form init={{ foo: '' }}/>).instance()
       const field = form.register({
         model: modelField,
         paths: toThunks('foo')
       })
       field.update({ value: 'bar' })
-      expect(form.state).to.deep.equal({
-        values: { foo: 'bar' },
+      expect(form.state).to.deep.include({
+        touched: {},
         init: { foo: '' },
-        touched: {}
+        values: { foo: 'bar' }
       })
-      expect(field).to.deep.equal({
+      expect(field).to.deep.include({
         init: '',
         value: 'bar',
-        isTouched: false,
-        isDirty: true,
-        isPristine: false
+        isTouched: false
       })
     })
 
     it('receives touch updates from fields', () => {
-      const values = { foo: '' }
-      const wrapper = mount(<Form values={values}/>)
-      const form = wrapper.instance()
+      const form = mount(<Form init={{ foo: '' }}/>).instance()
       const field = form.register({
         model: modelField,
         paths: toThunks('foo')
       })
       field.update({ isTouched: true })
       expect(form.state).to.deep.equal({
-        values: { foo: '' },
+        errors: {},
+        notices: {},
+        visited: {},
+        focused: null,
         init: { foo: '' },
-        touched: { foo: true }
+        values: { foo: '' },
+        touched: { foo: true },
+        submitFailed: false
       })
-      expect(field).to.deep.equal({
+      expect(field).to.deep.include({
         init: '',
         value: '',
-        isTouched: true,
-        isDirty: false,
-        isPristine: true
+        isTouched: true
       })
     })
 
     it('does not overwrite touched state for duplicate fields', () => {
-      const wrapper = mount(<Form/>)
-      const form = wrapper.instance()
+      const form = mount(<Form init={{ foo: 'foo' }}/>).instance()
       const first = form.register({
         model: modelField,
         paths: toThunks('foo'),
@@ -188,45 +176,43 @@ describe('Form', () => {
 
   describe('unregister', () => {
 
-    it('unregisters fields by path', done => {
-      class TestForm extends Form {
-        componentDidUpdate() {
-          expect(this.state).to.deep.equal({
-            init: {},
-            values: {},
-            touched: {}
-          })
-          done()
-        }
-      }
-      const wrapper = mount(<TestForm values={{ foo: 'bar' }}/>)
-      const form = wrapper.instance()
+    it('unregisters fields by path', () => {
+      const form = mount(<Form init={{ foo: 'bar' }}/>).instance()
       const field = form.register({
         model: modelField,
         paths: toThunks('foo')
       })
       field.unregister()
+      expect(form.state).to.deep.equal({
+        init: {},
+        values: {},
+        errors: {},
+        notices: {},
+        touched: {},
+        visited: {},
+        focused: null,
+        submitFailed: false
+      })
     })
 
-    it('does not unregister fields that are not registered', done => {
-      class TestForm extends Form {
-        componentDidUpdate() {
-          expect(this.state).to.deep.equal({
-            init: {},
-            values: {},
-            touched: {}
-          })
-          done()
-        }
-      }
-      const wrapper = mount(<TestForm values={{ foo: 'bar' }}/>)
-      const form = wrapper.instance()
+    it('does not unregister fields that are not registered', () => {
+      const form = mount(<Form init={{ foo: 'bar' }}/>).instance()
       const field = form.register({
         model: modelField,
         paths: toThunks('foo')
       })
       field.unregister()
       field.unregister()
+      expect(form.state).to.deep.equal({
+        init: {},
+        values: {},
+        errors: {},
+        notices: {},
+        touched: {},
+        visited: {},
+        focused: null,
+        submitFailed: false
+      })
     })
 
   })
@@ -235,7 +221,7 @@ describe('Form', () => {
 
     it('does nothing by default', () => {
       const wrapper = mount(<Form/>)
-      wrapper.simulate('submit')
+      expect(() => wrapper.simulate('submit')).not.to.throw()
     })
 
     it('calls a submit handler prop with its values', done => {
@@ -246,9 +232,57 @@ describe('Form', () => {
         done()
       }
       const wrapper = mount(
-        <Form values={values} onSubmit={handleSubmit}/>
+        <Form init={values} onSubmit={handleSubmit}/>
       )
       wrapper.simulate('submit')
+    })
+
+    it('does not submit if form-level validation fails', () => {
+      const handleSubmit = spy()
+      const validate = ({ username = '' }) =>
+        !username.trim() &&
+        'username is required'
+      const wrapper = mount(
+        <Form validate={validate} onSubmit={handleSubmit}/>
+      )
+      wrapper.simulate('submit')
+      expect(handleSubmit).to.have.callCount(0)
+      expect(wrapper)
+        .to.have.state('errors')
+        .that.deep.equals({
+          '0': 'username is required'
+        })
+    })
+
+    it('does not submit if field-level validation fails', () => {
+      const handleSubmit = spy()
+      const required = (username = '') =>
+        !username.trim() &&
+        'username is required'
+      const wrapper = mount(
+        <Form onSubmit={handleSubmit}>
+          <Field name='id' component='input' type='hidden'/>
+          <FieldSet name='user'>
+            <Field
+              type='text'
+              name='username'
+              component='input'
+              validate={required}/>
+          </FieldSet>
+        </Form>
+      )
+      wrapper.simulate('submit')
+      expect(handleSubmit).to.have.callCount(0)
+      const { state, submitFailed } = wrapper.instance()
+      expect(state).to.deep.include({
+        errors: {
+          '0': null,
+          '1': null,
+          '2': null,
+          '3': 'username is required'
+        }
+      })
+      expect(submitFailed).to.equal(true)
     })
 
   })
@@ -270,7 +304,12 @@ describe('Form', () => {
             expect(wrapper.state()).to.deep.equal({
               init: {},
               values: {},
-              touched: {}
+              errors: {},
+              notices: {},
+              touched: {},
+              visited: {},
+              focused: null,
+              submitFailed: false
             })
             done()
           })
