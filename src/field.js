@@ -7,30 +7,30 @@ export class Field extends SuperControl.View {
   constructor(...args) {
     super(...args)
     this.onBlur = this.onBlur.bind(this)
+    this.onFocus = this.onFocus.bind(this)
     this.onChange = this.onChange.bind(this)
   }
   onChange({ target: { type, value, checked } }) {
     this.model.update({
       value: type === 'checkbox' ? !!checked : value
-    })
+    }, { validate: true, notify: true })
   }
   onBlur() {
-    this.state.isTouched ||
-    this.model.update({ isTouched: true })
+    this.model.update({ isFocused: null, isTouched: true })
+  }
+  onFocus() {
+    this.model.update({ isFocused: this.model })
   }
   getInit() {
     const { init, type } = this.props
     return type === 'checkbox' || isBoolean(init) ? !!init : init
-  }
-  getState(model) {
-    return pick(model, ['init', 'value', 'isTouched', 'error', 'notice'])
   }
   modelField(...args) {
     return modelField(...args)
   }
   getFieldProp(model) {
     const name = this.props.name
-    const state = this.getState(model)
+    const state = model.getState()
     const extra = pick(model, ['form', 'update'])
     const isValid = !state.error
     const isInvalid = !isValid
@@ -41,9 +41,9 @@ export class Field extends SuperControl.View {
     }
   }
   getControlProp({
-    id, type, name, onBlur, onChange, propValue, fieldValue
+    id, type, name, onBlur, onFocus, onChange, propValue, fieldValue
   }) {
-    const control = { type, name, onBlur, onChange }
+    const control = { type, name, onBlur, onFocus, onChange }
     if (id) control.id = id === true ? name : id
     if (type === 'checkbox') {
       control.checked = !!fieldValue
@@ -69,11 +69,11 @@ export class Field extends SuperControl.View {
       value: propValue,
       ...props
     } = this.props
-    const { model, onBlur, onChange } = this
+    const { model, onBlur, onFocus, onChange } = this
     const field = this.getFieldProp(model)
     const { value: fieldValue } = field
     const control = this.getControlProp({
-      id, type, name, onBlur, onChange, propValue, fieldValue
+      id, type, name, onBlur, onFocus, onChange, propValue, fieldValue
     })
     if (isString(component)) {
       return createElement(component, { ...control, ...props })
@@ -99,11 +99,32 @@ export class Field extends SuperControl.View {
 }
 
 export class FieldModel extends SuperControl.Model {
+  constructor(...args) {
+    super(...args)
+    this.update = this.update.bind(this)
+  }
+  get isFocused() {
+    return this.form.getFocused() === this
+  }
+  get isVisited() {
+    return this.form.getVisited(this.path, false)
+  }
   get isTouched() {
     return this.form.getTouched(this.path, false)
   }
-  update(state) {
-    this.form.update(this.path, { validate: true, notify: true, ...state })
+  update(state, options) {
+    this.form.update(this.path, state, options)
+  }
+  getState() {
+    return pick(this, [
+      'init',
+      'value',
+      'error',
+      'notice',
+      'isFocused',
+      'isVisited',
+      'isTouched'
+    ])
   }
 }
 

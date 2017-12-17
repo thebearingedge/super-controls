@@ -11,7 +11,14 @@ describe('FieldArray', () => {
   it('registers a field array model', done => {
     class TestFieldArray extends FieldArray {
       componentDidMount() {
-        expect(this.model).to.be.an('object')
+        expect(this.model).to.deep.include({
+          init: [],
+          value: [],
+          length: 0,
+          touched: [],
+          visited: [],
+          isTouched: false
+        })
         done()
       }
     }
@@ -153,27 +160,29 @@ describe('FieldArray', () => {
     wrapper.find('input').simulate('blur')
   })
 
+  it('tracks focuses of its descendant fields', done => {
+    class TestFieldArray extends FieldArray {
+      componentDidUpdate() {}
+    }
+    const wrapper = mount(
+      <Form init={{ foos: [''] }}>
+        <TestFieldArray name='foos'>
+          { ({ fields }) =>
+            fields.map((foo, index) =>
+              <Field name={index} key={index} component='input'/>
+            )
+          }
+        </TestFieldArray>
+      </Form>
+    )
+    stub(TestFieldArray.prototype, 'componentDidUpdate')
+      .callsFake(() => done())
+    wrapper.find('input').simulate('focus')
+  })
+
 })
 
 describe('modelFieldArray', () => {
-
-  it('returns a field array wrapper', () => {
-    const values = { foo: [] }
-    const wrapper = mount(<Form init={values}/>)
-    const form = wrapper.instance()
-    const model = form.register({
-      init: [],
-      model: modelFieldArray,
-      paths: toThunks('foo')
-    })
-    expect(model).to.deep.include({
-      init: [],
-      value: [],
-      length: 0,
-      touched: [],
-      isTouched: false
-    })
-  })
 
   it('is touched if any of its descendant fields are touched', done => {
     const wrapper = mount(<Form init={{ foo: [] }}/>)

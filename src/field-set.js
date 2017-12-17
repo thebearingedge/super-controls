@@ -7,15 +7,12 @@ export class FieldSet extends SuperControl.View {
   getInit() {
     return this.props.init
   }
-  getState() {
-    return _.pick(this.model, ['init', 'value', 'touched', 'error', 'notice'])
-  }
   modelField(...args) {
     return modelFieldSet(...args)
   }
   getFieldsProp(model) {
     const name = this.props.name
-    const state = this.getState(model)
+    const state = this.model.getState()
     const extra = _.pick(model, ['form', 'isTouched'])
     const isDirty = !_.deepEqual(state.init, state.value)
     const isPristine = !isDirty
@@ -60,11 +57,19 @@ export class FieldSetModel extends SuperControl.Model {
     super(...args)
     this.fields = {}
   }
+  get visited() {
+    return this.form.getVisited(this.path, {})
+  }
   get touched() {
     return this.form.getTouched(this.path, {})
   }
   get isTouched() {
     return _.someValues(this.touched, _.id)
+  }
+  getState() {
+    return _.pick(this, [
+      'init', 'value', 'touched', 'error', 'notice', 'visited'
+    ])
   }
   register(field, [ key, ...path ]) {
     this.fields = path.length

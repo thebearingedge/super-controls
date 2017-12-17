@@ -50,6 +50,9 @@ class FieldArrayModel extends FieldSetModel {
     this.shift = this.shift.bind(this)
     this.map = this.map.bind(this)
   }
+  get visited() {
+    return this.form.getVisited(this.path, [])
+  }
   get touched() {
     return this.form.getTouched(this.path, [])
   }

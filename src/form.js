@@ -6,7 +6,7 @@ export class Form extends Component {
   constructor(...args) {
     super(...args)
     this.fieldId = 0
-    this.fields = new Fields()
+    this.root = new Fields()
     this.state = this.getInitialState()
     this.onReset = this.onReset.bind(this)
     this.onSubmit = this.onSubmit.bind(this)
@@ -17,6 +17,8 @@ export class Form extends Component {
       errors: {},
       notices: {},
       touched: {},
+      visited: {},
+      focused: null,
       init: this.props.init,
       values: this.props.init
     }
@@ -32,22 +34,35 @@ export class Form extends Component {
     event.preventDefault()
     this.props.onSubmit(_.clone(this.state.values))
   }
-  update(path, state) {
-    const { check } = this.fields
-    this.setState(({ init, values, errors, notices, touched }) => {
-      const nextState = { init, values, errors, notices, touched }
+  get fields() {
+    return this.root.fields
+  }
+  update(path, state, options = {}) {
+    const { check } = this.root
+    this.setState(({
+      init, values, focused, visited, errors, notices, touched
+    }) => {
+      const nextState = {
+        init,
+        values,
+        errors,
+        notices,
+        touched,
+        visited,
+        focused
+      }
       if ('init' in state) {
         nextState.init = _.set(init, path, state.init)
       }
       if ('value' in state) {
         nextState.values = _.set(values, path, state.value)
-        if (state.validate) {
+        if (options.validate) {
           nextState.errors = _.assign(
             errors,
             check(state.value, values, 'validate', path)
           )
         }
-        if (state.notify) {
+        if (options.notify) {
           nextState.notices = _.assign(
             notices,
             check(state.value, values, 'notify', path)
@@ -56,6 +71,10 @@ export class Form extends Component {
       }
       if ('isTouched' in state) {
         nextState.touched = _.set(touched, path, state.isTouched)
+      }
+      if ('isFocused' in state) {
+        nextState.focused = state.isFocused
+        nextState.visited = _.set(visited, path, true)
       }
       if ('unregistered' in state) {
         nextState.touched = _.unset(touched, path)
@@ -74,6 +93,12 @@ export class Form extends Component {
   getTouched(path, fallback) {
     return _.get(this.state.touched, path, fallback)
   }
+  getFocused() {
+    return this.state.focused
+  }
+  getVisited(path, fallback) {
+    return _.get(this.state.visited, path, fallback)
+  }
   getError(fieldId) {
     return this.state.errors[fieldId] || null
   }
@@ -83,14 +108,14 @@ export class Form extends Component {
   register({ init, model, paths }) {
     const path = paths.map(_.invoke)
     const value = this.getInit(path)
-    if (!_.isUndefined(value)) {
-      const field = model(++this.fieldId, this, value, paths)
-      return this.fields.register(field, path)
+    if (_.isUndefined(value)) {
+      const field = model(++this.fieldId, this, init, paths)
+      this.root.register(field, path)
+      this.update(path, { init, value: init })
+      return field
     }
-    const field = model(++this.fieldId, this, init, paths)
-    this.fields.register(field, path)
-    this.update(path, { init, value: init })
-    return field
+    const field = model(++this.fieldId, this, value, paths)
+    return this.root.register(field, path)
   }
   unregister({ path }) {
     if (_.isUndefined(this.getValue(path)) &&
@@ -135,6 +160,7 @@ export class Form extends Component {
 
 export class Fields {
   constructor() {
+    this.nextId = 0
     this.fields = {}
     this.check = this.check.bind(this)
   }

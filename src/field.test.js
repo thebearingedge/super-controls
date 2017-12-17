@@ -1,33 +1,43 @@
 import React from 'react'
 import { describe, it } from 'mocha'
-import { mockField, mountWith, expect, spy, stub } from './__test__'
+import { mount, expect, spy, stub } from './__test__'
+import { Form } from './form'
 import { Field } from './field'
 
 describe('Field', () => {
 
-  const context = { '@@super-controls': { register: mockField } }
-  const mount = mountWith({ context })
-
   it('registers its path and value via context', () => {
-    const wrapper = mount(<Field name='foo' init='bar'/>)
-    const { model } = wrapper.instance()
-    expect(model.path).to.deep.equal(['foo'])
-    expect(model.value).to.equal('bar')
+    class TestField extends Field {
+      componentDidMount() {
+        expect(this.model).to.deep.include({
+          value: 'bar',
+          path: ['foo']
+        })
+      }
+    }
+    mount(
+      <Form init={{ foo: 'bar' }}>
+        <TestField name='foo'/>
+      </Form>
+    )
   })
 
   it('renders a component prop', () => {
     const wrapper = mount(
-      <Field name='foo' init='bar' component={_ => <input/>}/>
+      <Form>
+        <Field name='foo' init='bar' component={_ => <input/>}/>
+      </Form>
     )
-    expect(wrapper).to.have.tagName('input')
+    expect(wrapper).to.contain(<input/>)
   })
 
   it('renders an element type', () => {
     const wrapper = mount(
-      <Field name='foo' component='input' type='checkbox'/>
+      <Form>
+        <Field name='foo' component='input' type='checkbox'/>
+      </Form>
     )
-    expect(wrapper).to.have.tagName('input')
-    expect(wrapper).to.have.attr('type', 'checkbox')
+    expect(wrapper.find('input')).to.have.attr('type', 'checkbox')
   })
 
   it('injects a control model into its component', done => {
@@ -37,12 +47,15 @@ describe('Field', () => {
         value: 'bar'
       })
       expect(control.onBlur).to.be.a('function')
+      expect(control.onFocus).to.be.a('function')
       expect(control.onChange).to.be.a('function')
       done()
       return null
     }
     mount(
-      <Field name='foo' init='bar' component={Test}/>
+      <Form>
+        <Field name='foo' init='bar' component={Test}/>
+      </Form>
     )
   })
 
@@ -55,7 +68,9 @@ describe('Field', () => {
       return null
     }
     mount(
-      <Field id='test' name='foo' component={Test}/>
+      <Form>
+        <Field id='test' name='foo' component={Test}/>
+      </Form>
     )
   })
 
@@ -68,7 +83,9 @@ describe('Field', () => {
       return null
     }
     mount(
-      <Field id name='foo' component={Test}/>
+      <Form>
+        <Field id name='foo' component={Test}/>
+      </Form>
     )
   })
 
@@ -85,7 +102,9 @@ describe('Field', () => {
       return null
     }
     mount(
-      <Field name='foo' init='bar' component={Test}/>
+      <Form>
+        <Field name='foo' init='bar' component={Test}/>
+      </Form>
     )
   })
 
@@ -98,7 +117,9 @@ describe('Field', () => {
       return null
     }
     mount(
-      <Field name='foo' className='form-control' component={Test}/>
+      <Form>
+        <Field name='foo' className='form-control' component={Test}/>
+      </Form>
     )
   })
 
@@ -112,7 +133,9 @@ describe('Field', () => {
       return null
     }
     mount(
-      <Field name='foo' type='checkbox' init={true} component={Test}/>
+      <Form>
+        <Field name='foo' type='checkbox' init={true} component={Test}/>
+      </Form>
     )
   })
 
@@ -126,47 +149,77 @@ describe('Field', () => {
       return null
     }
     mount(
-      <Field name='foo' type='radio' value='bar' init='baz' component={Test}/>
+      <Form>
+        <Field
+          name='foo'
+          type='radio'
+          value='bar'
+          init='baz'
+          component={Test}/>
+      </Form>
     )
   })
 
-  it('receives value updates from its component', () => {
+  it('receives value change updates from its component', () => {
     const wrapper = mount(
-      <Field name='foo' init='bar' component='input'/>
+      <Form>
+        <Field name='foo' init='bar' component='input'/>
+      </Form>
     )
-    const { model } = wrapper.instance()
-    const update = spy(model, 'update')
+    const { fields: { foo } } = wrapper.instance()
+    const update = spy(foo, 'update')
     wrapper.find('input').simulate('change', { target: { value: 'baz' } })
     expect(update).to.have.been.calledWith({ value: 'baz' })
   })
 
-  it('receives checked updates from its component', () => {
+  it('receives checked change updates from its component', () => {
     const wrapper = mount(
-      <Field name='foo' type='checkbox' init={false} component='input'/>
+      <Form>
+        <Field name='foo' type='checkbox' init={false} component='input'/>
+      </Form>
     )
-    const { model } = wrapper.instance()
-    const update = spy(model, 'update')
+    const { fields: { foo } } = wrapper.instance()
+    const update = spy(foo, 'update')
     wrapper.find('input').getDOMNode().checked = true
     wrapper.find('input').simulate('change')
     expect(update).to.have.been.calledWith({ value: true })
   })
 
-  it('receives touch updates from its component', () => {
+  it('receives blur updates from its component', () => {
     const wrapper = mount(
-      <Field name='foo' init='bar' component='input'/>
+      <Form>
+        <Field name='foo' init='bar' component='input'/>
+      </Form>
     )
-    const { model } = wrapper.instance()
-    const update = spy(model, 'update')
+    const { fields: { foo } } = wrapper.instance()
+    const update = spy(foo, 'update')
     wrapper.find('input').simulate('blur')
-    expect(update).to.have.been.calledWith({ isTouched: true })
+    expect(update).to.have.been.calledWith({
+      isFocused: null,
+      isTouched: true
+    })
+  })
+
+  it('receives focus updates from its component', () => {
+    const wrapper = mount(
+      <Form init={{ foo: 'bar' }}>
+        <Field name='foo' init='bar' component='input'/>
+      </Form>
+    )
+    const { fields: { foo } } = wrapper.instance()
+    const update = spy(foo, 'update')
+    wrapper.find('input').simulate('focus')
+    expect(update).to.have.been.calledWith({ isFocused: foo })
   })
 
   it('unregisters its model when it unmounts', () => {
     const wrapper = mount(
-      <Field name='foo' init='bar'/>
+      <Form>
+        <Field name='foo' init='bar'/>
+      </Form>
     )
-    const { model } = wrapper.instance()
-    const unregister = spy(model, 'unregister')
+    const { fields: { foo } } = wrapper.instance()
+    const unregister = spy(foo, 'unregister')
     wrapper.unmount()
     expect(unregister).to.have.callCount(1)
   })
@@ -177,7 +230,11 @@ describe('Field', () => {
     }
     stub(TestField.prototype, 'componentWillUpdate')
       .callsFake(() => done())
-    const wrapper = mount(<TestField name='foo'/>)
+    const Test = props =>
+      <Form>
+        <TestField name='foo' {...props}/>
+      </Form>
+    const wrapper = mount(<Test/>)
     wrapper.setProps({ className: 'form-control' })
   })
 
@@ -187,8 +244,12 @@ describe('Field', () => {
     }
     stub(TestField.prototype, 'componentWillUpdate')
       .callsFake(() => done())
-    const wrapper = mount(<TestField name='foo'/>)
-    wrapper.setState({ value: 'bar' })
+    const wrapper = mount(
+      <Form>
+        <TestField name='foo'/>
+      </Form>
+    )
+    wrapper.setState({ values: { foo: 'bar' } })
   })
 
   it('re-renders if its touched state is out of sync with its model', done => {
@@ -197,8 +258,12 @@ describe('Field', () => {
     }
     stub(TestField.prototype, 'componentWillUpdate')
       .callsFake(() => done())
-    const wrapper = mount(<TestField name='foo'/>)
-    wrapper.setState({ isTouched: true })
+    const wrapper = mount(
+      <Form>
+        <TestField name='foo'/>
+      </Form>
+    )
+    wrapper.setState({ touched: { foo: true } })
   })
 
 })

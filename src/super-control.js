@@ -16,14 +16,14 @@ export class View extends Component {
         validate: this.props.validate
       })
     })
-    this.setState(this.getState(this.model))
+    this.setState(this.model.getState())
   }
   shouldComponentUpdate(nextProps, nextState) {
     return !equalProps(this.props, nextProps) ||
-           !deepEqual(this.getState(this.model), nextState)
+           !deepEqual(this.model.getState(), nextState)
   }
   componentDidUpdate() {
-    this.setState(this.getState(this.model))
+    this.setState(this.model.getState())
   }
   componentWillUnmount() {
     this.model.unregister()

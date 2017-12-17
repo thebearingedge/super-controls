@@ -26,7 +26,9 @@ describe('Form', () => {
         values: {},
         errors: {},
         notices: {},
-        touched: {}
+        touched: {},
+        visited: {},
+        focused: null
       })
     })
 
@@ -40,10 +42,12 @@ describe('Form', () => {
       const form = mount(<Form init={values}/>).instance()
       expect(form.state).to.deep.equal({
         errors: {},
+        visited: {},
         notices: {},
         touched: {},
         values,
-        init: values
+        init: values,
+        focused: null
       })
     })
 
@@ -135,8 +139,10 @@ describe('Form', () => {
       expect(form.state).to.deep.equal({
         errors: {},
         notices: {},
-        values: { foo: '' },
+        visited: {},
+        focused: null,
         init: { foo: '' },
+        values: { foo: '' },
         touched: { foo: true }
       })
       expect(field).to.deep.include({
@@ -179,7 +185,9 @@ describe('Form', () => {
         values: {},
         errors: {},
         notices: {},
-        touched: {}
+        touched: {},
+        visited: {},
+        focused: null
       })
     })
 
@@ -196,7 +204,9 @@ describe('Form', () => {
         values: {},
         errors: {},
         notices: {},
-        touched: {}
+        touched: {},
+        visited: {},
+        focused: null
       })
     })
 
@@ -243,7 +253,9 @@ describe('Form', () => {
               values: {},
               errors: {},
               notices: {},
-              touched: {}
+              touched: {},
+              visited: {},
+              focused: null
             })
             done()
           })

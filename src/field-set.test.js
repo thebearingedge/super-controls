@@ -1,17 +1,22 @@
 import React from 'react'
 import { describe, it } from 'mocha'
-import { mount, expect, stub, spy, toThunks } from './__test__'
+import { mount, expect, stub, spy } from './__test__'
 import { Form } from './form'
 import { Field } from './field'
 import { FieldArray } from './field-array'
-import { FieldSet, modelFieldSet } from './field-set'
+import { FieldSet } from './field-set'
 
 describe('FieldSet', () => {
 
   it('registers a field set model', done => {
     class TestFieldSet extends FieldSet {
       componentDidMount() {
-        expect(this.model).to.be.an('object')
+        expect(this.model).to.deep.include({
+          init: {},
+          value: {},
+          touched: {},
+          visited: {}
+        })
         done()
       }
     }
@@ -60,6 +65,7 @@ describe('FieldSet', () => {
       errors: {},
       notices: {},
       touched: {},
+      visited: {},
       init: {
         foo: {
           bar: ''
@@ -69,7 +75,8 @@ describe('FieldSet', () => {
         foo: {
           bar: ''
         }
-      }
+      },
+      focused: null
     })
   })
 
@@ -85,6 +92,7 @@ describe('FieldSet', () => {
       errors: {},
       notices: {},
       touched: {},
+      visited: {},
       init: {
         foo: {
           bar: {}
@@ -94,7 +102,8 @@ describe('FieldSet', () => {
         foo: {
           bar: {}
         }
-      }
+      },
+      focused: null
     })
   })
 
@@ -110,6 +119,7 @@ describe('FieldSet', () => {
       errors: {},
       notices: {},
       touched: {},
+      visited: {},
       init: {
         foo: {
           bars: []
@@ -119,7 +129,8 @@ describe('FieldSet', () => {
         foo: {
           bars: []
         }
-      }
+      },
+      focused: null
     })
   })
 
@@ -155,24 +166,20 @@ describe('FieldSet', () => {
     wrapper.find('input').simulate('change', { target: { value: 'baz' } })
   })
 
-})
-
-describe('modelFieldSet', () => {
-
-  it('returns a field set model', () => {
-    const values = { foo: { bar: '' } }
-    const wrapper = mount(<Form init={values}/>)
-    const form = wrapper.instance()
-    const model = form.register({
-      model: modelFieldSet,
-      paths: toThunks('foo'),
-      value: {}
-    })
-    expect(model).to.deep.include({
-      init: { bar: '' },
-      value: { bar: '' },
-      touched: {}
-    })
+  it('tracks focuses of its descendant fields', done => {
+    class TestFieldSet extends FieldSet {
+      componentDidUpdate() {}
+    }
+    const wrapper = mount(
+      <Form init={{ foo: { bar: '' } }}>
+        <TestFieldSet name='foo'>
+          <Field name='bar' component='input'/>
+        </TestFieldSet>
+      </Form>
+    )
+    stub(TestFieldSet.prototype, 'componentDidUpdate')
+      .callsFake(() => done())
+    wrapper.find('input').simulate('focus')
   })
 
 })
