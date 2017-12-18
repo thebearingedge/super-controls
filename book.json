@@ -6,8 +6,8 @@
     "prism",
     "github",
     "favicon",
-    "-highlight",
-    "collapsible-menu"
+    "anchors",
+    "-highlight"
   ],
   "pluginsConfig": {
     "github": {
