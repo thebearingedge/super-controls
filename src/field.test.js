@@ -329,4 +329,30 @@ describe('Field', () => {
 
   })
 
+  describe('parse', () => {
+
+    it('parses the input value to be stored in the form', () => {
+      const parse = value => new Date(value || '1970-01-01')
+      const wrapper = mount(
+        <Form>
+          <Field
+            name='date'
+            type='date'
+            parse={parse}
+            component='input'/>
+        </Form>
+      )
+      const { values: { date: init } } = wrapper.state()
+      expect(init).to.be.a('date')
+      expect(init.getUTCFullYear()).to.equal(1970)
+      wrapper
+        .find('input')
+        .simulate('change', { target: { value: '2017-01-01' } })
+      const { values: { date: parsed } } = wrapper.state()
+      expect(parsed).to.be.a('date')
+      expect(parsed.getUTCFullYear()).to.equal(2017)
+    })
+
+  })
+
 })

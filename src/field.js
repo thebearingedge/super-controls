@@ -3,9 +3,6 @@ import { oneOfType, any, bool, func, string, number } from 'prop-types'
 import * as _ from './util'
 import * as SuperControl from './super-control'
 
-const getValue = ({ target: { type, value, checked } }) =>
-  type === 'checkbox' ? !!checked : value
-
 export class Field extends SuperControl.View {
   constructor(...args) {
     super(...args)
@@ -14,18 +11,17 @@ export class Field extends SuperControl.View {
     this.onChange = this.onChange.bind(this)
   }
   onChange(event) {
-    this.model.update({
-      value: getValue(event)
-    }, {
-      notify: true,
-      validate: true
-    })
+    const { getValue, props: { parse }, model: { update } } = this
+    const value = parse(getValue(event))
+    update({ value }, { notify: true, validate: true })
   }
   onBlur(event) {
-    this.model.update({
+    const { getValue, props: { parse }, model: { update } } = this
+    const value = parse(getValue(event))
+    update({
+      value,
       isTouched: true,
-      isFocused: null,
-      value: getValue(event)
+      isFocused: null
     }, {
       notify: true,
       validate: true
@@ -34,16 +30,21 @@ export class Field extends SuperControl.View {
   onFocus() {
     this.model.update({ isFocused: this.model })
   }
+  getValue({ target: { type, value, checked } }) {
+    return type === 'checkbox' ? !!checked : value
+  }
   getInit() {
-    const { init, type } = this.props
-    return type === 'checkbox' || _.isBoolean(init) ? !!init : init
+    const { init, type, parse } = this.props
+    if (_.isBoolean(init)) return init
+    if (type === 'checkbox') return !!init
+    return init || parse(init)
   }
   modelField(...args) {
     return modelField(...args)
   }
   getFieldProp(model) {
     const name = this.props.name
-    const state = model.getState()
+    const state = model.toState()
     const extra = _.pick(model, ['form', 'update'])
     const isValid = !state.error
     const isInvalid = !isValid
@@ -73,18 +74,10 @@ export class Field extends SuperControl.View {
     return control
   }
   render() {
-    const {
-      id,
-      name,
-      init,
-      type,
-      format,
-      notify,
-      validate,
-      component,
-      value: propValue,
-      ...props
-    } = this.props
+    const { component, ...props } = _.omit(this.props, [
+      'id', 'name', 'init', 'type', 'parse',
+      'format', 'notify', 'validate', 'value'
+    ])
     const field = this.getFieldProp(this.model)
     const { value: fieldValue } = field
     const control = this.getControlProp({ fieldValue })
@@ -99,6 +92,7 @@ export class Field extends SuperControl.View {
       init: any,
       value: any,
       type: string,
+      parse: func,
       format: func,
       component: oneOfType([string, func]),
       id: oneOfType([number, string, bool])
@@ -108,6 +102,7 @@ export class Field extends SuperControl.View {
     return {
       ...super.defaultProps,
       init: '',
+      parse: _.id,
       format: _.id
     }
   }
@@ -130,7 +125,7 @@ export class FieldModel extends SuperControl.Model {
   update(state, options) {
     this.form.update(this.path, state, options)
   }
-  getState() {
+  toState() {
     return _.pick(this, [
       'init', 'value', 'error', 'notice',
       'isFocused', 'isVisited', 'isTouched'
