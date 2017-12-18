@@ -6,6 +6,7 @@
     "prism",
     "github",
     "favicon",
+    "anchors",
     "-highlight",
     "collapsible-menu"
   ],
