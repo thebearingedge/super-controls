@@ -7,8 +7,7 @@
     "github",
     "favicon",
     "anchors",
-    "-highlight",
-    "collapsible-menu"
+    "-highlight"
   ],
   "pluginsConfig": {
     "github": {

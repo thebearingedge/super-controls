@@ -4,7 +4,7 @@
 
 ### Fundamentals
 
-The `Field` component is used to create a control that is connected to its parent [`Form`]() component. Basic usage of `Field` is as follows.
+The `Field` component is a wrapper used to connect a control it to its parent [`Form`](). Basic usage of `Field` is as follows.
 
 1. Pass it a **required** [`name`](#name-stringnumber-required) prop to link it to a value in your form values. `name` can be a `String` that corresponds to an `Object` property in your form values, or a `Number` that corresponds to an `Array` index within your form values.
 2. Pass it a **required** [`component`](#component-componentfunctionstring-required) prop to define its rendered control. `component` can be a `String` (_e.g._ `input`, `textarea`) or a [Functional/Class Component](https://reactjs.org/docs/components-and-props.html#functional-and-class-components).
@@ -168,3 +168,70 @@ The opposite of `isValid`
 #### `...ownProps: Object`
 
 The "own props" passed to the `Field`, forwarded to your `component`. These props are merged at the same level as the `control` and `field` models.
+
+
+### Usage
+
+The `Field` component is a wrapper used to connect a control it to its parent [`Form`](). A `Field` _must_ be rendered within a `Form`'s component tree.
+
+#### Rendering an Element by Type
+
+##### JSX
+
+```jsx
+<Form name='login'>
+  <Field name='username' component='input' type='text'/>
+  <Field name='password' component='input' type='password'/>
+</Form>
+```
+
+##### DOM
+
+```html
+<form name="login">
+  <input type="text" name="username" value=""/>
+  <input type="password" name="password" value=""/>
+</form>
+```
+
+#### Rendering a Component
+
+##### JSX
+
+```jsx
+function CustomInput({ field, control, label, ...props }) {
+  return (
+    <div className='form-group'>
+      <label htmlFor={control.id}>{ label }</label>
+      <input {...control} {...props} className='form-control'/>
+    </div>
+  )
+}
+
+<Form name='signup'>
+  <Field
+    id
+    name='email'
+    type='email'
+    component={CustomInput}
+    label='Enter your email'
+    placeholder='email@example.org'/>
+</Form>
+```
+
+##### DOM
+
+```html
+<form name="signup">
+  <div class="form-group">
+    <label for="email">Enter your email</label>
+    <input
+      value=""
+      id="email"
+      name="email"
+      type="email"
+      class="form-control"
+      placeholder="email@example.org"/>
+  </div>
+</form>
+```
