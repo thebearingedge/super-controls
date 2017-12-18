@@ -302,4 +302,31 @@ describe('Field', () => {
 
   })
 
+  describe('format', () => {
+
+    it('formats the form value for rendering', () => {
+      const format = value => {
+        if (!value) return value
+        const year = value.getFullYear()
+        const month = `${value.getMonth() + 1}`.padStart(2, 0)
+        const day = `${value.getDate()}`.padStart(2, 0)
+        return `${year}-${month}-${day}`
+      }
+      const init = new Date('1/1/1970')
+      const wrapper = mount(
+        <Form>
+          <Field
+            name='date'
+            type='date'
+            init={init}
+            format={format}
+            component='input'/>
+        </Form>
+      )
+      expect(wrapper.find('input')).to.have.value('1970-01-01')
+      expect(wrapper.state()).to.deep.include({ values: { date: init } })
+    })
+
+  })
+
 })

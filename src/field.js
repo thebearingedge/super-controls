@@ -53,21 +53,23 @@ export class Field extends SuperControl.View {
       ...state, ...extra, name, isDirty, isValid, isInvalid, isPristine
     }
   }
-  getControlProp({
-    id, type, name, onBlur, onFocus, onChange, propValue, fieldValue
-  }) {
+  getControlProp({ fieldValue }) {
+    const { id, type, name, format } = this.props
+    const { onBlur, onFocus, onChange } = this
     const control = { type, name, onBlur, onFocus, onChange }
-    if (id) control.id = id === true ? name : id
+    if (id) {
+      control.id = id === true ? name : id
+    }
     if (type === 'checkbox') {
       control.checked = !!fieldValue
       return control
     }
     if (type === 'radio') {
-      control.value = propValue
-      control.checked = propValue === fieldValue
+      control.value = this.props.value
+      control.checked = this.props.value === fieldValue
       return control
     }
-    control.value = fieldValue
+    control.value = format(fieldValue)
     return control
   }
   render() {
@@ -76,18 +78,16 @@ export class Field extends SuperControl.View {
       name,
       init,
       type,
+      format,
       notify,
       validate,
       component,
       value: propValue,
       ...props
     } = this.props
-    const { model, onBlur, onFocus, onChange } = this
-    const field = this.getFieldProp(model)
+    const field = this.getFieldProp(this.model)
     const { value: fieldValue } = field
-    const control = this.getControlProp({
-      id, type, name, onBlur, onFocus, onChange, propValue, fieldValue
-    })
+    const control = this.getControlProp({ fieldValue })
     if (_.isString(component)) {
       return createElement(component, { ...control, ...props })
     }
@@ -99,6 +99,7 @@ export class Field extends SuperControl.View {
       init: any,
       value: any,
       type: string,
+      format: func,
       component: oneOfType([string, func]),
       id: oneOfType([number, string, bool])
     }
@@ -106,7 +107,8 @@ export class Field extends SuperControl.View {
   static get defaultProps() {
     return {
       ...super.defaultProps,
-      init: ''
+      init: '',
+      format: _.id
     }
   }
 }
