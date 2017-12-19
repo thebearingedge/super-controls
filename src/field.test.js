@@ -209,16 +209,11 @@ describe('Field', () => {
           <Field name='foo' init='bar' component='input'/>
         </Form>
       )
-      const { fields: { foo } } = wrapper.instance()
-      const update = spy(foo, 'update')
       wrapper.find('input').simulate('blur')
-      expect(update).to.have.been.calledWith({
-        value: 'bar',
-        isFocused: null,
-        isTouched: true
-      }, {
-        notify: true,
-        validate: true
+      expect(wrapper.state()).to.deep.include({
+        values: { foo: 'bar' },
+        touched: { foo: true },
+        focused: null
       })
     })
 
@@ -298,6 +293,84 @@ describe('Field', () => {
         </Form>
       )
       wrapper.setState({ touched: { foo: true } })
+    })
+
+  })
+
+  describe('format', () => {
+
+    it('formats the form value for rendering', () => {
+      const format = value => {
+        if (!value) return value
+        const year = value.getFullYear()
+        const month = `${value.getMonth() + 1}`.padStart(2, 0)
+        const day = `${value.getDate()}`.padStart(2, 0)
+        return `${year}-${month}-${day}`
+      }
+      const init = new Date('1/1/1970')
+      const wrapper = mount(
+        <Form>
+          <Field
+            name='date'
+            type='date'
+            init={init}
+            format={format}
+            component='input'/>
+        </Form>
+      )
+      expect(wrapper.find('input')).to.have.value('1970-01-01')
+      expect(wrapper.state()).to.deep.include({ values: { date: init } })
+    })
+
+  })
+
+  describe('parse', () => {
+
+    it('parses the input value to be stored in the form', () => {
+      const parse = value => new Date(value || '1970-01-01')
+      const wrapper = mount(
+        <Form>
+          <Field
+            name='date'
+            type='date'
+            parse={parse}
+            component='input'/>
+        </Form>
+      )
+      const { values: { date: init } } = wrapper.state()
+      expect(init).to.be.a('date')
+      expect(init.getUTCFullYear()).to.equal(1970)
+      wrapper
+        .find('input')
+        .simulate('change', { target: { value: '2017-01-01' } })
+      const { values: { date: parsed } } = wrapper.state()
+      expect(parsed).to.be.a('date')
+      expect(parsed.getUTCFullYear()).to.equal(2017)
+    })
+
+  })
+
+  describe('override', () => {
+
+    it('overrides the input value to be stored in the form', () => {
+      const override = (end, { start }) => end < start ? start : end
+      const wrapper = mount(
+        <Form init={{ start: 2017, end: 2018 }}>
+          <Field name='start' component='input' type='number'/>
+          <Field
+            name='end'
+            type='number'
+            parse={Number}
+            component='input'
+            override={override}/>
+        </Form>
+      )
+      wrapper
+        .find('[name="end"]')
+        .hostNodes()
+        .simulate('change', { target: { value: '1970' } })
+      const { values: { end: overridden } } = wrapper.state()
+      expect(overridden).to.equal(2017)
     })
 
   })

@@ -1,6 +1,6 @@
 import { Component } from 'react'
 import { string, shape, func, number, oneOfType } from 'prop-types'
-import { noop, invoke, equalProps, deepEqual } from './util'
+import * as _ from './util'
 
 export class View extends Component {
   constructor(...args) {
@@ -16,14 +16,14 @@ export class View extends Component {
         validate: this.props.validate
       })
     })
-    this.setState(this.model.getState())
+    this.setState(this.model.toState())
   }
   shouldComponentUpdate(nextProps, nextState) {
-    return !equalProps(this.props, nextProps) ||
-           !deepEqual(this.model.getState(), nextState)
+    return !_.equalProps(this.props, nextProps) ||
+           !_.deepEqual(this.model.toState(), nextState)
   }
   componentDidUpdate() {
-    this.setState(this.model.getState())
+    this.setState(this.model.toState())
   }
   componentWillUnmount() {
     this.model.unregister()
@@ -47,8 +47,8 @@ export class View extends Component {
   }
   static get defaultProps() {
     return {
-      notify: noop,
-      validate: noop,
+      notify: _.noop,
+      validate: _.noop,
       component: _ => null
     }
   }
@@ -65,17 +65,18 @@ export class View extends Component {
 }
 
 export class Model {
-  constructor(id, form, init, paths, { notify, validate } = {}) {
+  constructor(id, form, init, paths, { notify, validate, override } = {}) {
     this.id = id
     this.form = form
     this._init = init
     this._path = paths
-    this._notify = notify || noop
-    this._validate = validate || noop
+    this._notify = notify || _.noop
+    this._validate = validate || _.noop
+    this._override = override || _.id
     this.check = this.check.bind(this)
   }
   get path() {
-    return this._path.map(invoke)
+    return this._path.map(_.invoke)
   }
   get init() {
     return this.form.getInit(this.path, this._init)

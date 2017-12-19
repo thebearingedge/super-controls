@@ -7,19 +7,11 @@ export class FieldArray extends FieldSet {
   modelField(...args) {
     return modelFieldArray(...args)
   }
-  getFieldsProp(model) {
-    const fields = super.getFieldsProp(model)
-    const extra = _.pick(model, [
-      'insert', 'remove', 'push', 'pop',
-      'unshift', 'shift', 'map', 'length'
-    ])
-    return { ...fields, ...extra }
-  }
   render() {
     const { component, children, ...props } = this.props
     return createElement(component || children, {
       ...props,
-      fields: this.getFieldsProp(this.model)
+      fields: this.model.toProp()
     })
   }
   static get propTypes() {
@@ -58,6 +50,12 @@ class FieldArrayModel extends FieldSetModel {
   }
   get length() {
     return this.value.length
+  }
+  toProp() {
+    return _.assign(super.toProp(), _.pick(this, [
+      'insert', 'remove', 'push', 'pop',
+      'unshift', 'shift', 'map', 'length'
+    ]))
   }
   insert(index, newValue) {
     const { form, path, init, value, touched } = this
