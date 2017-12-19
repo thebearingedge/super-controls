@@ -1,0 +1,429 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>Field · Super Controls</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-prism/prism.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-anchors/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    
+    <link rel="prev" href="./" />
+    
+
+    
+        <link rel="shortcut icon" href='../images/favicon.ico' type="image/x-icon">
+    
+    
+        <link rel="bookmark" href='../images/favicon.ico' type="image/x-icon">
+    
+    
+        <link rel="apple-touch-icon" href='../images/apple-touch-icon.png'>
+    
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../">
+            
+                <a href="../">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="../installation/">
+            
+                <a href="../installation/">
+            
+                    
+                    Installation
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" data-path="./">
+            
+                <a href="./">
+            
+                    
+                    API
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter active" data-level="1.3.1" data-path="field.html">
+            
+                <a href="field.html">
+            
+                    
+                    Field
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href=".." >Field</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <html><head></head><body><h1 id="field"><a name="field" class="plugin-anchor" href="#field"><i class="fa fa-link" aria-hidden="true"></i></a><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>Field</span><span class="token punctuation">/&gt;</span></span></code></h1>
+<p><a href="https://github.com/thebearingedge/super-controls/blob/master/src/field.js" target="_blank">View source on GitHub</a></p>
+<h3 id="fundamentals"><a name="fundamentals" class="plugin-anchor" href="#fundamentals"><i class="fa fa-link" aria-hidden="true"></i></a>Fundamentals</h3>
+<p>The <code>Field</code> component is a wrapper used to connect a form control it to its parent <a href=""><code>Form</code></a> component. Basics of <code>Field</code> are as follows:</p>
+<ol>
+<li>Pass it a <strong>required</strong> <a href="#name-stringnumber-required"><code>name</code></a> prop to link it to a value in your form values. <code>name</code> can be a <code>String</code> that corresponds to an <code>Object</code> property in your form values, or a <code>Number</code> that corresponds to an <code>Array</code> index within your form values.</li>
+<li>Pass it a <strong>required</strong> <a href="#component-componentfunctionstring-required"><code>component</code></a> prop to define its rendered output. <code>component</code> may the <code>tagName</code> of a form control element (<em>e.g.</em> <code>&quot;input&quot;</code>, <code>&quot;textarea&quot;</code>) or a <a href="https://reactjs.org/docs/components-and-props.html#functional-and-class-components" target="_blank">Functional or Class Component</a>.</li>
+<li>Pass it an <strong>optional</strong> <a href="#init-any-optional"><code>init</code></a> prop to give it a default initial value in the form.</li>
+</ol>
+<h3 id="importing"><a name="importing" class="plugin-anchor" href="#importing"><i class="fa fa-link" aria-hidden="true"></i></a>Importing</h3>
+<p><code>Field</code> is a top-level export of <code>super-controls</code>.</p>
+<pre class="language-"><code class="lang-js"><span class="token comment" spellcheck="true">// ES Module syntax</span>
+<span class="token keyword">import</span> <span class="token punctuation">{</span> Field <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">&apos;super-controls&apos;</span>
+
+<span class="token comment" spellcheck="true">// CommonJS Module syntax</span>
+<span class="token keyword">const</span> <span class="token punctuation">{</span> Field <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">&apos;super-controls&apos;</span><span class="token punctuation">)</span>
+</code></pre>
+<pre class="language-"><code class="lang-html"><span class="token comment" spellcheck="true">&lt;!-- UMD property --&gt;</span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>https://unpkg.com/super-controls/umd/super-controls.js<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">&gt;</span></span>
+  const { Field } = SuperControls
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
+<h3 id="field-props"><a name="field-props" class="plugin-anchor" href="#field-props"><i class="fa fa-link" aria-hidden="true"></i></a><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>Field</span><span class="token punctuation">/&gt;</span></span></code> props</h3>
+<p>The following props can be passed to the <code>Field</code> component.</p>
+<h4 id="name-stringnumber-required"><a name="name-stringnumber-required" class="plugin-anchor" href="#name-stringnumber-required"><i class="fa fa-link" aria-hidden="true"></i></a><code>name: (String|Number)</code> required</h4>
+<p>The <code>name</code> prop passed to <code>Field</code> is used to determine the position of its value in the form state. <code>name</code> is <strong>not</strong> written in any special syntax, it is simply a key corresponding to an <code>Object</code> property (<code>String</code>) or <code>Array</code> index (<code>Number</code>). The nesting of a <code>Field</code>&apos;s value in the form state is determined by its nesting in the component tree. For nested <code>Field</code> values, reference the documentation for the <a href=""><code>FieldSet</code></a> and <a href=""><code>FieldArray</code></a> components.</p>
+<h4 id="component-componentfunctionstring-required"><a name="component-componentfunctionstring-required" class="plugin-anchor" href="#component-componentfunctionstring-required"><i class="fa fa-link" aria-hidden="true"></i></a><code>component: (Component|Function|String)</code> required</h4>
+<p>The <code>component</code> prop defines the control to be rendered by the <code>Field</code>. This can be an element <code>tagName</code> (<em>e.g.</em> <code>&quot;input&quot;</code>, <code>&quot;textarea&quot;</code>), a stateless Functional Component, or a stateful Class Component.</p>
+<h4 id="init-any-optional"><a name="init-any-optional" class="plugin-anchor" href="#init-any-optional"><i class="fa fa-link" aria-hidden="true"></i></a><code>init: Any</code> optional</h4>
+<p>The initial value of the <code>Field</code>&apos;s control. If the parent <code>Form</code> component has already been initialized with a value for the <code>Field</code>, this prop is ignored.</p>
+<h4 id="id-stringboolean-optional"><a name="id-stringboolean-optional" class="plugin-anchor" href="#id-stringboolean-optional"><i class="fa fa-link" aria-hidden="true"></i></a><code>id: (String|Boolean)</code> optional</h4>
+<p>The <code>id</code> attribute used for the <code>Field</code>&apos;s control element. If <code>id</code> is a <code>String</code>, it will be merged as-is into the <code>Field</code>&apos;s <a href="#control-object">control model</a>. However, if <code>id</code> is <code>true</code>, the control model will be given an <code>id</code> property equal to the <code>Field</code>&apos;s <a href="name-stringnumber-required"><code>name</code></a> prop. This helps cut down on repetitive markup used to link <code>label</code> elements to form controls in otherwise concise <code>Field</code> elements.</p>
+<h4 id="type-string-optional"><a name="type-string-optional" class="plugin-anchor" href="#type-string-optional"><i class="fa fa-link" aria-hidden="true"></i></a><code>type: String</code> optional</h4>
+<p>Primarily used to determine whether a control is <a href="#controlchecked-boolean-optional">&quot;checkable&quot;</a>. This prop is merged into the <code>Field</code>&apos;s <a href="#control-object">control model</a>.</p>
+<h4 id="validate-value-allvalues---error-optional"><a name="validate-value-allvalues---error-optional" class="plugin-anchor" href="#validate-value-allvalues---error-optional"><i class="fa fa-link" aria-hidden="true"></i></a><code>validate: (value, allValues) -&gt; error</code> optional</h4>
+<p>A <strong>synchronous</strong> validation <code>Function</code>. <code>validate</code> is passed the value of the <code>Field</code> and all  values in the form. <code>validate</code> should return a <a href="https://developer.mozilla.org/en-US/docs/Glossary/Truthy" target="_blank">truthy</a> result if the <code>Field</code>&apos;s value is invalid. A simple pattern is to return a non-empty <code>String</code> error message, but the result&apos;s type is arbitrary and the <code>Field</code> will be treated as invalid so long as the result is truthy.</p>
+<h4 id="notify-value-allvalues---notice-optional"><a name="notify-value-allvalues---notice-optional" class="plugin-anchor" href="#notify-value-allvalues---notice-optional"><i class="fa fa-link" aria-hidden="true"></i></a><code>notify: (value, allValues) -&gt; notice</code> optional</h4>
+<p>A <strong>synchronous</strong> notification <code>Function</code>. <code>notify</code> is passed the value of the <code>Field</code> and all values in the form. <code>notify</code> should return a <a href="https://developer.mozilla.org/en-US/docs/Glossary/Truthy" target="_blank">truthy</a> result if the <code>Field</code>&apos;s value is note-worthy. A simple pattern is to return a non-empty <code>String</code> &quot;warning&quot; or &quot;success&quot; message, but the result&apos;s type is arbitrary.</p>
+<h4 id="format-value---formatted-optional"><a name="format-value---formatted-optional" class="plugin-anchor" href="#format-value---formatted-optional"><i class="fa fa-link" aria-hidden="true"></i></a><code>format: value -&gt; formatted</code> optional</h4>
+<p>A <code>Function</code> that formats the value from the form state before it is rendered by the <code>Field</code>. Typically used to compute a <code>String</code> representation of the value (<em>e.g.</em> <code>Date</code> or <code>Number</code>) before it is rendered into a control. If omitted, the value is passed along unmodified.</p>
+<h4 id="parse-formatted---parsed-optional"><a name="parse-formatted---parsed-optional" class="plugin-anchor" href="#parse-formatted---parsed-optional"><i class="fa fa-link" aria-hidden="true"></i></a><code>parse: formatted -&gt; parsed</code> optional</h4>
+<p>A <code>Function</code> that parses the new, <a href="#format-value---formatted-optional"><strong>formatted</strong></a> value of the <code>Field</code>&apos;s control before it is sent to the form state. Typically used to preserve the data type (<em>e.g.</em> <code>Date</code> or <code>Number</code>) of the value in the form state when it was rendered into a control as a <code>String</code>. If omitted, the value is passed along unmodified.</p>
+<h4 id="override-parsed-allvalues---overridden-optional"><a name="override-parsed-allvalues---overridden-optional" class="plugin-anchor" href="#override-parsed-allvalues---overridden-optional"><i class="fa fa-link" aria-hidden="true"></i></a><code>override: (parsed, allValues) -&gt; overridden</code> optional</h4>
+<p>A <code>Function</code> that overrides the new, <a href="#parse-formatted---parsed-optional"><strong>parsed</strong></a> value of the <code>Field</code> before it is sent to the form state. Typically used to enforce constraints on the value such as range or referential integrity checks. If omitted, the value is passed along unmodified.</p>
+<h3 id="field-component-props"><a name="field-component-props" class="plugin-anchor" href="#field-component-props"><i class="fa fa-link" aria-hidden="true"></i></a><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>Field</span> <span class="token attr-name">component</span><span class="token punctuation">/&gt;</span></span></code> props</h3>
+<p>The following props are passed to a <code>Field</code>&apos;s <a href="#component-componentfunctionstring-required"><code>component</code> prop</a>.</p>
+<h4 id="control-object"><a name="control-object" class="plugin-anchor" href="#control-object"><i class="fa fa-link" aria-hidden="true"></i></a><code>control: Object</code></h4>
+<p>A form control model including element attributes and event listeners. Can be conveniently spread into a form control element&apos;s props.</p>
+<h5 id="controlname-stringnumber"><a name="controlname-stringnumber" class="plugin-anchor" href="#controlname-stringnumber"><i class="fa fa-link" aria-hidden="true"></i></a><code>control.name: (String|Number)</code></h5>
+<p>The <a href="#name-stringnumber-required"><code>name</code> prop</a> passed to the <code>Field</code>.</p>
+<h5 id="controlvalue-any-optional"><a name="controlvalue-any-optional" class="plugin-anchor" href="#controlvalue-any-optional"><i class="fa fa-link" aria-hidden="true"></i></a><code>control.value: Any</code> optional</h5>
+<p>The <a href="#format-value---formatted-optional">formatted</a> value of the <code>Field</code> in the form. If the parent <code>Form</code> component was not initialized with a value for the <code>Field</code>, then <code>control.value</code> will start as the <code>Field</code>&apos;s <a href="#init-any-optional"><code>init</code> prop</a>. If the parent <code>Form</code> component was not initialized with a value for the <code>Field</code> <em>and</em> no <code>init</code> prop was passed to the <code>Field</code>, then <code>control.value</code> will start as an empty <code>String</code>. This property is omitted if the <code>Field</code> has a <a href="#type-string-optional">type prop</a> of <code>&quot;checkbox&quot;</code>.</p>
+<h5 id="controlonchange-event---undefined"><a name="controlonchange-event---undefined" class="plugin-anchor" href="#controlonchange-event---undefined"><i class="fa fa-link" aria-hidden="true"></i></a><code>control.onChange: event -&gt; undefined</code></h5>
+<p>A callback <code>Function</code> that handles <code>change</code> events to update the <code>Field</code>&apos;s <a href="#fieldvalue-any">value</a> in the form. Triggers the <code>Field</code>&apos;s <a href="#validate-value-allvalues---error-optional"><code>validate</code></a> and <a href="#notify-value-allvalues---notice-optional"><code>notify</code></a> functions.</p>
+<h5 id="controlonfocus-event---undefined"><a name="controlonfocus-event---undefined" class="plugin-anchor" href="#controlonfocus-event---undefined"><i class="fa fa-link" aria-hidden="true"></i></a><code>control.onFocus: event -&gt; undefined</code></h5>
+<p>A callback <code>Function</code> that handles <code>focus</code> events to set the currently focused field in the form and record that the <code>Field</code> has been <a href="#fieldisvisited-boolean">visited</a>.</p>
+<h5 id="controlonblur-event---undefined"><a name="controlonblur-event---undefined" class="plugin-anchor" href="#controlonblur-event---undefined"><i class="fa fa-link" aria-hidden="true"></i></a><code>control.onBlur: event -&gt; undefined</code></h5>
+<p>A callback <code>Function</code> that handles <code>blur</code> events to record whether the <code>Field</code> has been <a href="#fieldistouched-boolean">touched</a> and unset the currently focused field in the form. Triggers the <code>Field</code>&apos;s <a href="#validate-value-allvalues---error-optional"><code>validate</code></a> and <a href="#notify-value-allvalues---notice-optional"><code>notify</code></a> functions.</p>
+<h5 id="controltype-string-optional"><a name="controltype-string-optional" class="plugin-anchor" href="#controltype-string-optional"><i class="fa fa-link" aria-hidden="true"></i></a><code>control.type: String</code> optional</h5>
+<p>The <a href="#type-string"><code>type</code> prop</a> passed to <code>Field</code>.</p>
+<h5 id="controlchecked-boolean-optional"><a name="controlchecked-boolean-optional" class="plugin-anchor" href="#controlchecked-boolean-optional"><i class="fa fa-link" aria-hidden="true"></i></a><code>control.checked: Boolean</code> optional</h5>
+<p>Present if the <code>Field</code> is of <a href="#type-string-optional">type</a> <code>&quot;checkbox&quot;</code> or <code>&quot;radio&quot;</code>.</p>
+<h4 id="field-object"><a name="field-object" class="plugin-anchor" href="#field-object"><i class="fa fa-link" aria-hidden="true"></i></a><code>field: Object</code></h4>
+<p>A field model containing the current state of the <code>Field</code> in the parent <code>Form</code> component.</p>
+<h5 id="fieldname-stringnumber"><a name="fieldname-stringnumber" class="plugin-anchor" href="#fieldname-stringnumber"><i class="fa fa-link" aria-hidden="true"></i></a><code>field.name: (String|Number)</code></h5>
+<p>The <a href="#name-stringnumber-required"><code>name</code> prop</a> that was passed to the <code>Field</code>.</p>
+<h5 id="fieldinit-any"><a name="fieldinit-any" class="plugin-anchor" href="#fieldinit-any"><i class="fa fa-link" aria-hidden="true"></i></a><code>field.init: Any</code></h5>
+<p>The <a href="#init-any-optional"><code>init</code> prop</a> passed to the <code>Field</code> or the superseding initial value in its parent <code>Form</code> component.</p>
+<h5 id="fieldvalue-any"><a name="fieldvalue-any" class="plugin-anchor" href="#fieldvalue-any"><i class="fa fa-link" aria-hidden="true"></i></a><code>field.value: Any</code></h5>
+<p>The current value of the <code>Field</code> in the form.</p>
+<h5 id="fielderror-any"><a name="fielderror-any" class="plugin-anchor" href="#fielderror-any"><i class="fa fa-link" aria-hidden="true"></i></a><code>field.error: Any</code></h5>
+<p>The truthy value returned from the <code>Field</code>&apos;s <a href="#validate-value-allvalues---error-optional"><code>validate</code> prop</a> the last time it was called. Otherwise <code>null</code>.</p>
+<h5 id="fieldnotice-any"><a name="fieldnotice-any" class="plugin-anchor" href="#fieldnotice-any"><i class="fa fa-link" aria-hidden="true"></i></a><code>field.notice: Any</code></h5>
+<p>The truthy value returned from the <code>Field</code>&apos;s <a href="#notify-value-allvalues---notice-optional"><code>notify</code> prop</a> the last time it was called. Otherwise <code>null</code>.</p>
+<h5 id="fieldisfocused-boolean"><a name="fieldisfocused-boolean" class="plugin-anchor" href="#fieldisfocused-boolean"><i class="fa fa-link" aria-hidden="true"></i></a><code>field.isFocused: Boolean</code></h5>
+<p><code>true</code> if the <code>Field</code> currently has focus.</p>
+<h5 id="fieldisvisited-boolean"><a name="fieldisvisited-boolean" class="plugin-anchor" href="#fieldisvisited-boolean"><i class="fa fa-link" aria-hidden="true"></i></a><code>field.isVisited: Boolean</code></h5>
+<p><code>true</code> if the <code>Field</code> has <em>ever</em> had focus.</p>
+<h5 id="fieldistouched-boolean"><a name="fieldistouched-boolean" class="plugin-anchor" href="#fieldistouched-boolean"><i class="fa fa-link" aria-hidden="true"></i></a><code>field.isTouched: Boolean</code></h5>
+<p><code>true</code> if the <code>Field</code>&apos;s control has ever fired a <code>blur</code> event.</p>
+<h5 id="fieldisdirty-boolean"><a name="fieldisdirty-boolean" class="plugin-anchor" href="#fieldisdirty-boolean"><i class="fa fa-link" aria-hidden="true"></i></a><code>field.isDirty: Boolean</code></h5>
+<p><code>true</code> if the <code>Field</code>&apos;s current value does not deeply equal its initial value.</p>
+<h5 id="fieldispristine-boolean"><a name="fieldispristine-boolean" class="plugin-anchor" href="#fieldispristine-boolean"><i class="fa fa-link" aria-hidden="true"></i></a><code>field.isPristine: Boolean</code></h5>
+<p>The opposite of <code>isDirty</code>.</p>
+<h5 id="fieldisvalid-boolean"><a name="fieldisvalid-boolean" class="plugin-anchor" href="#fieldisvalid-boolean"><i class="fa fa-link" aria-hidden="true"></i></a><code>field.isValid: Boolean</code></h5>
+<p><code>true</code> if <code>field.error</code> is truthy.</p>
+<h5 id="fieldisinvalid-boolean"><a name="fieldisinvalid-boolean" class="plugin-anchor" href="#fieldisinvalid-boolean"><i class="fa fa-link" aria-hidden="true"></i></a><code>field.isInvalid: Boolean</code></h5>
+<p>The opposite of <code>isValid</code>.</p>
+<h4 id="ownprops"><a name="ownprops" class="plugin-anchor" href="#ownprops"><i class="fa fa-link" aria-hidden="true"></i></a><code>...ownProps</code></h4>
+<p>The props passed to the <code>Field</code> not specified in <a href="#field-props"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>Field</span><span class="token punctuation">/&gt;</span></span></code> props</a> are forwarded to your <code>component</code> at the same level as the <a href="#control-object"><code>control</code> model</a> and <a href="#field-object"><code>field</code> model</a> props.</p>
+<h3 id="usage"><a name="usage" class="plugin-anchor" href="#usage"><i class="fa fa-link" aria-hidden="true"></i></a>Usage</h3>
+<p>The <code>Field</code> component is a wrapper used to connect a control it to its parent <a href=""><code>Form</code></a>. A <code>Field</code> <em>must</em> be rendered within a <code>Form</code>&apos;s component tree.</p>
+<h4 id="rendering-an-element-by-type"><a name="rendering-an-element-by-type" class="plugin-anchor" href="#rendering-an-element-by-type"><i class="fa fa-link" aria-hidden="true"></i></a>Rendering an Element by Type</h4>
+<h5 id="jsx"><a name="jsx" class="plugin-anchor" href="#jsx"><i class="fa fa-link" aria-hidden="true"></i></a>JSX</h5>
+<pre class="language-"><code class="lang-jsx"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>Form</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&apos;</span>login<span class="token punctuation">&apos;</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>Field</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&apos;</span>username<span class="token punctuation">&apos;</span></span> <span class="token attr-name">component</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&apos;</span>input<span class="token punctuation">&apos;</span></span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&apos;</span>text<span class="token punctuation">&apos;</span>/</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>Field</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&apos;</span>password<span class="token punctuation">&apos;</span></span> <span class="token attr-name">component</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&apos;</span>input<span class="token punctuation">&apos;</span></span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&apos;</span>password<span class="token punctuation">&apos;</span>/</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>Form</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
+<h5 id="dom"><a name="dom" class="plugin-anchor" href="#dom"><i class="fa fa-link" aria-hidden="true"></i></a>DOM</h5>
+<pre class="language-"><code class="lang-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>form</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>login<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>text<span class="token punctuation">&quot;</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>username<span class="token punctuation">&quot;</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span><span class="token punctuation">&quot;</span></span><span class="token punctuation">/&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>password<span class="token punctuation">&quot;</span></span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>password<span class="token punctuation">&quot;</span></span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span><span class="token punctuation">&quot;</span></span><span class="token punctuation">/&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>form</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
+<h4 id="rendering-a-component"><a name="rendering-a-component" class="plugin-anchor" href="#rendering-a-component"><i class="fa fa-link" aria-hidden="true"></i></a>Rendering a Component</h4>
+<h5 id="jsx"><a name="jsx" class="plugin-anchor" href="#jsx"><i class="fa fa-link" aria-hidden="true"></i></a>JSX</h5>
+<pre class="language-"><code class="lang-jsx"><span class="token keyword">function</span> <span class="token function">CustomInput</span><span class="token punctuation">(</span><span class="token punctuation">{</span> field<span class="token punctuation">,</span> control<span class="token punctuation">,</span> label<span class="token punctuation">,</span> <span class="token operator">...</span>props <span class="token punctuation">}</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> <span class="token punctuation">(</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">className</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&apos;</span>form-group<span class="token punctuation">&apos;</span></span><span class="token punctuation">&gt;</span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">htmlFor</span><span class="token script language-javascript"><span class="token punctuation">=</span><span class="token punctuation">{</span>control<span class="token punctuation">.</span>id<span class="token punctuation">}</span></span><span class="token punctuation">&gt;</span></span><span class="token punctuation">{</span> label <span class="token punctuation">}</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">&gt;</span></span>
+      <span class="token operator">&lt;</span>input <span class="token punctuation">{</span><span class="token operator">...</span>control<span class="token punctuation">}</span> <span class="token punctuation">{</span><span class="token operator">...</span>props<span class="token punctuation">}</span> className<span class="token operator">=</span><span class="token string">&apos;form-control&apos;</span><span class="token operator">/</span><span class="token operator">&gt;</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+  <span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>Form</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&apos;</span>signup<span class="token punctuation">&apos;</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>Field</span>
+    <span class="token attr-name">id</span>
+    <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&apos;</span>email<span class="token punctuation">&apos;</span></span>
+    <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&apos;</span>email<span class="token punctuation">&apos;</span></span>
+    <span class="token attr-name">component</span><span class="token script language-javascript"><span class="token punctuation">=</span><span class="token punctuation">{</span>CustomInput<span class="token punctuation">}</span></span>
+    <span class="token attr-name">label</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&apos;</span>Enter</span> <span class="token attr-name">your</span> <span class="token attr-name">email&apos;</span>
+    <span class="token attr-name">placeholder</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&apos;</span>email@example.org<span class="token punctuation">&apos;</span>/</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>Form</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
+<h5 id="dom"><a name="dom" class="plugin-anchor" href="#dom"><i class="fa fa-link" aria-hidden="true"></i></a>DOM</h5>
+<pre class="language-"><code class="lang-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>form</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>signup<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>form-group<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>label</span> <span class="token attr-name">for</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>email<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>Enter your email<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>label</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span>
+      <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span><span class="token punctuation">&quot;</span></span>
+      <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>email<span class="token punctuation">&quot;</span></span>
+      <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>email<span class="token punctuation">&quot;</span></span>
+      <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>email<span class="token punctuation">&quot;</span></span>
+      <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>form-control<span class="token punctuation">&quot;</span></span>
+      <span class="token attr-name">placeholder</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>email@example.org<span class="token punctuation">&quot;</span></span><span class="token punctuation">/&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>form</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
+</body></html>
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="./" class="navigation navigation-prev navigation-unique" aria-label="Previous page: API">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"Field","level":"1.3.1","depth":2,"previous":{"title":"API","level":"1.3","depth":1,"path":"api/README.md","ref":"api/README.md","articles":[{"title":"Field","level":"1.3.1","depth":2,"path":"api/field.md","ref":"api/field.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":["prism","github","favicon","anchors","-highlight"],"root":"./docs","styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"prism":{},"github":{"url":"https://github.com/thebearingedge/super-controls"},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"favicon":{"shortcut":"images/favicon.ico","bookmark":"images/favicon.ico","appleTouch":"images/apple-touch-icon.png"},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"anchors":{}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Super Controls","gitbook":"3.2.3","description":"Form component system"},"file":{"path":"api/field.md","mtime":"2017-12-19T07:14:24.000Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2017-12-19T07:14:35.994Z"},"basePath":"..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="../gitbook/gitbook.js"></script>
+    <script src="../gitbook/theme.js"></script>
+    
+        
+        <script src="../gitbook/gitbook-plugin-github/plugin.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+
