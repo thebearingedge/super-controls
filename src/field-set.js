@@ -4,6 +4,12 @@ import * as _ from './util'
 import * as SuperControl from './super-control'
 
 export class FieldSet extends SuperControl.View {
+  constructor(...args) {
+    super(...args)
+    this.ownProps = _.omit(this.props, [
+      'init', 'notify', 'validate', 'component'
+    ])
+  }
   getInit() {
     return this.props.init
   }
@@ -11,10 +17,13 @@ export class FieldSet extends SuperControl.View {
     return modelFieldSet(...args)
   }
   render() {
-    const { init, notify, validate, component, ...props } = this.props
-    if (_.isString(component)) return createElement(component, props)
+    const { props: { name, component }, ownProps: props } = this
+    if (_.isString(component)) {
+      return createElement(component, { ...props, name })
+    }
     return createElement(component, {
       ...props,
+      name,
       fields: this.model.toProp()
     })
   }

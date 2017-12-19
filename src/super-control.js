@@ -42,13 +42,11 @@ export class View extends Component {
     return {
       notify: func,
       validate: func,
-      override: func,
       name: oneOfType([string, number]).isRequired
     }
   }
   static get defaultProps() {
     return {
-      override: _.id,
       notify: _.noop,
       validate: _.noop,
       component: _ => null
