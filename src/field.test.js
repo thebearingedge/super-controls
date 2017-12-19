@@ -209,16 +209,11 @@ describe('Field', () => {
           <Field name='foo' init='bar' component='input'/>
         </Form>
       )
-      const { fields: { foo } } = wrapper.instance()
-      const update = spy(foo, 'update')
       wrapper.find('input').simulate('blur')
-      expect(update).to.have.been.calledWith({
-        value: 'bar',
-        isFocused: null,
-        isTouched: true
-      }, {
-        notify: true,
-        validate: true
+      expect(wrapper.state()).to.deep.include({
+        values: { foo: 'bar' },
+        touched: { foo: true },
+        focused: null
       })
     })
 
@@ -351,6 +346,31 @@ describe('Field', () => {
       const { values: { date: parsed } } = wrapper.state()
       expect(parsed).to.be.a('date')
       expect(parsed.getUTCFullYear()).to.equal(2017)
+    })
+
+  })
+
+  describe('override', () => {
+
+    it('overrides the input value to be stored in the form', () => {
+      const override = (end, { start }) => end < start ? start : end
+      const wrapper = mount(
+        <Form init={{ start: 2017, end: 2018 }}>
+          <Field name='start' component='input' type='number'/>
+          <Field
+            name='end'
+            type='number'
+            parse={Number}
+            component='input'
+            override={override}/>
+        </Form>
+      )
+      wrapper
+        .find('[name="end"]')
+        .hostNodes()
+        .simulate('change', { target: { value: '1970' } })
+      const { values: { end: overridden } } = wrapper.state()
+      expect(overridden).to.equal(2017)
     })
 
   })

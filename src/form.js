@@ -44,6 +44,9 @@ export class Form extends Component {
   get fields() {
     return this.root.fields
   }
+  get values() {
+    return this.state.values
+  }
   get submitFailed() {
     return this.state.submitFailed
   }
@@ -53,7 +56,7 @@ export class Form extends Component {
       init, values, focused, visited, errors, notices, touched
     }) => {
       const nextState = {
-        init, values, errors, notices, touched, visited, focused
+        init, values, focused, visited, errors, notices, touched
       }
       if ('init' in state) {
         nextState.init = _.set(init, path, state.init)
@@ -183,16 +186,13 @@ export class Fields {
     return this.fields[key].check(value, values, method, path)
   }
   checkAll(value, values, method) {
-    return _.assign(
-      this.check(value, values, method),
-      _.keys(this.fields)
-        .reduce((checked, key) => {
-          const { check, checkAll } = this.fields[key]
-          return _.assign(
-            checked,
-            (checkAll || check)(values[key], values, method)
-          )
-        }, {})
-    )
+    return _.keys(this.fields)
+      .reduce((checked, key) => {
+        const { check, checkAll } = this.fields[key]
+        return _.assign(
+          checked,
+          (checkAll || check)(values[key], values, method)
+        )
+      }, this.check(value, values, method))
   }
 }

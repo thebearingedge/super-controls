@@ -9,23 +9,28 @@ export class Field extends SuperControl.View {
     this.onBlur = this.onBlur.bind(this)
     this.onFocus = this.onFocus.bind(this)
     this.onChange = this.onChange.bind(this)
+    this.ownProps = _.omit(this.props, [
+      'id', 'name', 'init', 'type', 'value', 'parse',
+      'format', 'override', 'notify', 'validate', 'component'
+    ])
   }
   onChange(event) {
-    const { getValue, props: { parse }, model: { update } } = this
-    const value = parse(getValue(event))
-    update({ value }, { notify: true, validate: true })
+    const {
+      getValue,
+      props: { parse, override },
+      model: { form: { values }, update }
+    } = this
+    const value = override(parse(getValue(event)), values)
+    update({ value })
   }
   onBlur(event) {
-    const { getValue, props: { parse }, model: { update } } = this
+    const {
+      getValue,
+      props: { parse },
+      model: { update }
+    } = this
     const value = parse(getValue(event))
-    update({
-      value,
-      isTouched: true,
-      isFocused: null
-    }, {
-      notify: true,
-      validate: true
-    })
+    update({ value, isTouched: true, isFocused: null })
   }
   onFocus() {
     this.model.update({ isFocused: this.model })
@@ -42,48 +47,29 @@ export class Field extends SuperControl.View {
   modelField(...args) {
     return modelField(...args)
   }
-  getFieldProp(model) {
-    const name = this.props.name
-    const state = model.toState()
-    const extra = _.pick(model, ['form', 'update'])
-    const isValid = !state.error
-    const isInvalid = !isValid
-    const isDirty = !_.deepEqual(state.init, state.value)
-    const isPristine = !isDirty
-    return {
-      ...state, ...extra, name, isDirty, isValid, isInvalid, isPristine
-    }
-  }
-  getControlProp({ fieldValue }) {
-    const { id, type, name, format } = this.props
+  modelControl({ value: fieldValue }) {
+    const { id, type, name, format, value: propsValue } = this.props
     const { onBlur, onFocus, onChange } = this
     const control = { type, name, onBlur, onFocus, onChange }
-    if (id) {
-      control.id = id === true ? name : id
-    }
+    if (id) control.id = id === true ? name : id
     if (type === 'checkbox') {
-      control.checked = !!fieldValue
-      return control
+      return _.assign(control, { checked: !!fieldValue })
     }
     if (type === 'radio') {
-      control.value = this.props.value
-      control.checked = this.props.value === fieldValue
-      return control
+      return _.assign(control, {
+        value: propsValue,
+        checked: propsValue === fieldValue
+      })
     }
-    control.value = format(fieldValue)
-    return control
+    return _.assign(control, { value: format(fieldValue) })
   }
   render() {
-    const { component, ...props } = _.omit(this.props, [
-      'id', 'name', 'init', 'type', 'parse',
-      'format', 'notify', 'validate', 'value'
-    ])
-    const field = this.getFieldProp(this.model)
-    const { value: fieldValue } = field
-    const control = this.getControlProp({ fieldValue })
+    const { props: { component }, model: { value }, ownProps: props } = this
+    const control = this.modelControl({ value })
     if (_.isString(component)) {
       return createElement(component, { ...control, ...props })
     }
+    const field = this.model.toProp()
     return createElement(component, { field, control, ...props })
   }
   static get propTypes() {
@@ -94,6 +80,7 @@ export class Field extends SuperControl.View {
       type: string,
       parse: func,
       format: func,
+      override: func,
       component: oneOfType([string, func]),
       id: oneOfType([number, string, bool])
     }
@@ -103,7 +90,8 @@ export class Field extends SuperControl.View {
       ...super.defaultProps,
       init: '',
       parse: _.id,
-      format: _.id
+      format: _.id,
+      override: _.id
     }
   }
 }
@@ -122,14 +110,26 @@ export class FieldModel extends SuperControl.Model {
   get isTouched() {
     return this.form.getTouched(this.path, false)
   }
-  update(state, options) {
-    this.form.update(this.path, state, options)
+  update(state, { notify = true, validate = true } = {}) {
+    this.form.update(this.path, state, { notify, validate })
   }
   toState() {
     return _.pick(this, [
       'init', 'value', 'error', 'notice',
       'isFocused', 'isVisited', 'isTouched'
     ])
+  }
+  toProp() {
+    const name = this.path.pop()
+    const state = this.toState()
+    const { form, update } = this
+    const isValid = !state.error
+    const isInvalid = !isValid
+    const isPristine = _.deepEqual(state.init, state.value)
+    const isDirty = !isPristine
+    return _.assign(state, {
+      form, name, update, isValid, isInvalid, isDirty, isPristine
+    })
   }
 }
 

@@ -10,30 +10,12 @@ export class FieldSet extends SuperControl.View {
   modelField(...args) {
     return modelFieldSet(...args)
   }
-  getFieldsProp(model) {
-    const name = this.props.name
-    const state = this.model.toState()
-    const extra = _.pick(model, ['form', 'isTouched'])
-    const isDirty = !_.deepEqual(state.init, state.value)
-    const isPristine = !isDirty
-    const isValid = !state.error
-    const isInvalid = !isValid
-    return {
-      ...state,
-      ...extra,
-      name,
-      isDirty,
-      isValid,
-      isInvalid,
-      isPristine
-    }
-  }
   render() {
     const { init, notify, validate, component, ...props } = this.props
     if (_.isString(component)) return createElement(component, props)
     return createElement(component, {
       ...props,
-      fields: this.model
+      fields: this.model.toProp()
     })
   }
   static get propTypes() {
@@ -72,6 +54,18 @@ export class FieldSetModel extends SuperControl.Model {
       'init', 'value', 'touched', 'error', 'notice', 'visited'
     ])
   }
+  toProp() {
+    const name = this.path.pop()
+    const state = this.toState()
+    const { form, isTouched } = this
+    const isValid = !state.error
+    const isInvalid = !isValid
+    const isDirty = !_.deepEqual(state.init, state.value)
+    const isPristine = !isDirty
+    return _.assign(state, {
+      form, name, isValid, isInvalid, isDirty, isPristine, isTouched
+    })
+  }
   register(field, [ key, ...path ]) {
     this.fields = path.length
       ? _.set(this.fields, [key], this.fields[key].register(field, path))
@@ -85,17 +79,14 @@ export class FieldSetModel extends SuperControl.Model {
     )
   }
   checkAll(value, values, method) {
-    return _.assign(
-      { [this.id]: this[`_${method}`](value, values) || null },
-      _.keys(this.fields)
-        .reduce((checked, key) => {
-          const { check, checkAll } = this.fields[key]
-          return _.assign(
-            checked,
-            (checkAll || check)(values[key], values, method)
-          )
-        }, {})
-    )
+    return _.keys(this.fields)
+      .reduce((checked, key) => {
+        const { check, checkAll } = this.fields[key]
+        return _.assign(
+          checked,
+          (checkAll || check)(values[key], values, method)
+        )
+      }, { [this.id]: this[`_${method}`](value, values) || null })
   }
 }
 
