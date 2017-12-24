@@ -1,6 +1,7 @@
+import React from 'react'
 import { describe, beforeEach, it } from 'mocha'
-import { expect, stub, toRoute } from './__test__'
-import * as Field from './field'
+import { expect, stub, mountWith } from './__test__'
+import * as Form from './form'
 import * as FieldArray from './field-array'
 
 describe('FieldArray.Model', () => {
@@ -8,281 +9,230 @@ describe('FieldArray.Model', () => {
   let form
 
   beforeEach(() => {
-    form = { update: stub(), state: {} }
+    form = { patch: stub(), state: {} }
   })
 
   describe('state', () => {
 
-    it('returns the state of the fieldArray', () => {
-      const { state } = FieldArray.Model.create(form)
+    it('returns the state of the FieldArray', () => {
+      const { state } = FieldArray.Model.create()
       expect(state).to.deep.equal({
         visits: 0,
         touched: [],
         visited: [],
+        init: null,
+        value: null,
         error: null,
-        notice: null,
-        init: void 0,
-        value: void 0
+        notice: null
       })
     })
 
   })
 
-  describe('register', () => {
+  describe('at', () => {
 
-    it('registers a child field', () => {
-      const fieldArray = FieldArray.Model.create(form, [])
-      const field = Field.Model.create(form, '', toRoute('0'))
-      fieldArray.register(field.names, field)
-      expect(fieldArray.fields[0]).to.equal(field)
-    })
-
-    it('registers a child fieldArray', () => {
-      const parent = FieldArray.Model.create(form, {})
-      const child = FieldArray.Model.create(form, {}, toRoute('0'))
-      parent.register(child.names, child)
-      expect(parent.fields[0]).to.equal(child)
-    })
-
-    it('registers a grandchild field', () => {
-      const parent = FieldArray.Model.create(form, {})
-      const child = FieldArray.Model.create(form, {}, toRoute('0'))
-      const grandchild = Field.Model.create(form, {}, toRoute('0.0'))
-      parent
-        .register(child.names, child)
-        .register(grandchild.names, grandchild)
-      expect(parent.fields[0].fields[0]).to.equal(grandchild)
+    it('returns the value in the FieldArray at the given index', () => {
+      const model = FieldArray.Model.create(null, ['foo'])
+      expect(model.at(0)).to.equal('foo')
     })
 
   })
 
-  describe('unregister', () => {
+  describe('values', () => {
 
-    it('unregisters a child field', () => {
-      const fieldArray = FieldArray.Model.create(form, {})
-      const field = Field.Model.create(form, '', toRoute('0'))
-      form.update.callsFake((...args) => fieldArray.update(...args))
-      fieldArray.register(field.names, field)
-      expect(fieldArray.fields[0]).to.equal(field)
-      fieldArray.unregister(field.names)
-      expect(fieldArray.fields[0]).to.equal(void 0)
+    it('all values in the fieldArray', () => {
+      const model = FieldArray.Model.create(null, ['foo', 'bar'])
+      expect(model.values).to.deep.equal(['foo', 'bar'])
     })
 
   })
 
-  describe('update', () => {
+  describe('length', () => {
 
-    it('updates its state with a child\'s state', () => {
-      const fieldArray = FieldArray.Model.create(form, [])
-      const field = Field.Model.create(form, 'foo', toRoute('0'))
-      form.update.callsFake((...args) => fieldArray.update(...args))
-      fieldArray.register(field.names, field)
-      expect(fieldArray.state).to.deep.equal({
-        visits: 0,
-        error: null,
-        notice: null,
-        init: ['foo'],
-        value: ['foo'],
-        touched: [false],
-        visited: [false]
-      })
+    it('the length of the fieldArray values', () => {
+      const model = FieldArray.Model.create(null, ['foo', 'bar'])
+      expect(model.length).to.equal(2)
     })
 
-    it('tracks visits of child fields', () => {
-      const fieldArray = FieldArray.Model.create(form, {})
-      const field = Field.Model.create(form, '', toRoute('0'))
-      form.update.callsFake((...args) => fieldArray.update(...args))
-      fieldArray.register(field.names, field)
-      field.prop.update({ isFocused: true })
-      expect(fieldArray.state).to.include({
-        visits: 1
+  })
+
+  describe('insert', () => {
+
+    it('inserts a value into the fieldArray at the given index', () => {
+      const model = FieldArray.Model.create(null, ['foo', 'baz'])
+      model.root = model
+      model.insert(1, 'bar')
+      expect(model.state).to.deep.include({
+        init: ['foo', 'bar', 'baz'],
+        value: ['foo', 'bar', 'baz'],
+        touched: [void 0, void 0],
+        visited: [void 0, void 0]
       })
     })
 
   })
 
-  describe('prop', () => {
+  describe('push', () => {
 
-    describe('anyTouched', () => {
-
-      it('true if any of the fieldSet\'s child fields are touched', () => {
-        const parent = FieldArray.Model.create(form, {})
-        const child = FieldArray.Model.create(form, {}, toRoute('0'))
-        const grandchild = Field.Model.create(form, {}, toRoute('0.0'))
-        form.update.callsFake((...args) => parent.update(...args))
-        parent
-          .register(child.names, child)
-          .register(grandchild.names, grandchild)
-        expect(parent.prop).to.include({ anyTouched: false })
-        parent.update(grandchild.names, { isTouched: true })
-        expect(parent.prop).to.include({ anyTouched: true })
+    it('appends a value to the fieldArray', () => {
+      const model = FieldArray.Model.create(null, ['foo', 'bar'])
+      model.root = model
+      model.push('baz')
+      expect(model.state).to.deep.include({
+        init: ['foo', 'bar', 'baz'],
+        value: ['foo', 'bar', 'baz'],
+        touched: [void 0, void 0, void 0],
+        visited: [void 0, void 0, void 0]
       })
-
     })
 
-    describe('at', () => {
+  })
 
-      it('returns the value in the fieldArray at the given index', () => {
-        const { prop } = FieldArray.Model.create(form, ['foo'])
-        expect(prop.at(0)).to.equal('foo')
+  describe('unshift', () => {
+
+    it('prepends a value to the fieldArray', () => {
+      const model = FieldArray.Model.create(null, ['bar', 'baz'])
+      model.root = model
+      model.unshift('foo')
+      expect(model.state).to.deep.include({
+        init: ['foo', 'bar', 'baz'],
+        value: ['foo', 'bar', 'baz'],
+        touched: [void 0],
+        visited: [void 0]
       })
-
     })
 
-    describe('values', () => {
+  })
 
-      it('all values in the fieldArray', () => {
-        const { prop } = FieldArray.Model.create(form, ['foo', 'bar'])
-        expect(prop.values).to.deep.equal(['foo', 'bar'])
+  describe('remove', () => {
+
+    it('removes a value from the fieldArray at the given index', () => {
+      const model = FieldArray.Model.create(form, ['foo', 'bar', 'baz'])
+      model.root = model
+      model.remove(1)
+      expect(model.state).to.deep.include({
+        init: ['foo', 'baz'],
+        value: ['foo', 'baz']
       })
-
     })
 
-    describe('length', () => {
+  })
 
-      it('the length of the fieldArray values', () => {
-        const { prop } = FieldArray.Model.create(form, ['foo', 'bar'])
-        expect(prop.length).to.deep.equal(2)
+  describe('pop', () => {
+
+    it('removes a value from the end of the fieldArray', () => {
+      const model = FieldArray.Model.create(form, ['foo', 'bar', 'baz'])
+      model.root = model
+      model.pop()
+      expect(model.state).to.deep.include({
+        init: ['foo', 'bar'],
+        value: ['foo', 'bar'],
+        touched: [],
+        visited: []
       })
-
     })
 
-    describe('forEach', () => {
+  })
 
-      it('iterates over the values in the fieldArray', () => {
-        const values = ['foo', 'bar']
-        const { prop } = FieldArray.Model.create(form, values)
-        prop.forEach((value, index, array) => {
-          expect(value).to.equal(values[index])
-          expect(array).to.equal(prop)
-        })
+  describe('unshift', () => {
+
+    it('removes a value from the front of the fieldArray', () => {
+      const model = FieldArray.Model.create(form, ['foo', 'bar', 'baz'])
+      model.root = model
+      model.shift()
+      expect(model.state).to.deep.include({
+        init: ['bar', 'baz'],
+        value: ['bar', 'baz'],
+        touched: [],
+        visited: []
       })
-
     })
 
-    describe('map', () => {
+  })
 
-      it('applies a transform to the values in the fieldArray', () => {
-        const values = ['foo', 'bar']
-        const { prop } = FieldArray.Model.create(form, values)
-        const mapped = prop.map((value, index, array) => {
-          expect(value).to.equal(values[index])
-          expect(array).to.equal(prop)
-          return value.toUpperCase()
-        })
-        expect(mapped).to.deep.equal(['FOO', 'BAR'])
+  describe('clear', () => {
+
+    it('removes all values from the fieldArray', () => {
+      const model = FieldArray.Model.create(form, ['foo', 'bar', 'baz'])
+      model.root = model
+      model.clear()
+      expect(model.state).to.deep.include({
+        init: [],
+        value: [],
+        touched: [],
+        visited: []
       })
-
     })
 
-    describe('insert', () => {
+  })
 
-      it('inserts a value into the fieldArray at the given index', () => {
-        const array = FieldArray.Model.create(form, ['foo', 'baz'])
-        form.update.callsFake((...args) => array.update(...args))
-        array.prop.insert(1, 'bar')
-        expect(array.state).to.deep.include({
-          init: ['foo', 'bar', 'baz'],
-          value: ['foo', 'bar', 'baz'],
-          touched: [void 0, void 0],
-          visited: [void 0, void 0]
-        })
+  describe('forEach', () => {
+
+    it('iterates over the values in the fieldArray', () => {
+      const values = ['foo', 'bar']
+      const model = FieldArray.Model.create(null, values)
+      model.forEach((value, index, array) => {
+        expect(value).to.equal(values[index])
+        expect(array).to.equal(model)
       })
-
     })
 
-    describe('push', () => {
+  })
 
-      it('appends a value to the fieldArray', () => {
-        const array = FieldArray.Model.create(form, ['foo', 'bar'])
-        form.update.callsFake((...args) => array.update(...args))
-        array.prop.push('baz')
-        expect(array.state).to.deep.include({
-          init: ['foo', 'bar', 'baz'],
-          value: ['foo', 'bar', 'baz'],
-          touched: [void 0, void 0, void 0],
-          visited: [void 0, void 0, void 0]
-        })
+  describe('map', () => {
+
+    it('applies a transform to the values in the fieldArray', () => {
+      const values = ['foo', 'bar']
+      const model = FieldArray.Model.create(null, values)
+      const mapped = model.map((value, index, array) => {
+        expect(value).to.equal(values[index])
+        expect(array).to.equal(model)
+        return value.toUpperCase()
       })
-
+      expect(mapped).to.deep.equal(['FOO', 'BAR'])
     })
 
-    describe('unshift', () => {
+  })
 
-      it('prepends a value to the fieldArray', () => {
-        const array = FieldArray.Model.create(form, ['bar', 'baz'])
-        form.update.callsFake((...args) => array.update(...args))
-        array.prop.unshift('foo')
-        expect(array.state).to.deep.include({
-          init: ['foo', 'bar', 'baz'],
-          value: ['foo', 'bar', 'baz'],
-          touched: [void 0],
-          visited: [void 0]
-        })
-      })
+})
 
-    })
+describe('FieldArray.View', () => {
 
-    describe('remove', () => {
+  let mount
 
-      it('removes a value from the fieldArray at the given index', () => {
-        const array = FieldArray.Model.create(form, ['foo', 'bar', 'baz'])
-        form.update.callsFake((...args) => array.update(...args))
-        array.prop.remove(1)
-        expect(array.state).to.deep.include({
-          init: ['foo', 'baz'],
-          value: ['foo', 'baz']
-        })
-      })
+  beforeEach(() => {
+    const form = Form.Model.create('test', {})
+    mount = mountWith({ context: { '@@super-controls': form } })
+  })
 
-    })
+  describe('render', () => {
 
-    describe('pop', () => {
-
-      it('removes a value from the end of the fieldArray', () => {
-        const array = FieldArray.Model.create(form, ['foo', 'bar', 'baz'])
-        form.update.callsFake((...args) => array.update(...args))
-        array.prop.pop()
-        expect(array.state).to.deep.include({
+    it('calls a render prop with a model prop', done => {
+      const test = ({ fields }) => {
+        expect(fields).to.deep.include({
+          name: 'test',
+          path: 'test',
           init: ['foo', 'bar'],
-          value: ['foo', 'bar'],
-          touched: [],
-          visited: []
+          values: ['foo', 'bar'],
+          length: 2,
+          error: null,
+          notice: null,
+          anyTouched: false
         })
-      })
-
-    })
-
-    describe('unshift', () => {
-
-      it('removes a value from the front of the fieldArray', () => {
-        const array = FieldArray.Model.create(form, ['foo', 'bar', 'baz'])
-        form.update.callsFake((...args) => array.update(...args))
-        array.prop.shift()
-        expect(array.state).to.deep.include({
-          init: ['bar', 'baz'],
-          value: ['bar', 'baz'],
-          touched: [],
-          visited: []
-        })
-      })
-
-    })
-
-    describe('clear', () => {
-
-      it('removes all values from the fieldArray', () => {
-        const array = FieldArray.Model.create(form, ['foo', 'bar', 'baz'])
-        form.update.callsFake((...args) => array.update(...args))
-        array.prop.clear()
-        expect(array.state).to.deep.include({
-          init: [],
-          value: [],
-          touched: [],
-          visited: []
-        })
-      })
-
+        expect(fields.at).to.be.a('function')
+        expect(fields.insert).to.be.a('function')
+        expect(fields.push).to.be.a('function')
+        expect(fields.unshift).to.be.a('function')
+        expect(fields.remove).to.be.a('function')
+        expect(fields.pop).to.be.a('function')
+        expect(fields.shift).to.be.a('function')
+        expect(fields.clear).to.be.a('function')
+        expect(fields.map).to.be.a('function')
+        expect(fields.forEach).to.be.a('function')
+        done()
+        return null
+      }
+      mount(<FieldArray.View name='test' init={['foo', 'bar']} render={test}/>)
     })
 
   })

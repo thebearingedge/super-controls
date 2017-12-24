@@ -1,23 +1,19 @@
+import { PureComponent, createElement } from 'react'
+import PropTypes from 'prop-types'
 import * as _ from './util'
 
-export class Model {
-  constructor(form, init, route = [], { notify, validate, override } = {}) {
-    this.state = {
-      init: init,
-      value: init,
-      error: null,
-      notice: null
-    }
-    this.form = form
-    this.route = route
-    this.subscribers = []
-    this.notify = notify || _.noop
-    this.override = override || _.id
-    this.validate = validate || _.noop
+export const Model = class SuperControlModel {
+  constructor(root, init, route, config) {
+    _.assign(this, config, {
+      root,
+      route,
+      subscribers: [],
+      touch: this.touch.bind(this),
+      state: { init: init, value: init, error: null, notice: null }
+    })
   }
   get name() {
-    return (this.route.length || null) &&
-           this.route[this.route.length - 1]()
+    return this.route[this.route.length - 1]()
   }
   get names() {
     return this.route.map(_.invoke)
@@ -25,38 +21,137 @@ export class Model {
   get path() {
     return _.toPath(this.names)
   }
-  get prop() {
-    const isPristine = _.deepEqual(this.state.value, this.state.init)
-    const isDirty = !isPristine
-    const isValid = !this.state.error
-    const isInvalid = !isValid
-    const hasError = isInvalid
-    const hasNotice = !!this.state.notice
-    return _.assign({}, this.state, _.pick(this, ['name', 'path']), {
-      isPristine, isDirty, isValid, isInvalid, hasError, hasNotice
-    })
-  }
   subscribe(subscriber) {
     const index = this.subscribers.push(subscriber)
     subscriber(this.state)
     return _ => {
-      this.subscribers.splice(index - 1)
-      this.subscribers.length || this.form.unregister(this.names)
+      this.subscribers.splice(index - 1, 1)
+      this.subscribers.length || this.root.unregister(this.names)
     }
   }
   publish() {
     this.subscribers.forEach(subscriber => subscriber(this.state))
     return this
   }
-  setState(nextState, { notify = true, validate = true } = {}) {
+  patch(state, { notify = true, validate = true } = {}) {
+    const nextState = _.assign({}, this.state, state)
     const { value } = nextState
-    const { values } = this.form
+    const { values } = this.root
     if (notify) nextState.notice = this.notify(value, values) || null
     if (validate) nextState.error = this.validate(value, values) || null
+    return this.setState(nextState)
+  }
+  setState(nextState) {
     this.state = nextState
     return this.publish()
   }
+  touch() {
+    this.root.patch(this.names, { isTouched: true })
+  }
   static get create() {
-    return (...args) => new this(...args)
+    return (root, init = null, route = [], config = {}) =>
+      new this(root, init, route, _.defaults({}, config, {
+        override: _.id,
+        notify: _.toNull,
+        validate: _.toNull
+      }))
+  }
+}
+
+export class View extends PureComponent {
+  get Model() {
+    return Model
+  }
+  get prop() {
+    const { model, state } = this
+    const isValid = !state.error
+    const isInvalid = !isValid
+    const hasError = isInvalid
+    const hasNotice = !!state.notice
+    return _.assign({}, state, _.pick(model, ['name', 'path']), {
+      isValid, isInvalid, hasError, hasNotice
+    })
+  }
+  get init() {
+    return this.props.init
+  }
+  get config() {
+    return _.pick(this.props, ['notify', 'validate'])
+  }
+  componentWillMount() {
+    this.model = this.context['@@super-controls'].register({
+      init: this.init,
+      Model: this.Model,
+      config: this.config,
+      route: [_ => this.props.name]
+    })
+    this.unsubscribe = this.model.subscribe(state => this.setState(state))
+  }
+  componentWillUnmount() {
+    this.unsubscribe()
+  }
+  render(props = {}) {
+    const { render, component, children } = this.props
+    if (_.isFunction(render)) {
+      return render({
+        ..._.omit(this.props, ['render']),
+        ...props
+      })
+    }
+    if (_.isFunction(children)) {
+      return children({
+        ..._.omit(this.props, ['children']),
+        ...props
+      })
+    }
+    if (_.isString(component)) {
+      return createElement(component, {
+        ..._.omit(this.props, [
+          'init', 'render', 'component',
+          'parse', 'format', 'override',
+          'notify', 'validate', 'name'
+        ]),
+        ...props
+      })
+    }
+    return createElement(component, {
+      ..._.omit(this.props, ['component']),
+      ...props
+    })
+  }
+  static get displayName() {
+    return 'SuperControl'
+  }
+  static get contextTypes() {
+    return {
+      '@@super-controls': PropTypes.shape({
+        register: PropTypes.func.isRequired
+      })
+    }
+  }
+  static get propTypes() {
+    return {
+      init: PropTypes.any,
+      render: PropTypes.func,
+      notify: PropTypes.func,
+      validate: PropTypes.func,
+      name: PropTypes.oneOfType([
+        PropTypes.string, PropTypes.number
+      ]).isRequired,
+      children: PropTypes.oneOfType([
+        PropTypes.array, PropTypes.func
+      ]),
+      component: PropTypes.oneOfType([
+        PropTypes.string, PropTypes.func
+      ])
+    }
+  }
+  static get defaultProps() {
+    return {
+      init: null,
+      notify: _.noop,
+      validate: _.noop,
+      component: _.toNull
+    }
   }
 }

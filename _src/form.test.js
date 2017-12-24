@@ -11,7 +11,12 @@ describe('Form.Model', () => {
 
     it('registers child fields', () => {
       const form = Form.Model.create('test', {})
-      const field = form.register('', toRoute('foo'), Field.Model.create)
+      const field = form.register({
+        init: '',
+        route: toRoute('foo'),
+        Model: Field.Model
+      })
+      expect(field).to.be.an.instanceOf(Field.Model)
       expect(form.fields.foo).to.equal(field)
       expect(form.state).to.deep.equal({
         visits: 0,
@@ -26,17 +31,39 @@ describe('Form.Model', () => {
 
     it('does not register a field more than once', () => {
       const form = Form.Model.create('test', {})
-      const first = form.register('', toRoute('foo'), Field.Model.create)
-      const second = form.register('', toRoute('foo'), Field.Model.create)
+      const first = form.register({
+        init: '',
+        route: toRoute('foo'),
+        Model: Field.Model
+      })
+      const second = form.register({
+        init: '',
+        route: toRoute('foo'),
+        Model: Field.Model
+      })
+      expect(first).to.be.an.instanceOf(Field.Model)
+      expect(first).to.equal(second)
       expect(form.fields.foo).to.equal(first)
       expect(form.fields.foo).to.equal(second)
     })
 
     it('overrides initial values of child fields', () => {
       const form = Form.Model.create('test', { foo: [{ bar: 'baz' }] })
-      const array = form.register([], toRoute('foo'), FieldArray.Model.create)
-      const set = form.register({}, toRoute('foo.0'), FieldSet.Model.create)
-      const field = form.register('', toRoute('foo.0.bar'), Field.Model.create)
+      const array = form.register({
+        init: [],
+        route: toRoute('foo'),
+        Model: FieldArray.Model
+      })
+      const set = form.register({
+        init: {},
+        route: toRoute('foo[0]'),
+        Model: FieldSet.Model
+      })
+      const field = form.register({
+        init: '',
+        route: toRoute('foo[0].bar'),
+        Model: Field.Model
+      })
       expect(array.state.value).to.deep.equal([{ bar: 'baz' }])
       expect(set.state.value).to.deep.equal({ bar: 'baz' })
       expect(field.state.value).to.equal('baz')
@@ -44,61 +71,11 @@ describe('Form.Model', () => {
 
   })
 
+})
+
+describe.skip('Form.View', () => {
+
   describe('prop', () => {
-
-    let form
-    let prop
-
-    beforeEach(() => {
-      form = Form.Model.create('test', {})
-      form.register([], toRoute('foo'), FieldArray.Model.create)
-      form.register({}, toRoute('foo.0'), FieldSet.Model.create)
-      form.register('', toRoute('foo.0.bar'), Field.Model.create)
-      prop = form.prop
-    })
-
-    describe('change', () => {
-
-      it('sets the value of the given field', () => {
-        expect(form.state).to.deep.include({
-          value: { foo: [{ bar: '' }] }
-        })
-        prop.change('foo[0].bar', 'qux')
-        expect(form.state).to.deep.include({
-          value: { foo: [{ bar: 'qux' }] }
-        })
-      })
-
-    })
-
-    describe('touch', () => {
-
-      it('marks the given field as touched', () => {
-        expect(form.state).to.deep.include({
-          touched: { foo: [{ bar: false }] }
-        })
-        prop.touch('foo[0].bar')
-        expect(form.state).to.deep.include({
-          touched: { foo: [{ bar: true }] }
-        })
-      })
-
-    })
-
-    describe('untouch', () => {
-
-      it('unmarks the given field as touched', () => {
-        prop.touch('foo[0].bar')
-        expect(form.state).to.deep.include({
-          touched: { foo: [{ bar: true }] }
-        })
-        prop.untouch('foo[0].bar')
-        expect(form.state).to.deep.include({
-          touched: { foo: [{ bar: false }] }
-        })
-      })
-
-    })
 
   })
 

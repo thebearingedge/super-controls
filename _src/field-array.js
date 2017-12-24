@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import * as FieldSet from './field-set'
 import * as _ from './util'
 
@@ -19,26 +20,11 @@ export class Model extends FieldSet.Model {
   get length() {
     return this.state.value.length
   }
-  get prop() {
-    const array = _.pick(this, [
-      'at', 'length',
-      'insert', 'push', 'unshift',
-      'remove', 'pop', 'shift', 'clear'
-    ])
-    return _.assign(super.prop, array, {
-      forEach: function (iteratee) {
-        this.values.forEach((value, index) => iteratee(value, index, this))
-      },
-      map: function (transform) {
-        return this.values.map((value, index) => transform(value, index, this))
-      }
-    })
-  }
   at(index) {
     return this.state.value[index]
   }
   insert(index, value) {
-    this.form.update(this.names, {
+    this.root.patch(this.names, {
       init: _.sliceIn(this.state.value, index, value),
       value: _.sliceIn(this.state.value, index, value),
       touched: _.sliceIn(this.state.touched, index),
@@ -52,15 +38,15 @@ export class Model extends FieldSet.Model {
     this.insert(0, value)
   }
   remove(index) {
-    this.form.update(this.names, {
-      init: _.sliceOut(this.state.value, index),
-      value: _.sliceOut(this.state.value, index),
-      touched: _.sliceOut(this.state.touched, index),
-      visited: _.sliceOut(this.state.visited, index)
+    this.root.patch(this.names, {
+      init: _.remove(this.state.value, index),
+      value: _.remove(this.state.value, index),
+      touched: _.remove(this.state.touched, index),
+      visited: _.remove(this.state.visited, index)
     })
   }
   clear() {
-    this.form.update(this.names, {
+    this.root.patch(this.names, {
       init: [],
       value: [],
       touched: [],
@@ -72,5 +58,41 @@ export class Model extends FieldSet.Model {
   }
   shift() {
     this.remove(0)
+  }
+  forEach(iteratee) {
+    this.values.forEach((value, index) => iteratee(value, index, this))
+  }
+  map(transform) {
+    return this.values.map((value, index) => transform(value, index, this))
+  }
+}
+
+export class View extends FieldSet.View {
+  get Model() {
+    return Model
+  }
+  get prop() {
+    return _.assign(super.prop, _.pick(this.model, [
+      'length', 'at', 'insert', 'push', 'unshift',
+      'remove', 'pop', 'shift', 'clear', 'forEach', 'map'
+    ]))
+  }
+  render() {
+    return super.render({ fields: this.prop })
+  }
+  static get displayName() {
+    return 'FieldArray'
+  }
+  static get propTypes() {
+    return {
+      ...super.propTypes,
+      init: PropTypes.array.isRequired
+    }
+  }
+  static get defaultProps() {
+    return {
+      ...super.defaultProps,
+      init: []
+    }
   }
 }

@@ -1,20 +1,25 @@
 export const id = _ => _
 
-export const noop = _ => void 0
+export const noop = _ => {}
+
+export const wrap = (value, wrapper = id) =>
+  (...args) => wrapper(value, ...args)
+
+export const toNull = _ => null
 
 export const invoke = fn => fn()
 
-export const isUndefined = val => val === void 0
+export const isUndefined = value => value === void 0
 
-export const isString = val => typeof val === 'string'
+export const isString = value => typeof value === 'string'
 
-export const isBoolean = val => typeof val === 'boolean'
+export const isBoolean = value => typeof value === 'boolean'
+
+export const isFunction = value => typeof value === 'function'
 
 export const { isArray } = Array
 
 export const isObject = value => ({}).toString.call(value) === '[object Object]'
-
-export const isReference = val => isArray(val) || isObject(val)
 
 export const { keys } = Object
 
@@ -25,10 +30,9 @@ export const omit = (source, props) =>
       : assign(omitted, { [key]: source[key] })
   }, {})
 
-export const pick = (source, props) =>
-  props.reduce((picked, prop) => assign(
-    picked,
-    { [prop]: source[prop] }
+export const pick = (source, keys) =>
+  keys.reduce((picked, prop) => assign(
+    picked, { [prop]: source[prop] }
   ), {})
 
 export const pickBy = (source, predicate) =>
@@ -40,20 +44,19 @@ export const pickBy = (source, predicate) =>
 
 export const defaults = (target, ...sources) =>
   sources.reduce((defaulted, source) => assign(
-    defaulted,
-    pickBy(source, (_, key) => !(key in defaulted))
+    defaulted, pickBy(source, (_, key) => !(key in defaulted))
   ), target)
 
 export const toPath = names =>
   names
     .map(name => +name === parseInt(name, 10) ? `[${name}]` : name)
     .join('.')
-    .replace(/\.\[/g, '[') || ''
+    .replace(/\.\[/g, '[')
 
 export const fromPath = path =>
   path
     .split('.')
-    .map(segment => segment.split('['))
+    .map(name => name.split('['))
     .reduce((flattened, names) => flattened.concat(names.map(name =>
       /\d\]/.test(name) ? +name.replace(']', '') : name
     )), [])
@@ -78,51 +81,46 @@ export const sliceOver = ([ ...sliced ], index, value) => {
 
 export const exists = (target, key) => !isUndefined(target[key])
 
-export const replace = (target, key, val) =>
+export const replace = (target, key, value) =>
   isArray(target)
-    ? sliceOver(target, key, val)
-    : assign(target, { [key]: val })
+    ? sliceOver(target, key, value)
+    : assign(target, { [key]: value })
 
 export const remove = (target, key) =>
   isArray(target)
     ? sliceOut(target, key)
     : omit(target, [key])
 
-export const get = (source, [key, ...path], fallback) => {
+export const get = (source, [ key, ...path ], fallback) => {
   if (!exists(source, key)) return fallback
   if (!path.length) return source[key]
   return get(source[key], path, fallback)
 }
 
-export const set = (target, [key, index, ...path], value) => {
-  if (isUndefined(index)) return replace(target, key, value)
-  return replace(target, key, set(target[key], [index, ...path], value))
+export const set = (target, [ first, next, ...rest ], value) => {
+  if (isUndefined(next)) return replace(target, first, value)
+  return replace(target, first, set(target[first], [next, ...rest], value))
 }
 
-export const unset = (target, [key, ...path]) => {
+export const unset = (target, [ key, ...path ]) => {
   if (!exists(target, key)) return target
   if (!path.length) return remove(target, key)
   return replace(target, key, unset(target[key], path))
 }
+
+export const isReference = value => isArray(value) || isObject(value)
 
 export const someValues = (source, predicate) =>
   isReference(source)
     ? !!keys(source).find(key => someValues(source[key], predicate))
     : !!predicate(source)
 
-export const equals = (a, b, compare) => {
-  if (a === b) return true
+export const shallowEqual = (a, b) => {
   if (isReference(a) && isReference(b)) {
     const aKeys = keys(a)
     const bKeys = keys(b)
     return aKeys.length === bKeys.length &&
-           aKeys.every(key => compare(a[key], b[key]))
+           aKeys.every(key => a[key] === b[key])
   }
-  return false
+  return a === b
 }
-
-export const strictEqual = (a, b) => a === b
-
-export const shallowEqual = (a, b) => equals(a, b, strictEqual)
-
-export const deepEqual = (a, b) => shallowEqual(a, b) || equals(a, b, deepEqual)
