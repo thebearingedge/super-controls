@@ -133,10 +133,7 @@ export class View extends SuperControl.View {
       multiple: PropTypes.bool,
       parse: PropTypes.func.isRequired,
       format: PropTypes.func.isRequired,
-      override: PropTypes.func.isRequired,
-      id: PropTypes.oneOfType([
-        PropTypes.number, PropTypes.string, PropTypes.bool
-      ])
+      override: PropTypes.func.isRequired
     }
   }
   static get defaultProps() {
