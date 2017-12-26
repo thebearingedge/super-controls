@@ -1,6 +1,6 @@
 import React from 'react'
 import { describe, beforeEach, it } from 'mocha'
-import { expect, stub, toRoute, mountWith } from './__test__'
+import { expect, toRoute, mountWith } from './__test__'
 import * as Form from './form'
 import * as Field from './field'
 import * as FieldSet from './field-set'
@@ -12,13 +12,14 @@ describe('FieldSet.Model', () => {
   describe('state', () => {
 
     it('is the state of the model', () => {
-      const { state } = FieldSet.Model.create()
-      expect(state).to.deep.equal({
+      const model = FieldSet.Model.create()
+      expect(model.state).to.deep.equal({
+        init: {},
+        value: {},
+        blurs: 0,
         visits: 0,
         touched: {},
         visited: {},
-        init: null,
-        value: null,
         error: null,
         notice: null
       })
@@ -28,7 +29,7 @@ describe('FieldSet.Model', () => {
 
   describe('register', () => {
 
-    it('registers a child Field', () => {
+    it('registers a child field', () => {
       const fieldSet = FieldSet.Model.create(null, {})
       const field = Field.Model.create(fieldSet, '', toRoute('foo'))
       fieldSet.register(['foo'], field)
@@ -36,18 +37,16 @@ describe('FieldSet.Model', () => {
       expect(fieldSet.fields.foo).to.be.an.instanceOf(Field.Model)
     })
 
-    it('registers a child FieldSet', () => {
+    it('registers a child fieldSet', () => {
       const parent = FieldSet.Model.create(null, {})
-      parent.root = parent
       const child = FieldSet.Model.create(parent, {}, toRoute('foo'))
       parent.register(['foo'], child)
       expect(parent.fields.foo).to.equal(child)
       expect(parent.fields.foo).to.be.an.instanceOf(FieldSet.Model)
     })
 
-    it('registers a grandchild Field', () => {
+    it('registers a grandchild field', () => {
       const parent = FieldSet.Model.create(null, {})
-      parent.root = parent
       const child = FieldSet.Model.create(parent, {}, toRoute('foo'))
       const grandchild = Field.Model.create(parent, {}, toRoute('foo.bar'))
       parent
@@ -61,7 +60,7 @@ describe('FieldSet.Model', () => {
 
   describe('patch', () => {
 
-    it('updates its own state', () => {
+    it('patches its own state', () => {
       const fieldSet = FieldSet.Model.create(null, {})
       fieldSet.patch([], { value: { foo: 'bar' } })
       expect(fieldSet.state).to.deep.include({
@@ -69,11 +68,12 @@ describe('FieldSet.Model', () => {
       })
     })
 
-    it('updates the state of descendant fields', () => {
+    it('patches the state of descendant fields', () => {
       const fieldSet = FieldSet.Model.create(null, {})
       const field = Field.Model.create(null, '', toRoute('foo'))
-      fieldSet.register(['foo'], field)
-      fieldSet.patch(['foo'], { value: 'bar' })
+      fieldSet
+        .register(['foo'], field)
+        .patch(['foo'], { value: 'bar' })
       expect(fieldSet.state).to.deep.include({
         value: { foo: 'bar' }
       })
@@ -87,21 +87,24 @@ describe('FieldSet.Model', () => {
       const field = Field.Model.create(fieldSet, '', toRoute('foo'))
       fieldSet
         .register(['foo'], field)
-        .patch(['foo'], { isFocused: field })
+        .patch(['foo'], { isVisited: true })
       expect(fieldSet.state).to.include({ visits: 1 })
+    })
+
+    it('tracks the blurs of descendant fields', () => {
+      const fieldSet = FieldSet.Model.create(null, {})
+      const field = Field.Model.create(fieldSet, '', toRoute('foo'))
+      fieldSet
+        .register(['foo'], field)
+        .patch(['foo'], { isTouched: true })
+      expect(fieldSet.state).to.include({ blurs: 1 })
     })
 
   })
 
   describe('getField', () => {
 
-    let form
-
-    beforeEach(() => {
-      form = { patch: stub(), state: {} }
-    })
-
-    it('returns a registered child Field', () => {
+    it('returns a registered child field', () => {
       const fieldSet = FieldSet.Model.create(null, {})
       fieldSet.root = fieldSet
       const field = Field.Model.create(fieldSet, '', toRoute('foo'))
@@ -109,22 +112,21 @@ describe('FieldSet.Model', () => {
       expect(fieldSet.getField(['foo'])).to.equal(field)
     })
 
-    it('returns a registered granchild Field', () => {
-      const parent = FieldSet.Model.create(form, {})
-      const child = FieldSet.Model.create(form, {}, toRoute('foo'))
-      const grandchild = Field.Model.create(form, {}, toRoute('foo.bar'))
+    it('returns a registered granchild field', () => {
+      const parent = FieldSet.Model.create(null, {})
+      const child = FieldSet.Model.create(parent, {}, toRoute('foo'))
+      const grandchild = Field.Model.create(parent, {}, toRoute('foo.bar'))
       parent
         .register(child.names, child)
         .register(grandchild.names, grandchild)
       expect(parent.getField(grandchild.names)).to.equal(grandchild)
     })
 
-    it('returns null if a Field is not registered', () => {
-      const parent = FieldSet.Model.create(form, {})
-      const child = FieldSet.Model.create(form, {}, toRoute('foo'))
-      const grandchild = Field.Model.create(form, {}, toRoute('foo.bar'))
-      parent
-        .register(child.names, child)
+    it('returns null if a field is not registered', () => {
+      const parent = FieldSet.Model.create(null, {})
+      const child = FieldSet.Model.create(parent, {}, toRoute('foo'))
+      const grandchild = Field.Model.create(parent, {}, toRoute('foo.bar'))
+      parent.register(child.names, child)
       expect(parent.getField(grandchild.names)).to.equal(null)
     })
 
@@ -132,7 +134,7 @@ describe('FieldSet.Model', () => {
 
   describe('unregister', () => {
 
-    it('unregisters a child Field', () => {
+    it('unregisters a child field', () => {
       const fieldSet = FieldSet.Model.create(null, {})
       fieldSet.root = fieldSet
       const field = Field.Model.create(fieldSet, '', toRoute('foo'))
@@ -142,7 +144,7 @@ describe('FieldSet.Model', () => {
       expect(fieldSet.fields.foo).to.equal(void 0)
     })
 
-    it('unsets the state of a child Field', () => {
+    it('unsets the state of a child field', () => {
       const fieldSet = FieldSet.Model.create(null, {})
       fieldSet.root = fieldSet
       const field = Field.Model.create(fieldSet, '', toRoute('foo'))
@@ -162,7 +164,7 @@ describe('FieldSet.Model', () => {
       })
     })
 
-    it('unregisters a child FieldSet', () => {
+    it('unregisters a child fieldSet', () => {
       const parent = FieldSet.Model.create(null, {})
       parent.root = parent
       const child = FieldSet.Model.create(parent, {}, toRoute('foo'))
@@ -170,7 +172,7 @@ describe('FieldSet.Model', () => {
       expect(parent.fields.foo).to.equal(child)
     })
 
-    it('unregisters a grandchild Field', () => {
+    it('unregisters a grandchild field', () => {
       const parent = FieldSet.Model.create(null, {})
       parent.root = parent
       const child = FieldSet.Model.create(parent, {}, toRoute('foo'))
@@ -183,7 +185,7 @@ describe('FieldSet.Model', () => {
       expect(parent.fields.foo.fields.bar).to.equal(void 0)
     })
 
-    it('unsets the state of a grandchild Field', () => {
+    it('unsets the state of a grandchild field', () => {
       const parent = FieldSet.Model.create(null, {})
       parent.root = parent
       const child = FieldSet.Model.create(parent, {}, toRoute('foo'))
@@ -297,7 +299,7 @@ describe('FieldSet.View', () => {
 
   describe('render', () => {
 
-    it('renders a div element by default', () => {
+    it('renders a fieldset element by default', () => {
       const wrapper = mount(<FieldSet.View name='test'/>)
       expect(wrapper).to.have.tagName('fieldset')
     })
@@ -313,11 +315,7 @@ describe('FieldSet.View', () => {
       expect(model.fields.child).to.be.an.instanceOf(SuperControl.Model)
     })
 
-  })
-
-  describe('prop', () => {
-
-    it('passes a fieldSet prop to its component', done => {
+    it('passes a fields prop to its component', done => {
       const test = ({ fields }) => {
         expect(fields).to.deep.include({
           name: 'test',
@@ -339,12 +337,16 @@ describe('FieldSet.View', () => {
         done()
         return null
       }
-      mount(<FieldSet.View name='test' render={test}/>)
+      mount(<FieldSet.View name='test' component={test}/>)
     })
+
+  })
+
+  describe('prop', () => {
 
     describe('anyTouched', () => {
 
-      it('is true if any of the its child Fields are touched', () => {
+      it('is true if any of its descendant fields are touched', () => {
         const wrapper = mount(<FieldSet.View name='test'/>)
         const view = wrapper.instance()
         expect(view.prop).to.include({ anyTouched: false })
@@ -362,6 +364,8 @@ describe('FieldSet.View', () => {
         expect(view.prop).to.include({ isFocused: false })
         view.model.setState({ visits: 1 })
         expect(view.prop).to.include({ isFocused: true })
+        view.model.setState({ blurs: 1 })
+        expect(view.prop).to.include({ isFocused: false })
       })
 
     })

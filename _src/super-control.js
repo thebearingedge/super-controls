@@ -107,7 +107,6 @@ export class View extends PureComponent {
       })
     }
     if (_.isFunction(children)) {
-
       return children({
         ..._.omit(this.props, ['children']),
         ...props
@@ -118,7 +117,7 @@ export class View extends PureComponent {
         ..._.omit(this.props, [
           'init', 'render', 'component',
           'parse', 'format', 'override',
-          'notify', 'validate', 'name'
+          'notify', 'validate'
         ]),
         ...props
       })

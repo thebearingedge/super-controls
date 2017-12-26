@@ -13,6 +13,7 @@ describe('FieldArray.Model', () => {
       expect(model.state).to.deep.equal({
         init: [],
         value: [],
+        blurs: 0,
         visits: 0,
         touched: [],
         visited: [],

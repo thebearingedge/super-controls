@@ -19,6 +19,7 @@ describe('Form.Model', () => {
       expect(field).to.be.an.instanceOf(Field.Model)
       expect(form.fields.foo).to.equal(field)
       expect(form.state).to.deep.equal({
+        blurs: 0,
         visits: 0,
         error: null,
         notice: null,

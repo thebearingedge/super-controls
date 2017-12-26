@@ -6,6 +6,7 @@ export const Model = class FieldSetModel extends SuperControl.Model {
   constructor(...args) {
     super(...args)
     this.fields = {}
+    this.state.blurs = 0
     this.state.visits = 0
     this.state.touched = {}
     this.state.visited = {}
@@ -49,7 +50,8 @@ export const Model = class FieldSetModel extends SuperControl.Model {
     if (!names.length) return super.patch(state, options)
     const { init, value, touched, isTouched, visited, isVisited } = state
     const nextState = _.assign({}, this.state)
-    if (state.isFocused) nextState.visits += 1
+    if (state.isTouched) nextState.blurs += 1
+    if (state.isVisited) nextState.visits += 1
     if ('init' in state) {
       nextState.init = _.set(this.state.init, names, init)
     }
@@ -90,6 +92,10 @@ export const Model = class FieldSetModel extends SuperControl.Model {
       _.invoke(this.fields[key].touchAll || this.fields[key].touch)
     })
   }
+  static get create() {
+    return (root, init = {}, route, checks) =>
+      super.create(root, init, route, checks)
+  }
 }
 
 export class View extends SuperControl.View {
@@ -112,8 +118,12 @@ export class View extends SuperControl.View {
     })
   }
   subscriber(nextState) {
+    if (!this.state) {
+      return this.setState(_.assign(nextState, { isFocused: false }))
+    }
     this.setState(state => _.assign({}, nextState, {
-      isFocused: !!state && nextState.visits > state.visits
+      isFocused: nextState.visits > state.visits ||
+                 (state.isFocused && nextState.blurs <= state.blurs)
     }))
   }
   register({ route, ...params }) {
@@ -126,7 +136,13 @@ export class View extends SuperControl.View {
     return { '@@super-controls': { register: this.register } }
   }
   render(props) {
-    return super.render(props || { fields: this.prop, ...props })
+    const { render, component, children } = this.props
+    if (_.isFunction(render) ||
+        _.isFunction(component) ||
+        _.isFunction(children)) {
+      return super.render({ fields: this.prop })
+    }
+    return super.render()
   }
   static get displayName() {
     return 'FieldSet'
