@@ -1,16 +1,10 @@
 import React from 'react'
 import { describe, beforeEach, it } from 'mocha'
-import { expect, stub, mountWith } from './__test__'
+import { expect, mountWith } from './__test__'
 import * as Form from './form'
 import * as FieldArray from './field-array'
 
 describe('FieldArray.Model', () => {
-
-  let form
-
-  beforeEach(() => {
-    form = { patch: stub(), state: {} }
-  })
 
   describe('state', () => {
 
@@ -107,7 +101,7 @@ describe('FieldArray.Model', () => {
   describe('remove', () => {
 
     it('removes a value from the fieldArray at the given index', () => {
-      const model = FieldArray.Model.create(form, ['foo', 'bar', 'baz'])
+      const model = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
       model.root = model
       model.remove(1)
       expect(model.state).to.deep.include({
@@ -121,7 +115,7 @@ describe('FieldArray.Model', () => {
   describe('pop', () => {
 
     it('removes a value from the end of the fieldArray', () => {
-      const model = FieldArray.Model.create(form, ['foo', 'bar', 'baz'])
+      const model = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
       model.root = model
       model.pop()
       expect(model.state).to.deep.include({
@@ -137,7 +131,7 @@ describe('FieldArray.Model', () => {
   describe('unshift', () => {
 
     it('removes a value from the front of the fieldArray', () => {
-      const model = FieldArray.Model.create(form, ['foo', 'bar', 'baz'])
+      const model = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
       model.root = model
       model.shift()
       expect(model.state).to.deep.include({
@@ -153,7 +147,7 @@ describe('FieldArray.Model', () => {
   describe('clear', () => {
 
     it('removes all values from the fieldArray', () => {
-      const model = FieldArray.Model.create(form, ['foo', 'bar', 'baz'])
+      const model = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
       model.root = model
       model.clear()
       expect(model.state).to.deep.include({
