@@ -1,5 +1,6 @@
+import React from 'react'
 import { describe, it } from 'mocha'
-import { expect, toRoute } from './__test__'
+import { expect, mount, toRoute } from './__test__'
 import * as Form from './form'
 import * as Field from './field'
 import * as FieldSet from './field-set'
@@ -97,7 +98,31 @@ describe('Form.Model', () => {
 
 describe('Form.View', () => {
 
-  describe('prop', () => {
+  describe('render', () => {
+
+    it('renders a form element by default', () => {
+      const wrapper = mount(<Form.View/>)
+      expect(wrapper).to.have.tagName('form')
+    })
+
+  })
+
+  describe('register', () => {
+
+    it('registers descendant fields', () => {
+      const wrapper = mount(
+        <Form.View init={{ foo: { bar: [''] } }}>
+          <FieldSet.View name='foo'>
+            <FieldArray.View name='bar'>
+              <Field.View name={0}/>
+            </FieldArray.View>
+          </FieldSet.View>
+        </Form.View>
+      )
+      const { model } = wrapper.instance()
+      expect(model.fields.foo.fields.bar.fields[0])
+        .to.be.an.instanceOf(Field.Model)
+    })
 
   })
 
