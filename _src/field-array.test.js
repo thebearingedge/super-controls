@@ -8,14 +8,14 @@ describe('FieldArray.Model', () => {
 
   describe('state', () => {
 
-    it('returns the state of the FieldArray', () => {
-      const { state } = FieldArray.Model.create()
-      expect(state).to.deep.equal({
+    it('is the state of the model', () => {
+      const model = FieldArray.Model.create()
+      expect(model.state).to.deep.equal({
+        init: [],
+        value: [],
         visits: 0,
         touched: [],
         visited: [],
-        init: null,
-        value: null,
         error: null,
         notice: null
       })
@@ -25,7 +25,7 @@ describe('FieldArray.Model', () => {
 
   describe('at', () => {
 
-    it('returns the value in the FieldArray at the given index', () => {
+    it('returns the value in the model at the given index', () => {
       const model = FieldArray.Model.create(null, ['foo'])
       expect(model.at(0)).to.equal('foo')
     })
@@ -34,7 +34,7 @@ describe('FieldArray.Model', () => {
 
   describe('values', () => {
 
-    it('all values in the fieldArray', () => {
+    it('is all values in the model', () => {
       const model = FieldArray.Model.create(null, ['foo', 'bar'])
       expect(model.values).to.deep.equal(['foo', 'bar'])
     })
@@ -43,7 +43,7 @@ describe('FieldArray.Model', () => {
 
   describe('length', () => {
 
-    it('the length of the fieldArray values', () => {
+    it('is the length of the model\'s values', () => {
       const model = FieldArray.Model.create(null, ['foo', 'bar'])
       expect(model.length).to.equal(2)
     })
@@ -52,7 +52,7 @@ describe('FieldArray.Model', () => {
 
   describe('insert', () => {
 
-    it('inserts a value into the fieldArray at the given index', () => {
+    it('inserts a value into the model at the given index', () => {
       const model = FieldArray.Model.create(null, ['foo', 'baz'])
       model.root = model
       model.insert(1, 'bar')
@@ -68,7 +68,7 @@ describe('FieldArray.Model', () => {
 
   describe('push', () => {
 
-    it('appends a value to the fieldArray', () => {
+    it('appends a value to the model', () => {
       const model = FieldArray.Model.create(null, ['foo', 'bar'])
       model.root = model
       model.push('baz')
@@ -84,7 +84,7 @@ describe('FieldArray.Model', () => {
 
   describe('unshift', () => {
 
-    it('prepends a value to the fieldArray', () => {
+    it('prepends a value to the model', () => {
       const model = FieldArray.Model.create(null, ['bar', 'baz'])
       model.root = model
       model.unshift('foo')
@@ -100,7 +100,7 @@ describe('FieldArray.Model', () => {
 
   describe('remove', () => {
 
-    it('removes a value from the fieldArray at the given index', () => {
+    it('removes a value from the model at the given index', () => {
       const model = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
       model.root = model
       model.remove(1)
@@ -114,7 +114,7 @@ describe('FieldArray.Model', () => {
 
   describe('pop', () => {
 
-    it('removes a value from the end of the fieldArray', () => {
+    it('removes a value from the end of the model', () => {
       const model = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
       model.root = model
       model.pop()
@@ -130,7 +130,7 @@ describe('FieldArray.Model', () => {
 
   describe('unshift', () => {
 
-    it('removes a value from the front of the fieldArray', () => {
+    it('removes a value from the beginning of the model', () => {
       const model = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
       model.root = model
       model.shift()
@@ -146,7 +146,7 @@ describe('FieldArray.Model', () => {
 
   describe('clear', () => {
 
-    it('removes all values from the fieldArray', () => {
+    it('removes all values from the model', () => {
       const model = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
       model.root = model
       model.clear()
@@ -162,7 +162,7 @@ describe('FieldArray.Model', () => {
 
   describe('forEach', () => {
 
-    it('iterates over the values in the fieldArray', () => {
+    it('calls a procedure for each value in the model', () => {
       const values = ['foo', 'bar']
       const model = FieldArray.Model.create(null, values)
       model.forEach((value, index, array) => {
@@ -175,7 +175,7 @@ describe('FieldArray.Model', () => {
 
   describe('map', () => {
 
-    it('applies a transform to the values in the fieldArray', () => {
+    it('applies a transform to the values in the model', () => {
       const values = ['foo', 'bar']
       const model = FieldArray.Model.create(null, values)
       const mapped = model.map((value, index, array) => {
@@ -201,7 +201,7 @@ describe('FieldArray.View', () => {
 
   describe('render', () => {
 
-    it('calls a render prop with a model prop', done => {
+    it('calls a render prop with a fields prop', done => {
       const test = ({ fields }) => {
         expect(fields).to.deep.include({
           name: 'test',

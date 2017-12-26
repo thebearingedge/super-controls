@@ -2,7 +2,7 @@ import PropTypes from 'prop-types'
 import * as FieldSet from './field-set'
 import * as _ from './util'
 
-export class Model extends FieldSet.Model {
+export const Model = class FieldArrayModel extends FieldSet.Model {
   constructor(...args) {
     super(...args)
     this.fields = []
@@ -18,29 +18,29 @@ export class Model extends FieldSet.Model {
     this.clear = this.clear.bind(this)
   }
   get length() {
-    return this.state.value.length
+    return this.values.length
   }
   at(index) {
-    return this.state.value[index]
+    return this.values[index]
   }
   insert(index, value) {
     this.root.patch(this.names, {
-      init: _.sliceIn(this.state.value, index, value),
-      value: _.sliceIn(this.state.value, index, value),
+      init: _.sliceIn(this.values, index, value),
+      value: _.sliceIn(this.values, index, value),
       touched: _.sliceIn(this.state.touched, index),
       visited: _.sliceIn(this.state.visited, index)
     })
   }
   push(value) {
-    this.insert(this.state.value.length, value)
+    this.insert(this.length, value)
   }
   unshift(value) {
     this.insert(0, value)
   }
   remove(index) {
     this.root.patch(this.names, {
-      init: _.remove(this.state.value, index),
-      value: _.remove(this.state.value, index),
+      init: _.remove(this.values, index),
+      value: _.remove(this.values, index),
       touched: _.remove(this.state.touched, index),
       visited: _.remove(this.state.visited, index)
     })
@@ -54,16 +54,20 @@ export class Model extends FieldSet.Model {
     })
   }
   pop() {
-    this.remove(this.state.value.length - 1)
+    this.remove(this.length - 1)
   }
   shift() {
     this.remove(0)
   }
-  forEach(iteratee) {
-    this.values.forEach((value, index) => iteratee(value, index, this))
+  forEach(procedure) {
+    this.values.forEach((value, index) => procedure(value, index, this))
   }
   map(transform) {
     return this.values.map((value, index) => transform(value, index, this))
+  }
+  static get create() {
+    return (root, init = [], route, checks) =>
+      super.create(root, init, route, checks)
   }
 }
 
