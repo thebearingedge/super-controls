@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
-import * as SuperControl from './super-control'
 import * as _ from './util'
+import * as SuperControl from './super-control'
 
 export const Model = class FieldSetModel extends SuperControl.Model {
   constructor(...args) {

@@ -12,8 +12,6 @@ export const isUndefined = value => value === void 0
 
 export const isString = value => typeof value === 'string'
 
-export const isBoolean = value => typeof value === 'boolean'
-
 export const isFunction = value => typeof value === 'function'
 
 export const { keys } = Object

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
-import * as FieldSet from './field-set'
 import * as _ from './util'
+import * as FieldSet from './field-set'
 
 export const Model = class FieldArrayModel extends FieldSet.Model {
   constructor(...args) {

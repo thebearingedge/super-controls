@@ -8,9 +8,9 @@ describe('Field.Model', () => {
 
   describe('state', () => {
 
-    it('returns the state of the field', () => {
-      const { state } = Field.Model.create()
-      expect(state).to.deep.equal({
+    it('is the state of the field', () => {
+      const model = Field.Model.create()
+      expect(model.state).to.deep.equal({
         init: null,
         value: null,
         error: null,
@@ -63,7 +63,7 @@ describe('Field.Model', () => {
     })
 
     it('forces the value being sent to the form', () => {
-      const field = Field.Model.create(form, void 0, [], {
+      const field = Field.Model.create(form, null, [], {
         override: (value, values) => {
           return values.foo === 'bar' ? 'baz' : value
         }

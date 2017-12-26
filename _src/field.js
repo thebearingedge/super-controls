@@ -30,40 +30,34 @@ export class View extends SuperControl.View {
     return Model
   }
   get isCheckbox() {
-    return this.props.component === 'input' &&
-           this.props.type === 'checkbox'
+    return this.props.type === 'checkbox'
   }
   get isRadio() {
-    return this.props.component === 'input' &&
-           this.props.type === 'radio'
+    return this.props.type === 'radio'
   }
   get init() {
     const { init, parse } = this.props
-    if (_.isBoolean(init)) return init
-    if (this.isCheckbox) return !!init
-    return init || parse(init)
+    if (this.isCheckbox) return parse(!!init)
+    return parse(init)
   }
   get config() {
     return _.pick(this.props, ['notify', 'validate', 'override'])
   }
   get prop() {
-    const { state: { value, init }, model } = this
+    const { state: { value, init }, model: { isFocused, update } } = this
     const isPristine = _.shallowEqual(value, init)
     const isDirty = !isPristine
-    return _.assign(super.prop, _.pick(model, ['isFocused', 'update']), {
-      isDirty,
-      isPristine
-    })
+    return _.assign(super.prop, { update, isDirty, isFocused, isPristine })
   }
   createControl(field) {
     const { type, name, format } = this.props
     const control = {
-      type,
       name,
       onBlur: this.handleBlur(field),
       onFocus: this.handleFocus(field),
       onChange: this.handleChange(field)
     }
+    if (type) control.type = type
     if (this.isCheckbox) {
       return _.assign(control, {
         checked: !!this.state.value
@@ -102,7 +96,7 @@ export class View extends SuperControl.View {
       const wrapped = _.wrapEvent(event)
       this.props.onChange(wrapped, value, field)
       if (wrapped.defaultPrevented) return
-      field.update({ value }, { validate: false })
+      field.update({ value })
     }
   }
   render() {
