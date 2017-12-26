@@ -96,15 +96,26 @@ describe('Field.View', () => {
 
   describe('init', () => {
 
-    it('is a boolean when the component is a checkbox', () => {
+    it('is a String by default', () => {
+      const wrapper = mount(<Field.View name='test'/>)
+      const view = wrapper.instance()
+      expect(view.init).to.equal('')
+    })
+
+    it('is a Boolean when its component is a checkbox', () => {
       const wrapper = mount(
         <Field.View name='test' component='input' type='checkbox'/>
       )
-      const { model } = wrapper.instance()
-      expect(model.state).to.include({
-        init: false,
-        value: false
-      })
+      const view = wrapper.instance()
+      expect(view.init).to.equal(false)
+    })
+
+    it('is an Array when its component is a multiple select', () => {
+      const wrapper = mount(
+        <Field.View name='test' component='select' multiple/>
+      )
+      const view = wrapper.instance()
+      expect(view.init).to.deep.equal([])
     })
 
   })
@@ -123,6 +134,21 @@ describe('Field.View', () => {
       )
       const value = wrapper.instance().getValue({ target: { checked: true } })
       expect(value).to.equal(true)
+    })
+
+    it('returns an array when the component is a multiple select', () => {
+      const wrapper = mount(
+        <Field.View name='test' component='select' multiple>
+          <option value='foo'>Foo</option>
+          <option value='bar'>Bar</option>
+          <option value='baz'>Baz</option>
+        </Field.View>
+      )
+      wrapper.find('[value="foo"]').getDOMNode().selected = true
+      wrapper.find('[value="baz"]').getDOMNode().selected = true
+      const select = wrapper.getDOMNode()
+      const value = wrapper.instance().getValue({ target: select })
+      expect(value).to.deep.equal(['foo', 'baz'])
     })
 
   })

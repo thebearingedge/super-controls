@@ -35,9 +35,14 @@ export class View extends SuperControl.View {
   get isRadio() {
     return this.props.type === 'radio'
   }
+  get isMultipleSelect() {
+    return this.props.component === 'select' &&
+           !!this.props.multiple
+  }
   get init() {
     const { init, parse } = this.props
     if (this.isCheckbox) return parse(!!init)
+    if (this.isMultipleSelect) return parse(init || [])
     return parse(init)
   }
   get config() {
@@ -71,8 +76,18 @@ export class View extends SuperControl.View {
     }
     return _.assign(control, { value: format(this.state.value) })
   }
-  getValue({ target: { value, checked } }) {
-    return this.props.parse(this.isCheckbox ? !!checked : value)
+  getValue({ target: { value, checked, options = [] } }) {
+    if (this.isCheckbox) {
+      return this.props.parse(!!checked)
+    }
+    if (this.isMultipleSelect) {
+      return this.props.parse(
+        Array.from(options)
+          .filter(option => option.selected)
+          .map(option => option.value)
+      )
+    }
+    return this.props.parse(value)
   }
   handleBlur(field) {
     return event => {
@@ -115,6 +130,7 @@ export class View extends SuperControl.View {
       ...super.propTypes,
       type: PropTypes.string,
       value: PropTypes.string,
+      multiple: PropTypes.bool,
       parse: PropTypes.func.isRequired,
       format: PropTypes.func.isRequired,
       override: PropTypes.func.isRequired,
