@@ -28,8 +28,8 @@
     "precommit": "run-s -s lint test",
     "travis": "run-s -s lint cover src:build demo:build book:build",
     "prepublishOnly": "run-s -s travis",
-    "src:clean": "rimraf es/ cjs/ umd/ coverage/ .nyc_output/",
-    "src:build": "run-s -s src:clean && babel-node build.js",
+    "src:clean": "rimraf es/ cjs/ umd/",
+    "src:build": "run-s -s src:clean && babel-node build.js && bundlesize",
     "demo:clean": "rimraf _demo/",
     "demo:pug": "pug demo/ -o _demo/ -P",
     "demo:js": "globify 'demo/**/index.js' -vd -o '_demo/*.js'",
@@ -54,6 +54,14 @@
     "react-dom": "global:ReactDOM",
     "prop-types": "global:PropTypes"
   },
+  "bundlesize": [
+    {
+      "path": "umd/super-controls.js"
+    },
+    {
+      "path": "umd/super-controls.min.js"
+    }
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/thebearingedge/super-controls.git"
@@ -82,6 +90,7 @@
     "babelify": "^8.0.0",
     "browser-sync": "^2.20.0",
     "browserify-shim": "^3.8.14",
+    "bundlesize": "^0.15.3",
     "chai": "^4.1.2",
     "chai-enzyme": "^1.0.0-beta.0",
     "codecov": "^3.0.0",
