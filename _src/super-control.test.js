@@ -46,11 +46,24 @@ describe('SuperControl.Model', () => {
       form = { values: { foo: 'bar' } }
     })
 
-    it('validates a new value', () => {
+    it('patches the model\'s state', () => {
       const model = SuperControl.Model.create(form, null, [], {
         validate: (value, allValues) => value === allValues.foo && 'dupe!'
       })
       const { state } = model.patch({ value: 'bar' })
+      expect(state).to.deep.equal({
+        init: null,
+        value: 'bar',
+        error: null,
+        notice: null
+      })
+    })
+
+    it('validates a new value state', () => {
+      const model = SuperControl.Model.create(form, null, [], {
+        validate: (value, allValues) => value === allValues.foo && 'dupe!'
+      })
+      const { state } = model.patch({ value: 'bar' }, { validate: true })
       expect(state).to.deep.equal({
         init: null,
         value: 'bar',
@@ -59,42 +72,16 @@ describe('SuperControl.Model', () => {
       })
     })
 
-    it('bypasses validating the new value', () => {
+    it('notifies a new value state', () => {
       const model = SuperControl.Model.create(form, null, [], {
-        validate: (value, allValues) => value === allValues.foo && 'dupe!'
+        notify: (value, all) => value === all.foo && 'match!'
       })
-      const { state } = model.patch({ value: 'bar' }, { validate: false })
-      expect(state).to.deep.equal({
-        init: null,
-        value: 'bar',
-        error: null,
-        notice: null
-      })
-    })
-
-    it('notifies the new value', () => {
-      const model = SuperControl.Model.create(form, null, [], {
-        notify: (value, allValues) => value === allValues.foo && 'match!'
-      })
-      const { state } = model.patch({ value: 'bar' })
+      const { state } = model.patch({ value: 'bar' }, { notify: true })
       expect(state).to.deep.equal({
         init: null,
         value: 'bar',
         error: null,
         notice: 'match!'
-      })
-    })
-
-    it('bypasses notifying the new value', () => {
-      const model = SuperControl.Model.create(form, null, [], {
-        notify: (value, all) => value === all.foo && 'match!'
-      })
-      const { state } = model.patch({ value: 'bar' }, { notify: false })
-      expect(state).to.deep.equal({
-        init: null,
-        value: 'bar',
-        error: null,
-        notice: null
       })
     })
 
@@ -122,7 +109,7 @@ describe('SuperControl.Model', () => {
       const model = SuperControl.Model.create(form)
       form.patch.callsFake((_, ...args) => model.patch(...args))
       model.touch()
-      expect(model.state).to.includes({ isTouched: true })
+      expect(model.state).to.include({ isTouched: true })
     })
 
   })
@@ -142,14 +129,11 @@ describe('SuperControl.Model', () => {
       const model = SuperControl.Model.create()
       const subscriber = spy()
       const unsubscribe = model.subscribe(subscriber)
-      model.subscribe(_ => {})
-      unsubscribe()
-      model.setState({ value: 'foo' })
-      expect(subscriber).to.have.callCount(1)
+      expect(unsubscribe).to.be.a('function')
     })
 
     it('unregisters when the last subscriber unsubscribes', () => {
-      const form = { unregister: stub() }
+      const form = { unregister: stub(), state: {} }
       const model = SuperControl.Model.create(form, null, toRoute('foo'))
       const unsubscribe = model.subscribe(_ => {})
       unsubscribe()
@@ -183,20 +167,12 @@ describe('SuperControl.View', () => {
       const wrapper = mount(<SuperControl.View name='test'/>)
       const view = wrapper.instance()
       expect(view.state)
-        .to.deep.equal(view.model.state)
-        .and.deep.equal({
+        .to.deep.equal({
           init: null,
           value: null,
           error: null,
           notice: null
         })
-    })
-
-    it('registers its notify and validate props with its model', () => {
-      const checks = { notify: _ => 'foo', validate: _ => 'bar' }
-      const wrapper = mount(<SuperControl.View name='test' {...checks}/>)
-      const { model } = wrapper.instance()
-      expect(model).to.include(checks)
     })
 
     it('subscribes to state updates on its model', () => {
@@ -236,7 +212,7 @@ describe('SuperControl.View', () => {
     it('includes the view\'s name and current state', () => {
       const wrapper = mount(<SuperControl.View name='test'/>)
       const { prop } = wrapper.instance()
-      expect(prop).to.deep.include({
+      expect(prop).to.include({
         name: 'test',
         path: 'test',
         init: null,
@@ -302,6 +278,36 @@ describe('SuperControl.View', () => {
 
   })
 
+  describe('props', () => {
+
+    describe('validate', () => {
+
+      it('configures its model\'s validate method', () => {
+        const validate = _ => {}
+        const wrapper = mount(
+          <SuperControl.View name='test' validate={validate}/>
+        )
+        const { model } = wrapper.instance()
+        expect(model).to.include({ validate })
+      })
+
+    })
+
+    describe('notify', () => {
+
+      it('configures its model\'s notify method', () => {
+        const notify = _ => {}
+        const wrapper = mount(
+          <SuperControl.View name='test' notify={notify}/>
+        )
+        const { model } = wrapper.instance()
+        expect(model).to.include({ notify })
+      })
+
+    })
+
+  })
+
   describe('render', () => {
 
     it('calls a render function', done => {
@@ -328,6 +334,16 @@ describe('SuperControl.View', () => {
         <SuperControl.View name='test' component='noscript'/>
       )
       expect(wrapper).to.have.tagName('noscript')
+    })
+
+    it('forwards props to string components', () => {
+      const wrapper = mount(
+        <SuperControl.View
+          name='test'
+          className='test'
+          component='noscript'/>
+      )
+      expect(wrapper).to.have.className('test')
     })
 
   })

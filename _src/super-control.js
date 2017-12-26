@@ -21,24 +21,29 @@ export const Model = class SuperControlModel {
   get path() {
     return _.toPath(this.names)
   }
+  getState() {
+    return _.assign({}, this.state)
+  }
   subscribe(subscriber) {
-    const index = this.subscribers.push(subscriber)
-    subscriber(this.state)
+    const index = this.subscribers.push(subscriber) - 1
+    subscriber(this.getState())
     return _ => {
-      this.subscribers.splice(index - 1, 1)
+      this.subscribers.splice(index, 1)
       this.subscribers.length || this.root.unregister(this.names)
     }
   }
   publish() {
-    this.subscribers.forEach(subscriber => subscriber(this.state))
+    this.subscribers.forEach(subscriber => subscriber(this.getState()))
     return this
   }
-  patch(state, { notify = true, validate = true } = {}) {
+  patch(state, { notify = false, validate = false } = {}) {
     const nextState = _.assign({}, this.state, state)
-    const { value } = nextState
-    const { values } = this.root
-    if (notify) nextState.notice = this.notify(value, values) || null
-    if (validate) nextState.error = this.validate(value, values) || null
+    if (notify) {
+      nextState.notice = this.notify(nextState.value, this.root.values) || null
+    }
+    if (validate) {
+      nextState.error = this.validate(nextState.value, this.root.values) || null
+    }
     return this.setState(nextState)
   }
   setState(nextState) {
@@ -78,6 +83,9 @@ export class View extends PureComponent {
   get config() {
     return _.pick(this.props, ['notify', 'validate'])
   }
+  subscriber(state) {
+    this.setState(state)
+  }
   componentWillMount() {
     this.model = this.context['@@super-controls'].register({
       init: this.init,
@@ -85,7 +93,7 @@ export class View extends PureComponent {
       config: this.config,
       route: [_ => this.props.name]
     })
-    this.unsubscribe = this.model.subscribe(state => this.setState(state))
+    this.unsubscribe = this.model.subscribe(state => this.subscriber(state))
   }
   componentWillUnmount() {
     this.unsubscribe()
@@ -99,6 +107,7 @@ export class View extends PureComponent {
       })
     }
     if (_.isFunction(children)) {
+
       return children({
         ..._.omit(this.props, ['children']),
         ...props

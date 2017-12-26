@@ -33,6 +33,7 @@ describe('FieldSet.Model', () => {
       const field = Field.Model.create(fieldSet, '', toRoute('foo'))
       fieldSet.register(['foo'], field)
       expect(fieldSet.fields.foo).to.equal(field)
+      expect(fieldSet.fields.foo).to.be.an.instanceOf(Field.Model)
     })
 
     it('registers a child FieldSet', () => {
@@ -41,6 +42,7 @@ describe('FieldSet.Model', () => {
       const child = FieldSet.Model.create(parent, {}, toRoute('foo'))
       parent.register(['foo'], child)
       expect(parent.fields.foo).to.equal(child)
+      expect(parent.fields.foo).to.be.an.instanceOf(FieldSet.Model)
     })
 
     it('registers a grandchild Field', () => {
@@ -52,21 +54,41 @@ describe('FieldSet.Model', () => {
         .register(['foo'], child)
         .register(['foo', 'bar'], grandchild)
       expect(parent.fields.foo.fields.bar).to.equal(grandchild)
+      expect(parent.fields.foo.fields.bar).to.be.an.instanceOf(Field.Model)
     })
 
   })
 
   describe('patch', () => {
 
-    it('tracks visits of child fields', () => {
-      const fieldSet = FieldArray.Model.create(null, {})
-      fieldSet.root = fieldSet
-      fieldSet
-        .register(['foo'], Field.Model.create(fieldSet, '', toRoute('foo')))
-        .patch(['foo'], { isFocused: true })
-      expect(fieldSet.state).to.include({
-        visits: 1
+    it('updates its own state', () => {
+      const fieldSet = FieldSet.Model.create(null, {})
+      fieldSet.patch([], { value: { foo: 'bar' } })
+      expect(fieldSet.state).to.deep.include({
+        value: { foo: 'bar' }
       })
+    })
+
+    it('updates the state of descendant fields', () => {
+      const fieldSet = FieldSet.Model.create(null, {})
+      const field = Field.Model.create(null, '', toRoute('foo'))
+      fieldSet.register(['foo'], field)
+      fieldSet.patch(['foo'], { value: 'bar' })
+      expect(fieldSet.state).to.deep.include({
+        value: { foo: 'bar' }
+      })
+      expect(field.state).to.include({
+        value: 'bar'
+      })
+    })
+
+    it('tracks the visits of descendant fields', () => {
+      const fieldSet = FieldSet.Model.create(null, {})
+      const field = Field.Model.create(fieldSet, '', toRoute('foo'))
+      fieldSet
+        .register(['foo'], field)
+        .patch(['foo'], { isFocused: field })
+      expect(fieldSet.state).to.include({ visits: 1 })
     })
 
   })
@@ -288,7 +310,7 @@ describe('FieldSet.View', () => {
       )
       expect(wrapper).to.contain(<noscript/>)
       const { model } = wrapper.instance()
-      expect(model.fields.child).to.be.an('object')
+      expect(model.fields.child).to.be.an.instanceOf(SuperControl.Model)
     })
 
   })
@@ -322,12 +344,24 @@ describe('FieldSet.View', () => {
 
     describe('anyTouched', () => {
 
-      it('true if any of the its child Fields are touched', () => {
+      it('is true if any of the its child Fields are touched', () => {
         const wrapper = mount(<FieldSet.View name='test'/>)
         const view = wrapper.instance()
         expect(view.prop).to.include({ anyTouched: false })
         view.model.setState({ touched: { foo: true } })
         expect(view.prop).to.include({ anyTouched: true })
+      })
+
+    })
+
+    describe('isFocused', () => {
+
+      it('is true if a descendant field is focused', () => {
+        const wrapper = mount(<FieldSet.View name='test'/>)
+        const view = wrapper.instance()
+        expect(view.prop).to.include({ isFocused: false })
+        view.model.setState({ visits: 1 })
+        expect(view.prop).to.include({ isFocused: true })
       })
 
     })

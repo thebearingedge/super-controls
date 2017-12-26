@@ -5,6 +5,7 @@ export const Model = class FormModel extends FieldSet.Model {
   constructor(...args) {
     super(...args)
     this.root = this
+    this.focused = null
   }
   register({ init, route, config, Model }) {
     const names = route.map(_.invoke)
@@ -14,6 +15,10 @@ export const Model = class FormModel extends FieldSet.Model {
     const field = Model.create(this, value, route, config)
     super.register(names, field)
     return field
+  }
+  patch(names, state, options) {
+    if ('isFocused' in state) this.focused = state.isFocused
+    return super.patch(names, state, options)
   }
   static get create() {
     return (name, init, checks) =>

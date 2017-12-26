@@ -1,4 +1,4 @@
-import { object } from 'prop-types'
+import PropTypes from 'prop-types'
 import * as SuperControl from './super-control'
 import * as _ from './util'
 
@@ -49,9 +49,7 @@ export const Model = class FieldSetModel extends SuperControl.Model {
     if (!names.length) return super.patch(state, options)
     const { init, value, touched, isTouched, visited, isVisited } = state
     const nextState = _.assign({}, this.state)
-    if ('isFocused' in state) {
-      nextState.visits += 1
-    }
+    if (state.isFocused) nextState.visits += 1
     if ('init' in state) {
       nextState.init = _.set(this.state.init, names, init)
     }
@@ -66,23 +64,24 @@ export const Model = class FieldSetModel extends SuperControl.Model {
     }
     this.setState(nextState, options)
     const [ first, ...rest ] = names
-    rest.length
-      ? this.fields[first].patch(rest, state, options)
-      : this.fields[first].patch(state, options)
+    const child = this.fields[first]
+    child instanceof FieldSetModel
+      ? child.patch(rest, state, options)
+      : child.patch(state, options)
     return this
   }
   change(path, value) {
-    const names = _.fromPath(path)
+    const names = _.toNames(path)
     const field = this.getField(names)
     field && this.root.patch([...this.names, ...names], { value })
   }
   touch(path) {
-    const names = _.fromPath(path)
+    const names = _.toNames(path)
     const field = this.getField(names)
     field && this.root.patch([...this.names, ...names], { isTouched: true })
   }
   untouch(path) {
-    const names = _.fromPath(path)
+    const names = _.toNames(path)
     const field = this.getField(names)
     field && this.root.patch([...this.names, ...names], { isTouched: false })
   }
@@ -108,11 +107,14 @@ export class View extends SuperControl.View {
       'change', 'touch', 'touchAll', 'untouch'
     ]), {
       values: this.state.value,
+      isFocused: this.state.isFocused,
       anyTouched: _.someValues(this.state.touched, _.id)
     })
   }
-  render(props) {
-    return super.render(props || { fields: this.prop, ...props })
+  subscriber(nextState) {
+    this.setState(state => _.assign({}, nextState, {
+      isFocused: !!state && nextState.visits > state.visits
+    }))
   }
   register({ route, ...params }) {
     return this.context['@@super-controls'].register({
@@ -123,6 +125,9 @@ export class View extends SuperControl.View {
   getChildContext() {
     return { '@@super-controls': { register: this.register } }
   }
+  render(props) {
+    return super.render(props || { fields: this.prop, ...props })
+  }
   static get displayName() {
     return 'FieldSet'
   }
@@ -132,7 +137,10 @@ export class View extends SuperControl.View {
   static get propTypes() {
     return {
       ...super.propTypes,
-      init: object.isRequired
+      init: PropTypes.object.isRequired,
+      children: PropTypes.oneOfType([
+        PropTypes.array, PropTypes.func, PropTypes.element
+      ])
     }
   }
   static get defaultProps() {

@@ -1,4 +1,4 @@
-import { describe, beforeEach, it } from 'mocha'
+import { describe, it } from 'mocha'
 import { expect, toRoute } from './__test__'
 import * as Form from './form'
 import * as Field from './field'
@@ -71,9 +71,30 @@ describe('Form.Model', () => {
 
   })
 
+  describe('patch', () => {
+
+    it('tracks focuses of descendant fields', () => {
+      const form = Form.Model.create('test', {})
+      form.register({ init: '', Model: Field.Model, route: toRoute('foo') })
+      const field = form.getField(['foo'])
+      form.patch(['foo'], { isFocused: field })
+      expect(form).to.include({ focused: field })
+    })
+
+    it('tracks blurs of descendant fields', () => {
+      const form = Form.Model.create('test', {})
+      form.register({ init: '', Model: Field.Model, route: toRoute('foo') })
+      const field = form.getField(['foo'])
+      form.patch(['foo'], { isFocused: field })
+      form.patch(['foo'], { isFocused: null })
+      expect(form).to.include({ focused: null })
+    })
+
+  })
+
 })
 
-describe.skip('Form.View', () => {
+describe('Form.View', () => {
 
   describe('prop', () => {
 

@@ -2,12 +2,11 @@ export const id = _ => _
 
 export const noop = _ => {}
 
-export const wrap = (value, wrapper = id) =>
-  (...args) => wrapper(value, ...args)
-
 export const toNull = _ => null
 
 export const invoke = fn => fn()
+
+export const wrap = value => () => value
 
 export const isUndefined = value => value === void 0
 
@@ -17,22 +16,18 @@ export const isBoolean = value => typeof value === 'boolean'
 
 export const isFunction = value => typeof value === 'function'
 
-export const { isArray } = Array
-
-export const isObject = value => ({}).toString.call(value) === '[object Object]'
-
 export const { keys } = Object
 
-export const omit = (source, props) =>
+export const omit = (source, omitting) =>
   keys(source).reduce((omitted, key) => {
-    return props.includes(key)
+    return ~omitting.indexOf(key)
       ? omitted
       : assign(omitted, { [key]: source[key] })
   }, {})
 
-export const pick = (source, keys) =>
-  keys.reduce((picked, prop) => assign(
-    picked, { [prop]: source[prop] }
+export const pick = (source, picking) =>
+  picking.reduce((picked, key) => assign(
+    picked, { [key]: source[key] }
   ), {})
 
 export const pickBy = (source, predicate) =>
@@ -42,24 +37,12 @@ export const pickBy = (source, predicate) =>
       : picked
   }, {})
 
+export const exists = (target, key) => !isUndefined(target[key])
+
 export const defaults = (target, ...sources) =>
   sources.reduce((defaulted, source) => assign(
-    defaulted, pickBy(source, (_, key) => !(key in defaulted))
+    defaulted, pickBy(source, (_, key) => !exists(defaulted, key))
   ), target)
-
-export const toPath = names =>
-  names
-    .map(name => +name === parseInt(name, 10) ? `[${name}]` : name)
-    .join('.')
-    .replace(/\.\[/g, '[')
-
-export const fromPath = path =>
-  path
-    .split('.')
-    .map(name => name.split('['))
-    .reduce((flattened, names) => flattened.concat(names.map(name =>
-      /\d\]/.test(name) ? +name.replace(']', '') : name
-    )), [])
 
 export const { assign } = Object
 
@@ -79,7 +62,7 @@ export const sliceOver = ([ ...sliced ], index, value) => {
   return sliced
 }
 
-export const exists = (target, key) => !isUndefined(target[key])
+export const { isArray } = Array
 
 export const replace = (target, key, value) =>
   isArray(target)
@@ -108,15 +91,17 @@ export const unset = (target, [ key, ...path ]) => {
   return replace(target, key, unset(target[key], path))
 }
 
-export const isReference = value => isArray(value) || isObject(value)
+export const isObject = value => ({}).toString.call(value) === '[object Object]'
+
+export const isComplex = value => isArray(value) || isObject(value)
 
 export const someValues = (source, predicate) =>
-  isReference(source)
+  isComplex(source)
     ? !!keys(source).find(key => someValues(source[key], predicate))
     : !!predicate(source)
 
 export const shallowEqual = (a, b) => {
-  if (isReference(a) && isReference(b)) {
+  if (isComplex(a) && isComplex(b)) {
     const aKeys = keys(a)
     const bKeys = keys(b)
     return aKeys.length === bKeys.length &&
@@ -124,3 +109,17 @@ export const shallowEqual = (a, b) => {
   }
   return a === b
 }
+
+export const toPath = names =>
+  names
+    .map(name => name === Math.floor(name) ? `[${name}]` : name)
+    .join('.')
+    .replace('.[', '[')
+
+export const toNames = path =>
+  path
+    .split('.')
+    .map(name => name.split('['))
+    .reduce((flattened, names) => flattened.concat(names.map(name =>
+      /\d\]/.test(name) ? +name.replace(']', '') : name
+    )), [])

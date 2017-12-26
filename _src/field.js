@@ -10,14 +10,18 @@ export const Model = class FieldModel extends SuperControl.Model {
     this.update = this.update.bind(this)
   }
   get isFocused() {
-    return this.root.state.focused === this
+    return !!this.root &&
+           this.root.focused === this
   }
-  update(state, options = { force: false }) {
+  getState() {
+    return _.assign({}, this.state, _.pick(this, ['isFocused']))
+  }
+  update(state, { validate = true, notify = true, force = false } = {}) {
     const nextState = _.assign({}, state)
-    if ('value' in state && !options.force) {
+    if ('value' in state && !force) {
       nextState.value = this.override(state.value, this.root.values)
     }
-    this.root.patch(this.names, nextState, options)
+    this.root.patch(this.names, nextState, { validate, notify })
   }
 }
 
@@ -39,6 +43,9 @@ export class View extends SuperControl.View {
     if (this.isCheckbox) return !!init
     return init || parse(init)
   }
+  get config() {
+    return _.pick(this.props, ['notify', 'validate', 'override'])
+  }
   get prop() {
     const { state: { value, init }, model } = this
     const isPristine = _.shallowEqual(value, init)
@@ -48,11 +55,15 @@ export class View extends SuperControl.View {
       isPristine
     })
   }
-  get control() {
-    const { id, type, name, format } = this.props
-    const { onBlur, onFocus, onChange } = this
-    const control = { type, name, onBlur, onFocus, onChange }
-    if (id) control.id = id === true ? name : id
+  createControl(field) {
+    const { type, name, format } = this.props
+    const control = {
+      type,
+      name,
+      onBlur: this.handleBlur(field),
+      onFocus: this.handleFocus(field),
+      onChange: this.handleChange(field)
+    }
     if (this.isCheckbox) {
       return _.assign(control, {
         checked: !!this.state.value
@@ -66,20 +77,51 @@ export class View extends SuperControl.View {
     }
     return _.assign(control, { value: format(this.state.value) })
   }
-  onChange(event) {
+  getValue({ target: { value, checked } }) {
+    return this.props.parse(this.isCheckbox ? !!checked : value)
   }
-  onBlur(event) {
+  wrapEvent(event) {
+    return {
+      ...event,
+      defaultPrevented: false,
+      preventDefault() {
+        this.defaultPrevented = true
+        event.preventDefault && event.preventDefault()
+      }
+    }
   }
-  onFocus(event) {
+  handleBlur(field) {
+    return event => {
+      const e = this.wrapEvent(event)
+      this.props.onBlur(e, field)
+      if (event.defaultPrevented) return
+      field.update({ isTouched: true, isFocused: null })
+    }
+  }
+  handleFocus(field) {
+    return event => {
+      const e = this.wrapEvent(event)
+      this.props.onFocus(e, field)
+      if (event.defaultPrevented) return
+      field.update({ isFocused: this.model, isVisited: true })
+    }
+  }
+  handleChange(field) {
+    return event => {
+      const value = this.getValue(event)
+      const e = this.wrapEvent(event)
+      this.props.onChange(e, value, field)
+      if (event.defaultPrevented) return
+      field.update({ value }, { validate: false })
+    }
   }
   render() {
     if (_.isString(this.props.component)) {
-      return super.render(this.control)
+      return super.render(this.createControl(this.prop))
     }
-    return super.render({
-      field: this.prop,
-      control: this.control
-    })
+    const field = this.prop
+    const control = this.createControl(field)
+    return super.render({ field, control })
   }
   static get displayName() {
     return 'Field'
@@ -103,7 +145,10 @@ export class View extends SuperControl.View {
       init: '',
       parse: _.id,
       format: _.id,
-      override: _.id
+      override: _.id,
+      onBlur: _.noop,
+      onFocus: _.noop,
+      onChange: _.noop
     }
   }
 }

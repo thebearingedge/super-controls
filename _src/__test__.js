@@ -24,4 +24,4 @@ export const { expect } = chai
 export const { mount } = enzyme
 export const { stub, spy } = sinon
 export const mountWith = options => element => mount(element, options)
-export const toRoute = path => _.fromPath(path).map(name => _.wrap(name))
+export const toRoute = path => _.toNames(path).map(name => _.wrap(name))
