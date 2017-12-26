@@ -80,38 +80,28 @@ export class View extends SuperControl.View {
   getValue({ target: { value, checked } }) {
     return this.props.parse(this.isCheckbox ? !!checked : value)
   }
-  wrapEvent(event) {
-    return {
-      ...event,
-      defaultPrevented: false,
-      preventDefault() {
-        this.defaultPrevented = true
-        event.preventDefault && event.preventDefault()
-      }
-    }
-  }
   handleBlur(field) {
     return event => {
-      const e = this.wrapEvent(event)
-      this.props.onBlur(e, field)
-      if (event.defaultPrevented) return
+      const wrapped = _.wrapEvent(event)
+      this.props.onBlur(wrapped, field)
+      if (wrapped.defaultPrevented) return
       field.update({ isTouched: true, isFocused: null })
     }
   }
   handleFocus(field) {
     return event => {
-      const e = this.wrapEvent(event)
-      this.props.onFocus(e, field)
-      if (event.defaultPrevented) return
+      const wrapped = _.wrapEvent(event)
+      this.props.onFocus(wrapped, field)
+      if (wrapped.defaultPrevented) return
       field.update({ isFocused: this.model, isVisited: true })
     }
   }
   handleChange(field) {
     return event => {
       const value = this.getValue(event)
-      const e = this.wrapEvent(event)
-      this.props.onChange(e, value, field)
-      if (event.defaultPrevented) return
+      const wrapped = _.wrapEvent(event)
+      this.props.onChange(wrapped, value, field)
+      if (wrapped.defaultPrevented) return
       field.update({ value }, { validate: false })
     }
   }

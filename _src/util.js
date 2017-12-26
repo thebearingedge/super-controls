@@ -123,3 +123,11 @@ export const toNames = path =>
     .reduce((flattened, names) => flattened.concat(names.map(name =>
       /\d\]/.test(name) ? +name.replace(']', '') : name
     )), [])
+
+export const wrapEvent = event =>
+  assign({}, event, {
+    preventDefault() {
+      this.defaultPrevented = true
+      event.preventDefault && event.preventDefault()
+    }
+  })
