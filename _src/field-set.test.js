@@ -20,7 +20,7 @@ describe('FieldSet.Model', () => {
         visits: 0,
         error: null,
         notice: null,
-        isFocused: false
+        isActive: false
       })
     })
 
@@ -86,7 +86,7 @@ describe('FieldSet.Model', () => {
       const field = Field.Model.create(fieldSet, '', toRoute('foo'))
       fieldSet
         .register(['foo'], field)
-        .patch(['foo'], { isVisited: true })
+        .patch(['foo'], { visits: 1 })
       expect(fieldSet.state).to.include({ visits: 1 })
     })
 
@@ -95,8 +95,19 @@ describe('FieldSet.Model', () => {
       const field = Field.Model.create(fieldSet, '', toRoute('foo'))
       fieldSet
         .register(['foo'], field)
-        .patch(['foo'], { isTouched: true })
+        .patch(['foo'], { touches: 1 })
       expect(fieldSet.state).to.include({ touches: 1 })
+    })
+
+    it('tracks isActive of descendant fields', () => {
+      const fieldSet = FieldSet.Model.create(null, {})
+      const field = Field.Model.create(fieldSet, '', toRoute('foo'))
+      fieldSet
+        .register(['foo'], field)
+        .patch(['foo'], { visits: 1 })
+      expect(fieldSet.state).to.include({ isActive: true })
+      fieldSet.patch(['foo'], { touches: 1 })
+      expect(fieldSet.state).to.include({ isActive: false })
     })
 
   })
@@ -237,6 +248,29 @@ describe('FieldSet.Model', () => {
 
   })
 
+  describe('untouch', () => {
+
+    it('unmarks the given field as touched', () => {
+      const fieldSet = FieldSet.Model.create(null, {})
+      fieldSet.root = fieldSet
+      const fieldArray = FieldArray.Model.create(fieldSet, [], toRoute('bar'))
+      const field = Field.Model.create(fieldSet, '', toRoute('bar[0]'))
+      fieldSet
+        .register(['bar'], fieldArray)
+        .register(['bar', 0], field)
+        .patch(['bar', 0], { touches: 1 })
+        .patch(['bar', 0], { touches: 1 })
+      expect(fieldSet.state.touches).to.equal(2)
+      expect(fieldSet.fields.bar.state.touches).to.equal(2)
+      expect(fieldSet.fields.bar.fields[0].state.touches).to.equal(2)
+      fieldSet.untouch('bar[0]')
+      expect(fieldSet.state.touches).to.equal(0)
+      expect(fieldSet.fields.bar.state.touches).to.equal(0)
+      expect(fieldSet.fields.bar.fields[0].state.touches).to.equal(0)
+    })
+
+  })
+
   describe('touchAll', () => {
 
     it('marks all child fields as touched', () => {
@@ -273,15 +307,15 @@ describe('FieldSet.View', () => {
       expect(wrapper).to.have.tagName('fieldset')
     })
 
-    it('renders and registers child SuperControls', () => {
+    it('registers and renders child SuperControls', () => {
       const wrapper = mount(
         <FieldSet.View name='test'>
           <SuperControl.View name='child' render={_ => <noscript/>}/>
         </FieldSet.View>
       )
-      expect(wrapper).to.contain(<noscript/>)
       const { model } = wrapper.instance()
       expect(model.fields.child).to.be.an.instanceOf(SuperControl.Model)
+      expect(wrapper).to.contain(<noscript/>)
     })
 
     it('passes a fields prop to its component', done => {
@@ -301,6 +335,7 @@ describe('FieldSet.View', () => {
         })
         expect(fields.touch).to.be.a('function')
         expect(fields.change).to.be.a('function')
+        expect(fields.untouch).to.be.a('function')
         expect(fields.touchAll).to.be.a('function')
         done()
         return null
@@ -318,7 +353,7 @@ describe('FieldSet.View', () => {
         const wrapper = mount(<FieldSet.View name='test'/>)
         const view = wrapper.instance()
         expect(view.prop).to.include({ anyTouched: false })
-        view.model.setState({ touches: 1 })
+        view.model.patch([], { touches: 1 })
         expect(view.prop).to.include({ anyTouched: true })
       })
 
@@ -330,22 +365,22 @@ describe('FieldSet.View', () => {
         const wrapper = mount(<FieldSet.View name='test'/>)
         const view = wrapper.instance()
         expect(view.prop).to.include({ anyVisited: false })
-        view.model.setState({ visits: 1 })
+        view.model.patch([], { visits: 1 })
         expect(view.prop).to.include({ anyVisited: true })
       })
 
     })
 
-    describe('isFocused', () => {
+    describe('isActive', () => {
 
-      it('is true if a descendant field is focused', () => {
+      it('is true if a descendant field is active', () => {
         const wrapper = mount(<FieldSet.View name='test'/>)
         const view = wrapper.instance()
-        expect(view.prop).to.include({ isFocused: false })
-        view.model.patch([], { isVisited: true })
-        expect(view.prop).to.include({ isFocused: true })
-        view.model.patch([], { isTouched: true })
-        expect(view.prop).to.include({ isFocused: false })
+        expect(view.prop).to.include({ isActive: false })
+        view.model.patch([], { visits: 1 })
+        expect(view.prop).to.include({ isActive: true })
+        view.model.patch([], { touches: 1 })
+        expect(view.prop).to.include({ isActive: false })
       })
 
     })

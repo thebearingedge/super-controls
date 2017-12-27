@@ -6,6 +6,10 @@ export const Model = class FieldModel extends SuperControl.Model {
   constructor(...args) {
     super(...args)
     this.update = this.update.bind(this)
+    this.visit = this.visit.bind(this)
+    this.touch = this.touch.bind(this)
+    this.change = this.change.bind(this)
+    this.untouch = this.untouch.bind(this)
   }
   update(state, { force = false, ...options } = {}) {
     const nextState = _.assign({}, state)
@@ -13,6 +17,18 @@ export const Model = class FieldModel extends SuperControl.Model {
       nextState.value = this.override(state.value, this.root.values)
     }
     this.root.patch(this.names, nextState, options)
+  }
+  visit() {
+    this.update({ visits: 1 })
+  }
+  touch() {
+    this.update({ touches: 1 })
+  }
+  change(value) {
+    this.update({ value })
+  }
+  untouch() {
+    this.update({ touches: -this.state.touches })
   }
 }
 
@@ -40,19 +56,14 @@ export class View extends SuperControl.View {
            !!this.props.multiple
   }
   get prop() {
-    const { value, init, isFocused, visits, touches } = this.state
-    const { update } = this.model
-    const isTouched = !!touches
-    const isVisited = !!visits
-    const isPristine = _.shallowEqual(value, init)
+    const isPristine = _.shallowEqual(this.state.value, this.state.init)
     const isDirty = !isPristine
-    return _.assign(super.prop, {
-      update,
-      isDirty,
-      isVisited,
-      isTouched,
-      isFocused,
-      isPristine
+    return _.assign(super.prop, _.pick(this.model, [
+      'visit', 'touch', 'change', 'untouch'
+    ]), _.pick(this.state, [
+      'isVisited', 'isTouched'
+    ]), {
+      isDirty, isPristine
     })
   }
   createControl(field) {
@@ -95,7 +106,7 @@ export class View extends SuperControl.View {
       const wrapped = _.wrapEvent(event)
       this.props.onBlur(wrapped, field)
       if (wrapped.defaultPrevented) return
-      field.update({ isTouched: true })
+      field.touch()
     }
   }
   handleFocus(field) {
@@ -103,7 +114,7 @@ export class View extends SuperControl.View {
       const wrapped = _.wrapEvent(event)
       this.props.onFocus(wrapped, field)
       if (wrapped.defaultPrevented) return
-      field.update({ isVisited: true })
+      field.visit()
     }
   }
   handleChange(field) {
@@ -112,7 +123,7 @@ export class View extends SuperControl.View {
       const wrapped = _.wrapEvent(event)
       this.props.onChange(wrapped, value, field)
       if (wrapped.defaultPrevented) return
-      field.update({ value })
+      field.change(value)
     }
   }
   render() {

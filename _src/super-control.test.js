@@ -11,13 +11,13 @@ describe('SuperControl.Model', () => {
     it('is the state of the model', () => {
       const model = SuperControl.Model.create()
       expect(model.state).to.deep.equal({
-        touches: 0,
         visits: 0,
+        touches: 0,
         init: null,
         value: null,
         error: null,
         notice: null,
-        isFocused: false
+        isActive: false
       })
     })
 
@@ -25,7 +25,7 @@ describe('SuperControl.Model', () => {
 
   describe('name', () => {
 
-    it('is the last item in the model\'s route', () => {
+    it('is the last name in the model\'s route', () => {
       const model = SuperControl.Model.create(null, null, toRoute('foo[0]'))
       expect(model.name).to.equal(0)
     })
@@ -49,7 +49,7 @@ describe('SuperControl.Model', () => {
       form = { values: { foo: 'bar' } }
     })
 
-    it('patches the model\'s state', () => {
+    it('patches the model\'s value state', () => {
       const model = SuperControl.Model.create(form, null, void 0, {
         validate: (value, allValues) => value === allValues.foo && 'dupe!'
       })
@@ -61,11 +61,11 @@ describe('SuperControl.Model', () => {
         value: 'bar',
         error: null,
         notice: null,
-        isFocused: false
+        isActive: false
       })
     })
 
-    it('validates a new value state', () => {
+    it('validates the new value state', () => {
       const model = SuperControl.Model.create(form, null, void 0, {
         validate: (value, allValues) => value === allValues.foo && 'dupe!'
       })
@@ -77,11 +77,11 @@ describe('SuperControl.Model', () => {
         value: 'bar',
         notice: null,
         error: 'dupe!',
-        isFocused: false
+        isActive: false
       })
     })
 
-    it('notifies a new value state', () => {
+    it('notifies the new value state', () => {
       const model = SuperControl.Model.create(form, null, void 0, {
         notify: (value, all) => value === all.foo && 'match!'
       })
@@ -93,8 +93,32 @@ describe('SuperControl.Model', () => {
         value: 'bar',
         error: null,
         notice: 'match!',
-        isFocused: false
+        isActive: false
       })
+    })
+
+    it('patches the model\'s visits state', () => {
+      const model = SuperControl.Model.create(form)
+      model.patch({ visits: 1 })
+      expect(model.state).to.include({ visits: 1 })
+      model.patch({ visits: -1 })
+      expect(model.state).to.include({ visits: 0 })
+    })
+
+    it('patches the model\'s touches state', () => {
+      const model = SuperControl.Model.create(form)
+      model.patch({ touches: 1 })
+      expect(model.state).to.include({ touches: 1 })
+      model.patch({ touches: -1 })
+      expect(model.state).to.include({ touches: 0 })
+    })
+
+    it('patches the model\'s isActive state', () => {
+      const model = SuperControl.Model.create(form)
+      model.patch({ visits: 1 })
+      expect(model.state).to.include({ isActive: true })
+      model.patch({ touches: 1 })
+      expect(model.state).to.include({ isActive: false })
     })
 
   })
@@ -109,32 +133,36 @@ describe('SuperControl.Model', () => {
 
   })
 
-  describe('touch', () => {
-
-    let form
-
-    beforeEach(() => {
-      form = { patch: stub() }
-    })
-
-    it('increments the model\'s touches state', () => {
-      const model = SuperControl.Model.create(form)
-      form.patch.callsFake((_, ...args) => model.patch(...args))
-      model.touch()
-      expect(model.state).to.include({ touches: 1 })
-    })
-
-  })
-
   describe('subscribe', () => {
 
     it('subscribes listeners to state updates', done => {
       const model = SuperControl.Model.create()
-      model.subscribe(stub().onCall(1).callsFake(state => {
-        expect(state).to.deep.equal({ value: 'foo' })
-        done()
-      }))
-      model.setState({ value: 'foo' })
+      const subscriber = stub()
+        .onCall(0).callsFake(state => {
+          expect(state).to.deep.equal({
+            init: null,
+            value: null,
+            error: null,
+            notice: null,
+            isActive: false,
+            isVisited: false,
+            isTouched: false,
+          })
+        })
+        .onCall(1).callsFake(state => {
+          expect(state).to.deep.equal({
+            init: null,
+            value: 'test',
+            error: null,
+            notice: null,
+            isActive: false,
+            isVisited: false,
+            isTouched: false,
+          })
+          done()
+        })
+      model.subscribe(subscriber)
+      model.setState({ ...model.state, value: 'test' })
     })
 
     it('returns an unsubscribe function', () => {
@@ -178,39 +206,38 @@ describe('SuperControl.View', () => {
     it('gets its state from its model', () => {
       const wrapper = mount(<SuperControl.View name='test'/>)
       const view = wrapper.instance()
-      expect(view.state)
-        .to.deep.equal({
-          touches: 0,
-          visits: 0,
-          init: null,
-          value: null,
-          error: null,
-          notice: null,
-          isFocused: false
-        })
+      expect(view.state).to.deep.equal({
+        init: null,
+        value: null,
+        error: null,
+        notice: null,
+        isActive: false,
+        isVisited: false,
+        isTouched: false
+      })
     })
 
     it('subscribes to state updates on its model', () => {
       const wrapper = mount(<SuperControl.View name='test'/>)
       const view = wrapper.instance()
       expect(view.state).to.deep.equal({
-        touches: 0,
-        visits: 0,
         init: null,
         value: null,
         error: null,
         notice: null,
-        isFocused: false
+        isActive: false,
+        isVisited: false,
+        isTouched: false
       })
-      view.model.setState({ value: 'test' })
+      view.model.patch({ value: 'test' })
       expect(view.state).to.deep.equal({
-        touches: 0,
-        visits: 0,
         init: null,
+        value: 'test',
         error: null,
         notice: null,
-        value: 'test',
-        isFocused: false
+        isActive: false,
+        isVisited: false,
+        isTouched: false
       })
     })
 
@@ -240,7 +267,7 @@ describe('SuperControl.View', () => {
         value: null,
         error: null,
         notice: null,
-        isFocused: false
+        isActive: false
       })
     })
 

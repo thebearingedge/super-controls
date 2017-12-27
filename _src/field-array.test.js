@@ -17,7 +17,7 @@ describe('FieldArray.Model', () => {
         visits: 0,
         error: null,
         notice: null,
-        isFocused: false
+        isActive: false
       })
     })
 

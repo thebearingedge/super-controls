@@ -25,7 +25,7 @@ describe('Form.Model', () => {
         error: null,
         notice: null,
         focused: null,
-        isFocused: false,
+        isActive: false,
         init: { foo: '' },
         value: { foo: '' }
       })

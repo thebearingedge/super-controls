@@ -9,9 +9,19 @@ export const Model = class FieldSetModel extends SuperControl.Model {
     this.touch = this.touch.bind(this)
     this.change = this.change.bind(this)
     this.touchAll = this.touchAll.bind(this)
+    this.untouchAll = this.untouchAll.bind(this)
   }
   get values() {
     return this.state.value
+  }
+  getState() {
+    const { visits, touches, value, ...state } = this.state
+    return {
+      ...state,
+      values: value,
+      anyVisited: !!visits,
+      anyTouched: !!touches
+    }
   }
   register(names, field) {
     const [ first, ...rest ] = names
@@ -39,34 +49,44 @@ export const Model = class FieldSetModel extends SuperControl.Model {
   }
   patch(names, state, options) {
     if (!names.length) return super.patch(state, options)
-    const next = _.assign({}, this.state, state)
+    const next = _.assign({}, state)
     if ('init' in state) {
       next.init = _.set(this.state.init, names, state.init)
     }
     if ('value' in state) {
       next.value = _.set(this.state.value, names, state.value)
     }
-    super.patch(_.omit(next, ['touches', 'visits']), options)
+    super.patch(next, options)
     const [ first, ...rest ] = names
-    const child = this.fields[first]
-    child instanceof FieldSetModel
-      ? child.patch(rest, state, options)
-      : child.patch(state, options)
+    const field = this.fields[first]
+    field instanceof FieldSetModel
+      ? field.patch(rest, state, options)
+      : field.patch(state, options)
     return this
   }
   change(path, value) {
     const names = _.toNames(path)
     const field = this.getField(names)
-    field && this.root.patch([...this.names, ...names], { value })
+    field && field.change(value)
   }
   touch(path) {
     const names = _.toNames(path)
     const field = this.getField(names)
-    field && this.root.patch([...this.names, ...names], { isTouched: true })
+    field && field.touch()
+  }
+  untouch(path) {
+    const names = _.toNames(path)
+    const field = this.getField(names)
+    field && field.untouch()
   }
   touchAll() {
     _.keys(this.fields).forEach(key => {
       _.invoke(this.fields[key].touchAll || this.fields[key].touch)
+    })
+  }
+  untouchAll() {
+    _.keys(this.fields).forEach(key => {
+      _.invoke(this.fields[key].untouchAll || this.fields[key].untouch)
     })
   }
   static create(root, init = {}, route, checks) {
@@ -84,19 +104,17 @@ export class View extends SuperControl.View {
   }
   get prop() {
     return _.assign(_.omit(super.prop, [
-      'value', 'visits', 'touches'
+      'value'
     ]), _.pick(this.model, [
-      'change', 'touch', 'touchAll', 'untouch'
-    ]), {
-      values: this.state.value,
-      anyVisited: !!this.state.visits,
-      anyTouched: !!this.state.touches
-    })
+      'change', 'touch', 'touchAll', 'untouch', 'untouchAll'
+    ]), _.pick(this.state, [
+      'values', 'anyVisited', 'anyTouched'
+    ]))
   }
   register({ route, ...params }) {
     return this.context['@@super-controls'].register({
       ...params,
-      route: [_.wrap(this.props.name), ...route]
+      route: [_ => this.props.name, ...route]
     })
   }
   getChildContext() {

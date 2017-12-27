@@ -17,7 +17,7 @@ describe('Field.Model', () => {
         value: null,
         error: null,
         notice: null,
-        isFocused: false
+        isActive: false
       })
     })
 
@@ -42,7 +42,7 @@ describe('Field.Model', () => {
         value: 'foo',
         error: null,
         notice: null,
-        isFocused: false
+        isActive: false
       })
     })
 
@@ -61,7 +61,7 @@ describe('Field.Model', () => {
         value: 'baz',
         error: null,
         notice: null,
-        isFocused: false
+        isActive: false
       })
     })
 
@@ -80,7 +80,7 @@ describe('Field.Model', () => {
         value: 'foo',
         error: null,
         notice: null,
-        isFocused: false
+        isActive: false
       })
     })
 
@@ -169,42 +169,52 @@ describe('Field.View', () => {
         value: '',
         error: null,
         notice: null,
-        isFocused: false
+        isActive: false,
+        hasError: false,
+        hasNotice: false,
+        isValid: true,
+        isInvalid: false
       })
-    })
-
-    describe('isTouched', () => {
-
-      it('is true if the field has been blurred', () => {
-        const wrapper = mount(<Field.View name='test'/>)
-        const view = wrapper.instance()
-        expect(view.prop).to.include({ isTouched: false })
-        view.model.patch({ isTouched: true })
-        expect(view.prop).to.include({ isTouched: true })
-      })
-
+      expect(prop.visit).to.be.a('function')
+      expect(prop.touch).to.be.a('function')
+      expect(prop.change).to.be.a('function')
+      expect(prop.untouch).to.be.a('function')
     })
 
     describe('isVisited', () => {
 
-      it('is true if the field has been blurred', () => {
+      it('is true if the field has been visited', () => {
         const wrapper = mount(<Field.View name='test'/>)
         const view = wrapper.instance()
         expect(view.prop).to.include({ isVisited: false })
-        view.model.patch({ isVisited: true })
+        view.model.patch({ visits: 1 })
         expect(view.prop).to.include({ isVisited: true })
       })
 
     })
 
-    describe('isFocused', () => {
+    describe('isTouched', () => {
+
+      it('is true if the field has been touched', () => {
+        const wrapper = mount(<Field.View name='test'/>)
+        const view = wrapper.instance()
+        expect(view.prop).to.include({ isTouched: false })
+        view.model.patch({ touches: 1 })
+        expect(view.prop).to.include({ isTouched: true })
+      })
+
+    })
+
+    describe('isActive', () => {
 
       it('is true if the field currently has focus', () => {
         const wrapper = mount(<Field.View name='test'/>)
         const view = wrapper.instance()
-        expect(view.prop).to.include({ isFocused: false })
-        view.model.patch({ isVisited: true })
-        expect(view.prop).to.include({ isFocused: true })
+        expect(view.prop).to.include({ isActive: false })
+        view.model.patch({ visits: 1 })
+        expect(view.prop).to.include({ isActive: true })
+        view.model.patch({ touches: 1 })
+        expect(view.prop).to.include({ isActive: false })
       })
 
     })
@@ -283,36 +293,30 @@ describe('Field.View', () => {
         const wrapper = mount(<Field.View name='test' component='input'/>)
         const { model } = wrapper.instance()
         expect(model.state).to.include({ touches: 0 })
-        expect(wrapper).to.have.state('touches', 0)
+        expect(wrapper.state()).to.include({ isTouched: false })
         wrapper.simulate('blur')
         expect(model.state).to.include({ touches: 1 })
-        expect(wrapper).to.have.state('touches', 1)
+        expect(wrapper.state()).to.include({ isTouched: true })
       })
 
     })
 
     describe('onFocus', () => {
 
-      it('sets the fields\'s isFocused and isVisited state', () => {
+      it('sets the fields\'s isActive and isVisited state', () => {
         const wrapper = mount(<Field.View name='test' component='input'/>)
         const { model } = wrapper.instance()
         expect(model.state).to.include({
           visits: 0,
-          isFocused: false
+          isActive: false
         })
-        expect(wrapper.state()).to.include({
-          visits: 0,
-          isFocused: false
-        })
+        expect(wrapper.state()).to.include({ isActive: false })
         wrapper.simulate('focus')
         expect(model.state).to.include({
           visits: 1,
-          isFocused: true
+          isActive: true
         })
-        expect(wrapper.state()).to.include({
-          visits: 1,
-          isFocused: true
-        })
+        expect(wrapper.state()).to.include({ isActive: true })
       })
 
     })
@@ -323,8 +327,10 @@ describe('Field.View', () => {
         const wrapper = mount(<Field.View name='test' component='input'/>)
         const { model } = wrapper.instance()
         expect(model.state).to.include({ value: '' })
+        expect(wrapper.state()).to.include({ value: '' })
         wrapper.simulate('change', { target: { value: 'test' } })
         expect(model.state).to.include({ value: 'test' })
+        expect(wrapper.state()).to.include({ value: 'test' })
       })
 
     })
@@ -355,7 +361,6 @@ describe('Field.View', () => {
 
       it('formats the value from the field state', () => {
         const format = value => {
-          if (!value) return ''
           const year = value.getFullYear()
           const month = `${value.getMonth() + 1}`.padStart(2, 0)
           const day = `${value.getDate()}`.padStart(2, 0)

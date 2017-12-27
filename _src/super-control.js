@@ -5,20 +5,19 @@ import * as _ from './util'
 export const Model = class SuperControlModel {
   constructor(root, init, route, config) {
     const state = {
-      touches: 0,
       visits: 0,
+      touches: 0,
       init: init,
       value: init,
       error: null,
       notice: null,
-      isFocused: false
+      isActive: false
     }
     _.assign(this, config, {
       root,
       route,
       state,
-      subscribers: [],
-      touch: this.touch.bind(this)
+      subscribers: []
     })
   }
   get name() {
@@ -30,38 +29,40 @@ export const Model = class SuperControlModel {
   get path() {
     return _.toPath(this.names)
   }
+  getState() {
+    const { visits, touches, ...state } = this.state
+    return { ...state, isVisited: !!visits, isTouched: !!touches }
+  }
   subscribe(subscriber) {
     const index = this.subscribers.push(subscriber) - 1
-    subscriber(this.state)
+    subscriber(this.getState())
     return _ => {
       this.subscribers.splice(index, 1)
       this.subscribers.length || this.root.unregister(this.names)
     }
   }
   publish() {
-    this.subscribers.forEach(subscriber => subscriber(this.state))
+    const state = this.getState()
+    this.subscribers.forEach(subscriber => subscriber(state))
     return this
   }
   patch(state, { notify = false, validate = false, ...options } = {}) {
-    const next = _.assign({}, this.state, state)
-    if (state.isTouched) next.touches += 1
-    if (state.isVisited) next.visits += 1
+    const next = _.assign({}, this.state, _.omit(state, ['visits', 'touches']))
+    if ('visits' in state) next.visits += state.visits
+    if ('touches' in state) next.touches += state.touches
     if (notify) {
       next.notice = this.notify(next.value, this.root.values)
     }
     if (validate) {
       next.error = this.validate(next.value, this.root.values)
     }
-    next.isFocused = (next.visits > this.state.visits) ||
-                     (this.state.isFocused && next.touches <= this.state.touches)
-    return this.setState(_.omit(next, ['isVisited', 'isTouched']), options)
+    next.isActive = (next.visits > this.state.visits) ||
+                     (this.state.isActive && next.touches <= this.state.touches)
+    return this.setState(next, options)
   }
   setState(nextState, { silent = false } = {}) {
     this.state = nextState
     return silent ? this : this.publish()
-  }
-  touch() {
-    this.root.patch(this.names, { isTouched: true })
   }
   static create(root, init = null, route = [], config = {}) {
     return new this(root, init, route, _.defaults({}, config, {
@@ -83,13 +84,17 @@ export class View extends PureComponent {
     return _.pick(this.props, ['notify', 'validate'])
   }
   get prop() {
-    const { model, state } = this
-    const isValid = !state.error
-    const isInvalid = !isValid
-    const hasError = isInvalid
-    const hasNotice = !!state.notice
-    return _.assign({}, state, _.pick(model, ['name', 'path']), {
-      isValid, isInvalid, hasError, hasNotice
+    const { state: { error, notice } } = this
+    const isValid = !error
+    const hasError = !isValid
+    const isInvalid = hasError
+    const hasNotice = !!notice
+    return _.assign(_.pick(this.model, [
+      'name', 'path'
+    ]), _.pick(this.state, [
+      'init', 'value', 'isActive'
+    ]), {
+      error, notice, isValid, hasError, isInvalid, hasNotice
     })
   }
   componentWillMount() {
