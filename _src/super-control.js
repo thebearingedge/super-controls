@@ -4,12 +4,21 @@ import * as _ from './util'
 
 export const Model = class SuperControlModel {
   constructor(root, init, route, config) {
+    const state = {
+      blurs: 0,
+      visits: 0,
+      init: init,
+      value: init,
+      error: null,
+      notice: null,
+      isFocused: false
+    }
     _.assign(this, config, {
       root,
       route,
+      state,
       subscribers: [],
-      touch: this.touch.bind(this),
-      state: { init: init, value: init, error: null, notice: null }
+      touch: this.touch.bind(this)
     })
   }
   get name() {
@@ -36,19 +45,23 @@ export const Model = class SuperControlModel {
     this.subscribers.forEach(subscriber => subscriber(this.getState()))
     return this
   }
-  patch(state, { notify = false, validate = false } = {}) {
-    const nextState = _.assign({}, this.state, state)
+  patch(state, { notify = false, validate = false, ...options } = {}) {
+    const next = _.assign({}, this.state, state)
+    if (state.isTouched) next.blurs += 1
+    if (state.isVisited) next.visits += 1
     if (notify) {
-      nextState.notice = this.notify(nextState.value, this.root.values) || null
+      next.notice = this.notify(next.value, this.root.values) || null
     }
     if (validate) {
-      nextState.error = this.validate(nextState.value, this.root.values) || null
+      next.error = this.validate(next.value, this.root.values) || null
     }
-    return this.setState(nextState)
+    next.isFocused = (next.visits > this.state.visits) ||
+                     (this.state.isFocused && next.blurs <= this.state.blurs)
+    return this.setState(_.omit(next, ['isVisited', 'isTouched']), options)
   }
-  setState(nextState) {
+  setState(nextState, { silent = false } = {}) {
     this.state = nextState
-    return this.publish()
+    return silent ? this : this.publish()
   }
   touch() {
     this.root.patch(this.names, { isTouched: true })

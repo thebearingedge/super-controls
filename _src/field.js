@@ -5,16 +5,10 @@ import * as SuperControl from './super-control'
 export const Model = class FieldModel extends SuperControl.Model {
   constructor(...args) {
     super(...args)
-    this.state.isTouched = false
-    this.state.isVisited = false
     this.update = this.update.bind(this)
   }
-  get isFocused() {
-    return !!this.root &&
-           this.root.focused === this
-  }
   getState() {
-    return _.assign({}, this.state, _.pick(this, ['isFocused']))
+    return _.assign({}, this.state)
   }
   update(state, { validate = true, notify = true, force = false } = {}) {
     const nextState = _.assign({}, state)
@@ -49,10 +43,20 @@ export class View extends SuperControl.View {
     return _.pick(this.props, ['notify', 'validate', 'override'])
   }
   get prop() {
-    const { state: { value, init }, model: { isFocused, update } } = this
+    const { value, init, isFocused, visits, blurs } = this.state
+    const { update } = this.model
+    const isTouched = !!blurs
+    const isVisited = !!visits
     const isPristine = _.shallowEqual(value, init)
     const isDirty = !isPristine
-    return _.assign(super.prop, { update, isDirty, isFocused, isPristine })
+    return _.assign(super.prop, {
+      update,
+      isDirty,
+      isVisited,
+      isTouched,
+      isFocused,
+      isPristine
+    })
   }
   createControl(field) {
     const { type, name, format } = this.props
@@ -94,7 +98,7 @@ export class View extends SuperControl.View {
       const wrapped = _.wrapEvent(event)
       this.props.onBlur(wrapped, field)
       if (wrapped.defaultPrevented) return
-      field.update({ isTouched: true, isFocused: null })
+      field.update({ isTouched: true })
     }
   }
   handleFocus(field) {
@@ -102,7 +106,7 @@ export class View extends SuperControl.View {
       const wrapped = _.wrapEvent(event)
       this.props.onFocus(wrapped, field)
       if (wrapped.defaultPrevented) return
-      field.update({ isFocused: this.model, isVisited: true })
+      field.update({ isVisited: true })
     }
   }
   handleChange(field) {

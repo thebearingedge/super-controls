@@ -15,10 +15,9 @@ describe('FieldArray.Model', () => {
         value: [],
         blurs: 0,
         visits: 0,
-        touched: [],
-        visited: [],
         error: null,
-        notice: null
+        notice: null,
+        isFocused: false
       })
     })
 
@@ -59,9 +58,7 @@ describe('FieldArray.Model', () => {
       model.insert(1, 'bar')
       expect(model.state).to.deep.include({
         init: ['foo', 'bar', 'baz'],
-        value: ['foo', 'bar', 'baz'],
-        touched: [void 0, void 0],
-        visited: [void 0, void 0]
+        value: ['foo', 'bar', 'baz']
       })
     })
 
@@ -75,9 +72,7 @@ describe('FieldArray.Model', () => {
       model.push('baz')
       expect(model.state).to.deep.include({
         init: ['foo', 'bar', 'baz'],
-        value: ['foo', 'bar', 'baz'],
-        touched: [void 0, void 0, void 0],
-        visited: [void 0, void 0, void 0]
+        value: ['foo', 'bar', 'baz']
       })
     })
 
@@ -91,9 +86,7 @@ describe('FieldArray.Model', () => {
       model.unshift('foo')
       expect(model.state).to.deep.include({
         init: ['foo', 'bar', 'baz'],
-        value: ['foo', 'bar', 'baz'],
-        touched: [void 0],
-        visited: [void 0]
+        value: ['foo', 'bar', 'baz']
       })
     })
 
@@ -121,9 +114,7 @@ describe('FieldArray.Model', () => {
       model.pop()
       expect(model.state).to.deep.include({
         init: ['foo', 'bar'],
-        value: ['foo', 'bar'],
-        touched: [],
-        visited: []
+        value: ['foo', 'bar']
       })
     })
 
@@ -137,9 +128,7 @@ describe('FieldArray.Model', () => {
       model.shift()
       expect(model.state).to.deep.include({
         init: ['bar', 'baz'],
-        value: ['bar', 'baz'],
-        touched: [],
-        visited: []
+        value: ['bar', 'baz']
       })
     })
 
@@ -153,9 +142,7 @@ describe('FieldArray.Model', () => {
       model.clear()
       expect(model.state).to.deep.include({
         init: [],
-        value: [],
-        touched: [],
-        visited: []
+        value: []
       })
     })
 

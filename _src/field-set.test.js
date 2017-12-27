@@ -18,10 +18,9 @@ describe('FieldSet.Model', () => {
         value: {},
         blurs: 0,
         visits: 0,
-        touched: {},
-        visited: {},
         error: null,
-        notice: null
+        notice: null,
+        isFocused: false
       })
     })
 
@@ -151,16 +150,12 @@ describe('FieldSet.Model', () => {
       fieldSet.register(['foo'], field)
       expect(fieldSet.state).to.deep.include({
         init: { foo: '' },
-        value: { foo: '' },
-        touched: { foo: false },
-        visited: { foo: false }
+        value: { foo: '' }
       })
       fieldSet.unregister(['foo'])
       expect(fieldSet.state).to.deep.include({
         init: {},
-        value: {},
-        touched: {},
-        visited: {}
+        value: {}
       })
     })
 
@@ -195,16 +190,12 @@ describe('FieldSet.Model', () => {
         .register(['foo', 'bar'], grandchild)
       expect(parent.state).to.deep.include({
         init: { foo: { bar: '' } },
-        value: { foo: { bar: '' } },
-        touched: { foo: { bar: false } },
-        visited: { foo: { bar: false } }
+        value: { foo: { bar: '' } }
       })
       parent.unregister(['foo', 'bar'])
       expect(parent.state).to.deep.include({
         init: { foo: {} },
-        value: { foo: {} },
-        touched: { foo: {} },
-        visited: { foo: {} }
+        value: { foo: {} }
       })
     })
 
@@ -239,31 +230,9 @@ describe('FieldSet.Model', () => {
         .register(['bar'], fieldArray)
         .register(['bar', 0], field)
         .touch('bar[0]')
-      expect(fieldSet.state.touched.bar[0]).to.equal(true)
-      expect(fieldSet.fields.bar.state.touched[0]).to.equal(true)
-      expect(fieldSet.fields.bar.fields[0].state.isTouched).to.equal(true)
-    })
-
-  })
-
-  describe('untouch', () => {
-
-    it('unmarks the given field as touched', () => {
-      const fieldSet = FieldSet.Model.create(null, {})
-      fieldSet.root = fieldSet
-      const fieldArray = FieldArray.Model.create(fieldSet, [], toRoute('bar'))
-      const field = Field.Model.create(fieldSet, '', toRoute('bar[0]'))
-      fieldSet
-        .register(['bar'], fieldArray)
-        .register(['bar', 0], field)
-        .touch('bar[0]')
-      expect(fieldSet.state.touched.bar[0]).to.equal(true)
-      expect(fieldSet.fields.bar.state.touched[0]).to.equal(true)
-      expect(fieldSet.fields.bar.fields[0].state.isTouched).to.equal(true)
-      fieldSet.untouch('bar[0]')
-      expect(fieldSet.state.touched.bar[0]).to.equal(false)
-      expect(fieldSet.fields.bar.state.touched[0]).to.equal(false)
-      expect(fieldSet.fields.bar.fields[0].state.isTouched).to.equal(false)
+      expect(fieldSet.state.blurs).to.equal(1)
+      expect(fieldSet.fields.bar.state.blurs).to.equal(1)
+      expect(fieldSet.fields.bar.fields[0].state.blurs).to.equal(1)
     })
 
   })
@@ -278,9 +247,9 @@ describe('FieldSet.Model', () => {
         .register(['bar'], Field.Model.create(fieldSet, '', toRoute('bar')))
         .register(['baz'], Field.Model.create(fieldSet, '', toRoute('baz')))
         .touchAll()
-      expect(fieldSet.fields.foo.state.isTouched).to.equal(true)
-      expect(fieldSet.fields.bar.state.isTouched).to.equal(true)
-      expect(fieldSet.fields.baz.state.isTouched).to.equal(true)
+      expect(fieldSet.fields.foo.state.blurs).to.equal(1)
+      expect(fieldSet.fields.bar.state.blurs).to.equal(1)
+      expect(fieldSet.fields.baz.state.blurs).to.equal(1)
     })
 
   })
@@ -332,7 +301,6 @@ describe('FieldSet.View', () => {
         })
         expect(fields.touch).to.be.a('function')
         expect(fields.change).to.be.a('function')
-        expect(fields.untouch).to.be.a('function')
         expect(fields.touchAll).to.be.a('function')
         done()
         return null
@@ -362,9 +330,9 @@ describe('FieldSet.View', () => {
         const wrapper = mount(<FieldSet.View name='test'/>)
         const view = wrapper.instance()
         expect(view.prop).to.include({ isFocused: false })
-        view.model.setState({ visits: 1 })
+        view.model.patch([], { isVisited: true })
         expect(view.prop).to.include({ isFocused: true })
-        view.model.setState({ blurs: 1 })
+        view.model.patch([], { isTouched: true })
         expect(view.prop).to.include({ isFocused: false })
       })
 

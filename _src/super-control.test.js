@@ -11,10 +11,13 @@ describe('SuperControl.Model', () => {
     it('is the state of the model', () => {
       const model = SuperControl.Model.create()
       expect(model.state).to.deep.equal({
+        blurs: 0,
+        visits: 0,
         init: null,
         value: null,
         error: null,
-        notice: null
+        notice: null,
+        isFocused: false
       })
     })
 
@@ -31,7 +34,7 @@ describe('SuperControl.Model', () => {
 
   describe('path', () => {
 
-    it('is a string notation of the model\'s paths', () => {
+    it('is a string notation of the model\'s path', () => {
       const model = SuperControl.Model.create(null, null, toRoute('foo[0].bar'))
       expect(model.path).to.equal('foo[0].bar')
     })
@@ -47,41 +50,50 @@ describe('SuperControl.Model', () => {
     })
 
     it('patches the model\'s state', () => {
-      const model = SuperControl.Model.create(form, null, [], {
+      const model = SuperControl.Model.create(form, null, void 0, {
         validate: (value, allValues) => value === allValues.foo && 'dupe!'
       })
       const { state } = model.patch({ value: 'bar' })
       expect(state).to.deep.equal({
+        blurs: 0,
+        visits: 0,
         init: null,
         value: 'bar',
         error: null,
-        notice: null
+        notice: null,
+        isFocused: false
       })
     })
 
     it('validates a new value state', () => {
-      const model = SuperControl.Model.create(form, null, [], {
+      const model = SuperControl.Model.create(form, null, void 0, {
         validate: (value, allValues) => value === allValues.foo && 'dupe!'
       })
       const { state } = model.patch({ value: 'bar' }, { validate: true })
       expect(state).to.deep.equal({
+        blurs: 0,
+        visits: 0,
         init: null,
         value: 'bar',
         notice: null,
-        error: 'dupe!'
+        error: 'dupe!',
+        isFocused: false
       })
     })
 
     it('notifies a new value state', () => {
-      const model = SuperControl.Model.create(form, null, [], {
+      const model = SuperControl.Model.create(form, null, void 0, {
         notify: (value, all) => value === all.foo && 'match!'
       })
       const { state } = model.patch({ value: 'bar' }, { notify: true })
       expect(state).to.deep.equal({
+        blurs: 0,
+        visits: 0,
         init: null,
         value: 'bar',
         error: null,
-        notice: 'match!'
+        notice: 'match!',
+        isFocused: false
       })
     })
 
@@ -105,11 +117,11 @@ describe('SuperControl.Model', () => {
       form = { patch: stub() }
     })
 
-    it('sets the model\'s isTouched state to true', () => {
+    it('increments the model\'s blurs state', () => {
       const model = SuperControl.Model.create(form)
       form.patch.callsFake((_, ...args) => model.patch(...args))
       model.touch()
-      expect(model.state).to.include({ isTouched: true })
+      expect(model.state).to.include({ blurs: 1 })
     })
 
   })
@@ -168,10 +180,13 @@ describe('SuperControl.View', () => {
       const view = wrapper.instance()
       expect(view.state)
         .to.deep.equal({
+          blurs: 0,
+          visits: 0,
           init: null,
           value: null,
           error: null,
-          notice: null
+          notice: null,
+          isFocused: false
         })
     })
 
@@ -179,17 +194,23 @@ describe('SuperControl.View', () => {
       const wrapper = mount(<SuperControl.View name='test'/>)
       const view = wrapper.instance()
       expect(view.state).to.deep.equal({
+        blurs: 0,
+        visits: 0,
         init: null,
         value: null,
         error: null,
-        notice: null
+        notice: null,
+        isFocused: false
       })
       view.model.setState({ value: 'test' })
       expect(view.state).to.deep.equal({
+        blurs: 0,
+        visits: 0,
         init: null,
         error: null,
         notice: null,
-        value: 'test'
+        value: 'test',
+        isFocused: false
       })
     })
 
@@ -218,7 +239,8 @@ describe('SuperControl.View', () => {
         init: null,
         value: null,
         error: null,
-        notice: null
+        notice: null,
+        isFocused: false
       })
     })
 

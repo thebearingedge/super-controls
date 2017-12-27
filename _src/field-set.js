@@ -6,13 +6,8 @@ export const Model = class FieldSetModel extends SuperControl.Model {
   constructor(...args) {
     super(...args)
     this.fields = {}
-    this.state.blurs = 0
-    this.state.visits = 0
-    this.state.touched = {}
-    this.state.visited = {}
     this.touch = this.touch.bind(this)
     this.change = this.change.bind(this)
-    this.untouch = this.untouch.bind(this)
     this.touchAll = this.touchAll.bind(this)
   }
   get values() {
@@ -32,13 +27,10 @@ export const Model = class FieldSetModel extends SuperControl.Model {
       : this.fields[name]
   }
   unregister(names) {
-    const { init, value, touched, visited, visits } = this.state
+    const { init, value } = this.state
     this.setState({
-      visits,
       init: _.unset(init, names),
-      value: _.unset(value, names),
-      touched: _.unset(touched, names),
-      visited: _.unset(visited, names)
+      value: _.unset(value, names)
     })
     const [ first, ...rest ] = names
     this.fields = rest.length
@@ -48,23 +40,14 @@ export const Model = class FieldSetModel extends SuperControl.Model {
   }
   patch(names, state, options) {
     if (!names.length) return super.patch(state, options)
-    const { init, value, touched, isTouched, visited, isVisited } = state
-    const nextState = _.assign({}, this.state)
-    if (state.isTouched) nextState.blurs += 1
-    if (state.isVisited) nextState.visits += 1
+    const nextState = _.assign({}, this.state, state)
     if ('init' in state) {
-      nextState.init = _.set(this.state.init, names, init)
+      nextState.init = _.set(this.state.init, names, state.init)
     }
     if ('value' in state) {
-      nextState.value = _.set(this.state.value, names, value)
+      nextState.value = _.set(this.state.value, names, state.value)
     }
-    if ('touched' in state || 'isTouched' in state) {
-      nextState.touched = _.set(this.state.touched, names, touched || isTouched)
-    }
-    if ('visited' in state || 'isVisited' in state) {
-      nextState.visited = _.set(this.state.visited, names, visited || isVisited)
-    }
-    this.setState(nextState, options)
+    super.patch(_.omit(nextState, ['blurs', 'visits']), options)
     const [ first, ...rest ] = names
     const child = this.fields[first]
     child instanceof FieldSetModel
@@ -81,11 +64,6 @@ export const Model = class FieldSetModel extends SuperControl.Model {
     const names = _.toNames(path)
     const field = this.getField(names)
     field && this.root.patch([...this.names, ...names], { isTouched: true })
-  }
-  untouch(path) {
-    const names = _.toNames(path)
-    const field = this.getField(names)
-    field && this.root.patch([...this.names, ...names], { isTouched: false })
   }
   touchAll() {
     _.keys(this.fields).forEach(key => {
@@ -113,18 +91,8 @@ export class View extends SuperControl.View {
       'change', 'touch', 'touchAll', 'untouch'
     ]), {
       values: this.state.value,
-      isFocused: this.state.isFocused,
       anyTouched: _.someValues(this.state.touched, _.id)
     })
-  }
-  subscriber(nextState) {
-    if (!this.state) {
-      return this.setState(_.assign(nextState, { isFocused: false }))
-    }
-    this.setState(state => _.assign({}, nextState, {
-      isFocused: nextState.visits > state.visits ||
-                 (state.isFocused && nextState.blurs <= state.blurs)
-    }))
   }
   register({ route, ...params }) {
     return this.context['@@super-controls'].register({

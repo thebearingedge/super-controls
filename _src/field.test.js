@@ -11,12 +11,13 @@ describe('Field.Model', () => {
     it('is the state of the field', () => {
       const model = Field.Model.create()
       expect(model.state).to.deep.equal({
+        blurs: 0,
+        visits: 0,
         init: null,
         value: null,
         error: null,
         notice: null,
-        isTouched: false,
-        isVisited: false
+        isFocused: false
       })
     })
 
@@ -35,17 +36,18 @@ describe('Field.Model', () => {
       form.patch.callsFake((_, ...args) => field.patch(...args))
       field.update({ value: 'foo' })
       expect(field.state).to.deep.equal({
+        blurs: 0,
+        visits: 0,
         init: null,
         value: 'foo',
         error: null,
         notice: null,
-        isTouched: false,
-        isVisited: false
+        isFocused: false
       })
     })
 
     it('overrides the value being sent to the form', () => {
-      const field = Field.Model.create(form, null, [], {
+      const field = Field.Model.create(form, null, void 0, {
         override: (value, values) => {
           return values.foo === 'bar' ? 'baz' : value
         }
@@ -53,17 +55,18 @@ describe('Field.Model', () => {
       form.patch.callsFake((_, ...args) => field.patch(...args))
       field.update({ value: 'foo' })
       expect(field.state).to.deep.equal({
+        blurs: 0,
+        visits: 0,
         init: null,
         value: 'baz',
         error: null,
         notice: null,
-        isTouched: false,
-        isVisited: false
+        isFocused: false
       })
     })
 
     it('forces the value being sent to the form', () => {
-      const field = Field.Model.create(form, null, [], {
+      const field = Field.Model.create(form, null, void 0, {
         override: (value, values) => {
           return values.foo === 'bar' ? 'baz' : value
         }
@@ -71,12 +74,13 @@ describe('Field.Model', () => {
       form.patch.callsFake((_, ...args) => field.patch(...args))
       field.update({ value: 'foo' }, { force: true })
       expect(field.state).to.deep.equal({
+        blurs: 0,
+        visits: 0,
         init: null,
         value: 'foo',
         error: null,
         notice: null,
-        isTouched: false,
-        isVisited: false
+        isFocused: false
       })
     })
 
@@ -165,18 +169,41 @@ describe('Field.View', () => {
         value: '',
         error: null,
         notice: null,
-        isTouched: false,
-        isVisited: false
+        isFocused: false
       })
+    })
+
+    describe('isTouched', () => {
+
+      it('is true if the field has been blurred', () => {
+        const wrapper = mount(<Field.View name='test'/>)
+        const view = wrapper.instance()
+        expect(view.prop).to.include({ isTouched: false })
+        view.model.patch({ isTouched: true })
+        expect(view.prop).to.include({ isTouched: true })
+      })
+
+    })
+
+    describe('isVisited', () => {
+
+      it('is true if the field has been blurred', () => {
+        const wrapper = mount(<Field.View name='test'/>)
+        const view = wrapper.instance()
+        expect(view.prop).to.include({ isVisited: false })
+        view.model.patch({ isVisited: true })
+        expect(view.prop).to.include({ isVisited: true })
+      })
+
     })
 
     describe('isFocused', () => {
 
-      it('is true if the Form currently has focus on the field', () => {
+      it('is true if the field currently has focus', () => {
         const wrapper = mount(<Field.View name='test'/>)
         const view = wrapper.instance()
         expect(view.prop).to.include({ isFocused: false })
-        form.focused = view.model
+        view.model.patch({ isVisited: true })
         expect(view.prop).to.include({ isFocused: true })
       })
 
@@ -255,12 +282,11 @@ describe('Field.View', () => {
       it('sets the field as touched', () => {
         const wrapper = mount(<Field.View name='test' component='input'/>)
         const { model } = wrapper.instance()
-        expect(model.state).to.include({ isTouched: false })
-        expect(wrapper).to.have.state('isTouched', false)
+        expect(model.state).to.include({ blurs: 0 })
+        expect(wrapper).to.have.state('blurs', 0)
         wrapper.simulate('blur')
-        expect(model.state).to.include({ isTouched: true })
-        expect(wrapper).to.have.state('isTouched', true)
-        expect(form).to.include({ focused: null })
+        expect(model.state).to.include({ blurs: 1 })
+        expect(wrapper).to.have.state('blurs', 1)
       })
 
     })
@@ -270,16 +296,23 @@ describe('Field.View', () => {
       it('sets the fields\'s isFocused and isVisited state', () => {
         const wrapper = mount(<Field.View name='test' component='input'/>)
         const { model } = wrapper.instance()
-        expect(model).to.include({ isFocused: false })
-        expect(model.state).to.include({ isVisited: false })
+        expect(model.state).to.include({
+          visits: 0,
+          isFocused: false
+        })
         expect(wrapper.state()).to.include({
-          isFocused: false,
-          isVisited: false
+          visits: 0,
+          isFocused: false
         })
         wrapper.simulate('focus')
-        expect(model).to.include({ isFocused: true })
-        expect(model.state).to.include({ isVisited: true })
-        expect(form).to.include({ focused: model })
+        expect(model.state).to.include({
+          visits: 1,
+          isFocused: true
+        })
+        expect(wrapper.state()).to.include({
+          visits: 1,
+          isFocused: true
+        })
       })
 
     })
@@ -362,7 +395,7 @@ describe('Field.View', () => {
         }
         const test = (event, field) => {
           event.preventDefault()
-          expect(field.isTouched).to.equal(false)
+          expect(field).to.be.an('object')
           done()
         }
         const wrapper = mount(
@@ -383,7 +416,7 @@ describe('Field.View', () => {
         }
         const test = (event, field) => {
           event.preventDefault()
-          expect(field.isFocused).to.equal(false)
+          expect(field).to.be.an('object')
           done()
         }
         const wrapper = mount(
@@ -405,7 +438,7 @@ describe('Field.View', () => {
         const test = (event, nextValue, field) => {
           event.preventDefault()
           expect(nextValue).to.equal('foo')
-          expect(field.value).to.equal('')
+          expect(field).to.be.an('object')
           done()
         }
         const wrapper = mount(

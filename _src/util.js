@@ -65,7 +65,7 @@ export const { isArray } = Array
 export const replace = (target, key, value) =>
   isArray(target)
     ? sliceOver(target, key, value)
-    : assign(target, { [key]: value })
+    : assign({}, target, { [key]: value })
 
 export const remove = (target, key) =>
   isArray(target)
@@ -84,7 +84,6 @@ export const set = (target, [ first, next, ...rest ], value) => {
 }
 
 export const unset = (target, [ key, ...path ]) => {
-  if (!exists(target, key)) return target
   if (!path.length) return remove(target, key)
   return replace(target, key, unset(target[key], path))
 }

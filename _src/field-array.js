@@ -6,8 +6,6 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
   constructor(...args) {
     super(...args)
     this.fields = []
-    this.state.touched = []
-    this.state.visited = []
     this.at = this.at.bind(this)
     this.insert = this.insert.bind(this)
     this.push = this.push.bind(this)
@@ -26,9 +24,7 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
   insert(index, value) {
     this.root.patch(this.names, {
       init: _.sliceIn(this.values, index, value),
-      value: _.sliceIn(this.values, index, value),
-      touched: _.sliceIn(this.state.touched, index),
-      visited: _.sliceIn(this.state.visited, index)
+      value: _.sliceIn(this.values, index, value)
     })
   }
   push(value) {
@@ -40,17 +36,13 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
   remove(index) {
     this.root.patch(this.names, {
       init: _.remove(this.values, index),
-      value: _.remove(this.values, index),
-      touched: _.remove(this.state.touched, index),
-      visited: _.remove(this.state.visited, index)
+      value: _.remove(this.values, index)
     })
   }
   clear() {
     this.root.patch(this.names, {
       init: [],
       value: [],
-      touched: [],
-      visited: []
     })
   }
   pop() {

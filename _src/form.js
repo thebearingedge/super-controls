@@ -6,7 +6,7 @@ export const Model = class FormModel extends FieldSet.Model {
   constructor(...args) {
     super(...args)
     this.root = this
-    this.focused = null
+    this.state.focused = null
   }
   register({ init, route, config, Model }) {
     const names = route.map(_.invoke)
@@ -18,12 +18,24 @@ export const Model = class FormModel extends FieldSet.Model {
     return field
   }
   patch(names, state, options) {
-    if ('isFocused' in state) this.focused = state.isFocused
+    if ('isVisited' in state) {
+      super.patch(
+        [],
+        _.set(this.state, ['focused'], this.getField(names)),
+        { silent: true }
+      )
+    }
+    if ('isTouched' in state) {
+      super.patch(
+        [],
+        _.set(this.state, ['focused'], null),
+        { silent: true }
+      )
+    }
     return super.patch(names, state, options)
   }
   static get create() {
-    return (name, init, config) =>
-      super.create(null, init, [_.wrap(name || null)], config)
+    return (name, init, config) => super.create(null, init, [_ => name], config)
   }
 }
 

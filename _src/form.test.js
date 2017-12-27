@@ -24,10 +24,10 @@ describe('Form.Model', () => {
         visits: 0,
         error: null,
         notice: null,
+        focused: null,
+        isFocused: false,
         init: { foo: '' },
-        value: { foo: '' },
-        touched: { foo: false },
-        visited: { foo: false }
+        value: { foo: '' }
       })
     })
 
@@ -79,17 +79,18 @@ describe('Form.Model', () => {
       const form = Form.Model.create('test', {})
       form.register({ init: '', Model: Field.Model, route: toRoute('foo') })
       const field = form.getField(['foo'])
-      form.patch(['foo'], { isFocused: field })
-      expect(form).to.include({ focused: field })
+      form.patch(['foo'], { isVisited: true })
+      expect(form.state).to.include({ focused: field })
     })
 
     it('tracks blurs of descendant fields', () => {
       const form = Form.Model.create('test', {})
       form.register({ init: '', Model: Field.Model, route: toRoute('foo') })
       const field = form.getField(['foo'])
-      form.patch(['foo'], { isFocused: field })
-      form.patch(['foo'], { isFocused: null })
-      expect(form).to.include({ focused: null })
+      form.patch(['foo'], { isVisited: true })
+      expect(form.state).to.include({ focused: field })
+      form.patch(['foo'], { isTouched: true })
+      expect(form.state).to.include({ focused: null })
     })
 
   })
@@ -124,6 +125,18 @@ describe('Form.View', () => {
         .to.be.an.instanceOf(Field.Model)
     })
 
+  })
+
+  describe('prop', () => {
+
+    describe('name', () => {
+
+      it('is the name prop of the form', () => {
+        const wrapper = mount(<Form.View name='test'/>)
+        const view = wrapper.instance()
+        expect(view.prop).to.include({ name: 'test' })
+      })
+    })
   })
 
 })
