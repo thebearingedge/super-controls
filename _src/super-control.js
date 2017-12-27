@@ -99,7 +99,7 @@ export class View extends PureComponent {
       config: this.config,
       route: [_ => this.props.name]
     })
-    this.unsubscribe = this.model.subscribe(state => this.setState(state))
+    this.unsubscribe = this.model.subscribe(this.setState.bind(this))
   }
   componentWillUnmount() {
     this.unsubscribe()
