@@ -73,9 +73,6 @@ export class View extends FieldSet.View {
       'remove', 'pop', 'shift', 'clear', 'forEach', 'map'
     ]))
   }
-  render() {
-    return super.render({ fields: this.prop })
-  }
   static get displayName() {
     return 'FieldArray'
   }

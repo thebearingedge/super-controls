@@ -27,10 +27,9 @@ export const Model = class FieldSetModel extends SuperControl.Model {
       : this.fields[name]
   }
   unregister(names) {
-    const { init, value } = this.state
     this.setState({
-      init: _.unset(init, names),
-      value: _.unset(value, names)
+      init: _.unset(this.state.init, names),
+      value: _.unset(this.state.value, names)
     })
     const [ first, ...rest ] = names
     this.fields = rest.length
