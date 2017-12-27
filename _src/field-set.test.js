@@ -324,6 +324,18 @@ describe('FieldSet.View', () => {
 
     })
 
+    describe('anyVisited', () => {
+
+      it('is true if any of its descendant fields are touched', () => {
+        const wrapper = mount(<FieldSet.View name='test'/>)
+        const view = wrapper.instance()
+        expect(view.prop).to.include({ anyVisited: false })
+        view.model.setState({ visits: 1 })
+        expect(view.prop).to.include({ anyVisited: true })
+      })
+
+    })
+
     describe('isFocused', () => {
 
       it('is true if a descendant field is focused', () => {

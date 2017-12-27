@@ -84,12 +84,13 @@ export class View extends SuperControl.View {
   }
   get prop() {
     return _.assign(_.omit(super.prop, [
-      'value', 'visits', 'touched', 'visited'
+      'value', 'visits', 'touches'
     ]), _.pick(this.model, [
       'change', 'touch', 'touchAll', 'untouch'
     ]), {
       values: this.state.value,
-      anyTouched: _.someValues(this.state.touched, _.id)
+      anyVisited: !!this.state.visits,
+      anyTouched: !!this.state.touches
     })
   }
   register({ route, ...params }) {
@@ -102,10 +103,9 @@ export class View extends SuperControl.View {
     return { '@@super-controls': { register: this.register } }
   }
   render(props) {
-    const { render, component, children } = this.props
-    if (_.isFunction(render) ||
-        _.isFunction(component) ||
-        _.isFunction(children)) {
+    if (_.isFunction(this.props.render) ||
+        _.isFunction(this.props.component) ||
+        _.isFunction(this.props.children)) {
       return super.render({ fields: this.prop })
     }
     return super.render()
