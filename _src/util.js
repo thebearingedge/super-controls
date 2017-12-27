@@ -118,7 +118,7 @@ export const toNames = path =>
     .split('.')
     .map(name => name.split('['))
     .reduce((flattened, names) => flattened.concat(names.map(name =>
-      /\d\]/.test(name) ? +name.replace(']', '') : name
+      /\d\]$/.test(name) ? +name.replace(']', '') : name
     )), [])
 
 export const wrapEvent = event =>
