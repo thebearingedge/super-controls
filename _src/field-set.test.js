@@ -318,7 +318,7 @@ describe('FieldSet.View', () => {
         const wrapper = mount(<FieldSet.View name='test'/>)
         const view = wrapper.instance()
         expect(view.prop).to.include({ anyTouched: false })
-        view.model.setState({ touched: { foo: true } })
+        view.model.setState({ touches: 1 })
         expect(view.prop).to.include({ anyTouched: true })
       })
 
