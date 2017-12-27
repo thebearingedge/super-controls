@@ -92,11 +92,6 @@ export const isObject = value => ({}).toString.call(value) === '[object Object]'
 
 export const isComplex = value => isArray(value) || isObject(value)
 
-export const someValues = (source, predicate) =>
-  isComplex(source)
-    ? !!keys(source).find(key => someValues(source[key], predicate))
-    : !!predicate(source)
-
 export const shallowEqual = (a, b) => {
   if (isComplex(a) && isComplex(b)) {
     const aKeys = keys(a)
