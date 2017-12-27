@@ -7,9 +7,6 @@ export const Model = class FieldModel extends SuperControl.Model {
     super(...args)
     this.update = this.update.bind(this)
   }
-  getState() {
-    return _.assign({}, this.state)
-  }
   update(state, { validate = true, notify = true, force = false } = {}) {
     const nextState = _.assign({}, state)
     if ('value' in state && !force) {

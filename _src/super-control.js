@@ -30,19 +30,16 @@ export const Model = class SuperControlModel {
   get path() {
     return _.toPath(this.names)
   }
-  getState() {
-    return _.assign({}, this.state)
-  }
   subscribe(subscriber) {
     const index = this.subscribers.push(subscriber) - 1
-    subscriber(this.getState())
+    subscriber(this.state)
     return _ => {
       this.subscribers.splice(index, 1)
       this.subscribers.length || this.root.unregister(this.names)
     }
   }
   publish() {
-    this.subscribers.forEach(subscriber => subscriber(this.getState()))
+    this.subscribers.forEach(subscriber => subscriber(this.state))
     return this
   }
   patch(state, { notify = false, validate = false, ...options } = {}) {
@@ -96,9 +93,6 @@ export class View extends PureComponent {
   get config() {
     return _.pick(this.props, ['notify', 'validate'])
   }
-  subscriber(state) {
-    this.setState(state)
-  }
   componentWillMount() {
     this.model = this.context['@@super-controls'].register({
       init: this.init,
@@ -106,7 +100,7 @@ export class View extends PureComponent {
       config: this.config,
       route: [_ => this.props.name]
     })
-    this.unsubscribe = this.model.subscribe(state => this.subscriber(state))
+    this.unsubscribe = this.model.subscribe(state => this.setState(state))
   }
   componentWillUnmount() {
     this.unsubscribe()

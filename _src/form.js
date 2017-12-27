@@ -46,7 +46,7 @@ export class View extends FieldSet.View {
   componentWillMount() {
     const { props: { name }, init, config } = this
     this.model = this.Model.create(name, init, config)
-    this.unsubscribe = this.model.subscribe(state => this.subscriber(state))
+    this.unsubscribe = this.model.subscribe(state => this.setState(state))
   }
   register(...args) {
     return this.model.register(...args)
