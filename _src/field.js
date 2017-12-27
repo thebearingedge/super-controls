@@ -7,18 +7,27 @@ export const Model = class FieldModel extends SuperControl.Model {
     super(...args)
     this.update = this.update.bind(this)
   }
-  update(state, { validate = true, notify = true, force = false } = {}) {
+  update(state, { force = false, ...options } = {}) {
     const nextState = _.assign({}, state)
     if ('value' in state && !force) {
       nextState.value = this.override(state.value, this.root.values)
     }
-    this.root.patch(this.names, nextState, { validate, notify })
+    this.root.patch(this.names, nextState, options)
   }
 }
 
 export class View extends SuperControl.View {
+  get init() {
+    const { init, parse } = this.props
+    if (this.isCheckbox) return parse(!!init)
+    if (this.isMultipleSelect) return parse(init || [])
+    return parse(init)
+  }
   get Model() {
     return Model
+  }
+  get config() {
+    return _.pick(this.props, ['notify', 'validate', 'override'])
   }
   get isCheckbox() {
     return this.props.type === 'checkbox'
@@ -29,15 +38,6 @@ export class View extends SuperControl.View {
   get isMultipleSelect() {
     return this.props.component === 'select' &&
            !!this.props.multiple
-  }
-  get init() {
-    const { init, parse } = this.props
-    if (this.isCheckbox) return parse(!!init)
-    if (this.isMultipleSelect) return parse(init || [])
-    return parse(init)
-  }
-  get config() {
-    return _.pick(this.props, ['notify', 'validate', 'override'])
   }
   get prop() {
     const { value, init, isFocused, visits, touches } = this.state

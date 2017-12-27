@@ -73,8 +73,14 @@ export const Model = class SuperControlModel {
 }
 
 export class View extends PureComponent {
+  get init() {
+    return this.props.init
+  }
   get Model() {
     return Model
+  }
+  get config() {
+    return _.pick(this.props, ['notify', 'validate'])
   }
   get prop() {
     const { model, state } = this
@@ -86,18 +92,10 @@ export class View extends PureComponent {
       isValid, isInvalid, hasError, hasNotice
     })
   }
-  get init() {
-    return this.props.init
-  }
-  get config() {
-    return _.pick(this.props, ['notify', 'validate'])
-  }
   componentWillMount() {
     this.model = this.context['@@super-controls'].register({
-      init: this.init,
-      Model: this.Model,
-      config: this.config,
-      route: [_ => this.props.name]
+      route: [_.wrap(this.props.name)],
+      ..._.pick(this, ['init', 'Model', 'config'])
     })
     this.unsubscribe = this.model.subscribe(this.setState.bind(this))
   }
