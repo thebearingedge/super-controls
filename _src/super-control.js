@@ -47,10 +47,10 @@ export const Model = class SuperControlModel {
     if (state.isTouched) next.touches += 1
     if (state.isVisited) next.visits += 1
     if (notify) {
-      next.notice = this.notify(next.value, this.root.values) || null
+      next.notice = this.notify(next.value, this.root.values)
     }
     if (validate) {
-      next.error = this.validate(next.value, this.root.values) || null
+      next.error = this.validate(next.value, this.root.values)
     }
     next.isFocused = (next.visits > this.state.visits) ||
                      (this.state.isFocused && next.touches <= this.state.touches)
