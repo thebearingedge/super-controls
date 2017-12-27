@@ -16,7 +16,7 @@ describe('FieldSet.Model', () => {
       expect(model.state).to.deep.equal({
         init: {},
         value: {},
-        blurs: 0,
+        touches: 0,
         visits: 0,
         error: null,
         notice: null,
@@ -90,13 +90,13 @@ describe('FieldSet.Model', () => {
       expect(fieldSet.state).to.include({ visits: 1 })
     })
 
-    it('tracks the blurs of descendant fields', () => {
+    it('tracks the touches of descendant fields', () => {
       const fieldSet = FieldSet.Model.create(null, {})
       const field = Field.Model.create(fieldSet, '', toRoute('foo'))
       fieldSet
         .register(['foo'], field)
         .patch(['foo'], { isTouched: true })
-      expect(fieldSet.state).to.include({ blurs: 1 })
+      expect(fieldSet.state).to.include({ touches: 1 })
     })
 
   })
@@ -230,9 +230,9 @@ describe('FieldSet.Model', () => {
         .register(['bar'], fieldArray)
         .register(['bar', 0], field)
         .touch('bar[0]')
-      expect(fieldSet.state.blurs).to.equal(1)
-      expect(fieldSet.fields.bar.state.blurs).to.equal(1)
-      expect(fieldSet.fields.bar.fields[0].state.blurs).to.equal(1)
+      expect(fieldSet.state.touches).to.equal(1)
+      expect(fieldSet.fields.bar.state.touches).to.equal(1)
+      expect(fieldSet.fields.bar.fields[0].state.touches).to.equal(1)
     })
 
   })
@@ -247,9 +247,9 @@ describe('FieldSet.Model', () => {
         .register(['bar'], Field.Model.create(fieldSet, '', toRoute('bar')))
         .register(['baz'], Field.Model.create(fieldSet, '', toRoute('baz')))
         .touchAll()
-      expect(fieldSet.fields.foo.state.blurs).to.equal(1)
-      expect(fieldSet.fields.bar.state.blurs).to.equal(1)
-      expect(fieldSet.fields.baz.state.blurs).to.equal(1)
+      expect(fieldSet.fields.foo.state.touches).to.equal(1)
+      expect(fieldSet.fields.bar.state.touches).to.equal(1)
+      expect(fieldSet.fields.baz.state.touches).to.equal(1)
     })
 
   })

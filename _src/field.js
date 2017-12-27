@@ -43,9 +43,9 @@ export class View extends SuperControl.View {
     return _.pick(this.props, ['notify', 'validate', 'override'])
   }
   get prop() {
-    const { value, init, isFocused, visits, blurs } = this.state
+    const { value, init, isFocused, visits, touches } = this.state
     const { update } = this.model
-    const isTouched = !!blurs
+    const isTouched = !!touches
     const isVisited = !!visits
     const isPristine = _.shallowEqual(value, init)
     const isDirty = !isPristine

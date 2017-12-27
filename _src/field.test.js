@@ -11,7 +11,7 @@ describe('Field.Model', () => {
     it('is the state of the field', () => {
       const model = Field.Model.create()
       expect(model.state).to.deep.equal({
-        blurs: 0,
+        touches: 0,
         visits: 0,
         init: null,
         value: null,
@@ -36,7 +36,7 @@ describe('Field.Model', () => {
       form.patch.callsFake((_, ...args) => field.patch(...args))
       field.update({ value: 'foo' })
       expect(field.state).to.deep.equal({
-        blurs: 0,
+        touches: 0,
         visits: 0,
         init: null,
         value: 'foo',
@@ -55,7 +55,7 @@ describe('Field.Model', () => {
       form.patch.callsFake((_, ...args) => field.patch(...args))
       field.update({ value: 'foo' })
       expect(field.state).to.deep.equal({
-        blurs: 0,
+        touches: 0,
         visits: 0,
         init: null,
         value: 'baz',
@@ -74,7 +74,7 @@ describe('Field.Model', () => {
       form.patch.callsFake((_, ...args) => field.patch(...args))
       field.update({ value: 'foo' }, { force: true })
       expect(field.state).to.deep.equal({
-        blurs: 0,
+        touches: 0,
         visits: 0,
         init: null,
         value: 'foo',
@@ -282,11 +282,11 @@ describe('Field.View', () => {
       it('sets the field as touched', () => {
         const wrapper = mount(<Field.View name='test' component='input'/>)
         const { model } = wrapper.instance()
-        expect(model.state).to.include({ blurs: 0 })
-        expect(wrapper).to.have.state('blurs', 0)
+        expect(model.state).to.include({ touches: 0 })
+        expect(wrapper).to.have.state('touches', 0)
         wrapper.simulate('blur')
-        expect(model.state).to.include({ blurs: 1 })
-        expect(wrapper).to.have.state('blurs', 1)
+        expect(model.state).to.include({ touches: 1 })
+        expect(wrapper).to.have.state('touches', 1)
       })
 
     })

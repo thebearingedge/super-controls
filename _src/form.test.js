@@ -20,7 +20,7 @@ describe('Form.Model', () => {
       expect(field).to.be.an.instanceOf(Field.Model)
       expect(form.fields.foo).to.equal(field)
       expect(form.state).to.deep.equal({
-        blurs: 0,
+        touches: 0,
         visits: 0,
         error: null,
         notice: null,
@@ -83,7 +83,7 @@ describe('Form.Model', () => {
       expect(form.state).to.include({ focused: field })
     })
 
-    it('tracks blurs of descendant fields', () => {
+    it('tracks touches of descendant fields', () => {
       const form = Form.Model.create('test', {})
       form.register({ init: '', Model: Field.Model, route: toRoute('foo') })
       const field = form.getField(['foo'])

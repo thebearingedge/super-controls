@@ -5,7 +5,7 @@ import * as _ from './util'
 export const Model = class SuperControlModel {
   constructor(root, init, route, config) {
     const state = {
-      blurs: 0,
+      touches: 0,
       visits: 0,
       init: init,
       value: init,
@@ -47,7 +47,7 @@ export const Model = class SuperControlModel {
   }
   patch(state, { notify = false, validate = false, ...options } = {}) {
     const next = _.assign({}, this.state, state)
-    if (state.isTouched) next.blurs += 1
+    if (state.isTouched) next.touches += 1
     if (state.isVisited) next.visits += 1
     if (notify) {
       next.notice = this.notify(next.value, this.root.values) || null
@@ -56,7 +56,7 @@ export const Model = class SuperControlModel {
       next.error = this.validate(next.value, this.root.values) || null
     }
     next.isFocused = (next.visits > this.state.visits) ||
-                     (this.state.isFocused && next.blurs <= this.state.blurs)
+                     (this.state.isFocused && next.touches <= this.state.touches)
     return this.setState(_.omit(next, ['isVisited', 'isTouched']), options)
   }
   setState(nextState, { silent = false } = {}) {

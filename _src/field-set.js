@@ -47,7 +47,7 @@ export const Model = class FieldSetModel extends SuperControl.Model {
     if ('value' in state) {
       nextState.value = _.set(this.state.value, names, state.value)
     }
-    super.patch(_.omit(nextState, ['blurs', 'visits']), options)
+    super.patch(_.omit(nextState, ['touches', 'visits']), options)
     const [ first, ...rest ] = names
     const child = this.fields[first]
     child instanceof FieldSetModel

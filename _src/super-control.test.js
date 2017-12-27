@@ -11,7 +11,7 @@ describe('SuperControl.Model', () => {
     it('is the state of the model', () => {
       const model = SuperControl.Model.create()
       expect(model.state).to.deep.equal({
-        blurs: 0,
+        touches: 0,
         visits: 0,
         init: null,
         value: null,
@@ -55,7 +55,7 @@ describe('SuperControl.Model', () => {
       })
       const { state } = model.patch({ value: 'bar' })
       expect(state).to.deep.equal({
-        blurs: 0,
+        touches: 0,
         visits: 0,
         init: null,
         value: 'bar',
@@ -71,7 +71,7 @@ describe('SuperControl.Model', () => {
       })
       const { state } = model.patch({ value: 'bar' }, { validate: true })
       expect(state).to.deep.equal({
-        blurs: 0,
+        touches: 0,
         visits: 0,
         init: null,
         value: 'bar',
@@ -87,7 +87,7 @@ describe('SuperControl.Model', () => {
       })
       const { state } = model.patch({ value: 'bar' }, { notify: true })
       expect(state).to.deep.equal({
-        blurs: 0,
+        touches: 0,
         visits: 0,
         init: null,
         value: 'bar',
@@ -117,11 +117,11 @@ describe('SuperControl.Model', () => {
       form = { patch: stub() }
     })
 
-    it('increments the model\'s blurs state', () => {
+    it('increments the model\'s touches state', () => {
       const model = SuperControl.Model.create(form)
       form.patch.callsFake((_, ...args) => model.patch(...args))
       model.touch()
-      expect(model.state).to.include({ blurs: 1 })
+      expect(model.state).to.include({ touches: 1 })
     })
 
   })
@@ -180,7 +180,7 @@ describe('SuperControl.View', () => {
       const view = wrapper.instance()
       expect(view.state)
         .to.deep.equal({
-          blurs: 0,
+          touches: 0,
           visits: 0,
           init: null,
           value: null,
@@ -194,7 +194,7 @@ describe('SuperControl.View', () => {
       const wrapper = mount(<SuperControl.View name='test'/>)
       const view = wrapper.instance()
       expect(view.state).to.deep.equal({
-        blurs: 0,
+        touches: 0,
         visits: 0,
         init: null,
         value: null,
@@ -204,7 +204,7 @@ describe('SuperControl.View', () => {
       })
       view.model.setState({ value: 'test' })
       expect(view.state).to.deep.equal({
-        blurs: 0,
+        touches: 0,
         visits: 0,
         init: null,
         error: null,
