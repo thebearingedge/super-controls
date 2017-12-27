@@ -72,20 +72,20 @@ export const remove = (target, key) =>
     ? sliceOut(target, key)
     : omit(target, [key])
 
-export const get = (source, [ key, ...path ], fallback) => {
-  if (!exists(source, key)) return fallback
-  if (!path.length) return source[key]
-  return get(source[key], path, fallback)
+export const get = (source, [ first, ...path ], fallback) => {
+  if (!exists(source, first)) return fallback
+  if (!path.length) return source[first]
+  return get(source[first], path, fallback)
 }
 
-export const set = (target, [ first, next, ...rest ], value) => {
+export const set = (target, [ first, next, ...path ], value) => {
   if (isUndefined(next)) return replace(target, first, value)
-  return replace(target, first, set(target[first], [next, ...rest], value))
+  return replace(target, first, set(target[first], [next, ...path], value))
 }
 
-export const unset = (target, [ key, ...path ]) => {
-  if (!path.length) return remove(target, key)
-  return replace(target, key, unset(target[key], path))
+export const unset = (target, [ first, ...path ]) => {
+  if (!path.length) return remove(target, first)
+  return replace(target, first, unset(target[first], path))
 }
 
 export const isObject = value => ({}).toString.call(value) === '[object Object]'
