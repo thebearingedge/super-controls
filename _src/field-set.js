@@ -69,9 +69,8 @@ export const Model = class FieldSetModel extends SuperControl.Model {
       _.invoke(this.fields[key].touchAll || this.fields[key].touch)
     })
   }
-  static get create() {
-    return (root, init = {}, route, checks) =>
-      super.create(root, init, route, checks)
+  static create(root, init = {}, route, checks) {
+    return super.create(root, init, route, checks)
   }
 }
 

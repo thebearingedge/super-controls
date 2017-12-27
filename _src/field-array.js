@@ -57,9 +57,8 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
   map(transform) {
     return this.values.map((value, index) => transform(value, index, this))
   }
-  static get create() {
-    return (root, init = [], route, checks) =>
-      super.create(root, init, route, checks)
+  static create(root, init = [], route, checks) {
+    return super.create(root, init, route, checks)
   }
 }
 

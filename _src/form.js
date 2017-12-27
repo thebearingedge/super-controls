@@ -34,8 +34,8 @@ export const Model = class FormModel extends FieldSet.Model {
     }
     return super.patch(names, state, options)
   }
-  static get create() {
-    return (name, init, config) => super.create(null, init, [_ => name], config)
+  static create(name, init, config) {
+    return super.create(null, init, [_ => name], config)
   }
 }
 

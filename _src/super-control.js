@@ -63,13 +63,12 @@ export const Model = class SuperControlModel {
   touch() {
     this.root.patch(this.names, { isTouched: true })
   }
-  static get create() {
-    return (root, init = null, route = [], config = {}) =>
-      new this(root, init, route, _.defaults({}, config, {
-        override: _.id,
-        notify: _.toNull,
-        validate: _.toNull
-      }))
+  static create(root, init = null, route = [], config = {}) {
+    return new this(root, init, route, _.defaults({}, config, {
+      override: _.id,
+      notify: _.toNull,
+      validate: _.toNull
+    }))
   }
 }
 
