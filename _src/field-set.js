@@ -8,19 +8,15 @@ export const Model = class FieldSetModel extends SuperControl.Model {
     this.fields = {}
     this.touch = this.touch.bind(this)
     this.change = this.change.bind(this)
+    this.untouch = this.untouch.bind(this)
     this.touchAll = this.touchAll.bind(this)
     this.untouchAll = this.untouchAll.bind(this)
-  }
-  get values() {
-    return this.state.value
+    this.broadcast = this.broadcast.bind(this)
   }
   getState() {
-    const { visits, touches, value, ...state } = this.state
+    const { isVisited, isTouched, value, ...state } = super.getState()
     return {
-      ...state,
-      values: value,
-      anyVisited: !!visits,
-      anyTouched: !!touches
+      anyVisited: isVisited, anyTouched: isTouched, values: value, ...state
     }
   }
   register(names, field) {
@@ -30,38 +26,54 @@ export const Model = class FieldSetModel extends SuperControl.Model {
       : _.set(this.fields, [first], field)
     return this.patch(names, field.state)
   }
-  getField([ name, ...names ]) {
-    if (!this.fields[name]) return null
-    return names.length
-      ? this.fields[name].getField(names)
-      : this.fields[name]
+  getField([ first, ...names ]) {
+    const child = this.fields[first]
+    if (!child) return null
+    if (names.length) {
+      return child instanceof FieldSetModel
+        ? child.getField(names)
+        : null
+    }
+    return child
   }
-  unregister(names) {
-    this.setState({
+  unregister(names, field) {
+    const registered = this.getField(names)
+    if (registered !== field) return this
+    super.patch({
+      visits: -registered.state.visits,
+      touches: -registered.state.touches,
       init: _.unset(this.state.init, names),
       value: _.unset(this.state.value, names)
     })
     const [ first, ...rest ] = names
     this.fields = rest.length
-      ? _.set(this.fields, [first], this.fields[first].unregister(rest))
+      ? _.set(this.fields, [first], this.fields[first].unregister(rest, field))
       : _.unset(this.fields, [first])
     return this
   }
-  patch(names, state, options) {
-    if (!names.length) return super.patch(state, options)
-    const next = _.assign({}, state)
-    if ('init' in state) {
-      next.init = _.set(this.state.init, names, state.init)
+  patch(names, change, options = {}) {
+    if (!names.length) return super.patch(change, options)
+    const current = this.state
+    const next = _.assign({}, change)
+    if ('init' in change) {
+      next.init = _.set(current.init, names, change.init)
     }
-    if ('value' in state) {
-      next.value = _.set(this.state.value, names, state.value)
+    if ('value' in change) {
+      next.value = _.set(current.value, names, change.value)
     }
-    super.patch(next, options)
+    super.patch(next, { ...options, silent: !!options.quiet })
     const [ first, ...rest ] = names
     const field = this.fields[first]
     field instanceof FieldSetModel
-      ? field.patch(rest, state, options)
-      : field.patch(state, options)
+      ? field.patch(rest, change, options)
+      : field.patch(change, options)
+    return this
+  }
+  broadcast() {
+    this.publish()
+    _.keys(this.fields).forEach(name => {
+      _.invoke(this.fields[name].broadcast || this.fields[name].publish)
+    })
     return this
   }
   change(path, value) {
@@ -103,12 +115,8 @@ export class View extends SuperControl.View {
     return Model
   }
   get prop() {
-    return _.assign(_.omit(super.prop, [
-      'value'
-    ]), _.pick(this.model, [
+    return _.assign(super.prop, _.pick(this.model, [
       'change', 'touch', 'touchAll', 'untouch', 'untouchAll'
-    ]), _.pick(this.state, [
-      'values', 'anyVisited', 'anyTouched'
     ]))
   }
   register({ route, ...params }) {
@@ -120,7 +128,18 @@ export class View extends SuperControl.View {
   getChildContext() {
     return { '@@super-controls': { register: this.register } }
   }
-  render(props) {
+  equalState(current, next) {
+    const { init: stateInit, values: stateValues, ...restState } = current
+    const { init: nextInit, values: nextValues, ...restNext } = next
+    return _.shallowEqual(restState, restNext) &&
+           _.shallowEqual(stateValues, nextValues) &&
+           _.shallowEqual(stateInit, nextInit)
+  }
+  componentWillReceiveProps(next) {
+    next.name !== this.props.name &&
+    setTimeout(() => this.model.broadcast())
+  }
+  render() {
     if (_.isFunction(this.props.render) ||
         _.isFunction(this.props.component) ||
         _.isFunction(this.props.children)) {

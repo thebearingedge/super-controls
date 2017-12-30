@@ -6,19 +6,18 @@ import * as FieldArray from './field-array'
 
 describe('FieldArray.Model', () => {
 
-  describe('state', () => {
+  describe('getState', () => {
 
-    it('is the state of the model', () => {
-      const model = FieldArray.Model.create()
-      expect(model.state).to.deep.equal({
-        init: [],
-        value: [],
-        touches: 0,
-        visits: 0,
-        error: null,
-        notice: null,
-        isActive: false
+    describe('length', () => {
+
+      it('is the length of the model\'s value state', () => {
+        const model = FieldArray.Model.create(null)
+        model.root = model
+        expect(model.getState()).to.include({ length: 0 })
+        model.patch([], { value: ['foo', 'bar'] })
+        expect(model.getState()).to.include({ length: 2 })
       })
+
     })
 
   })
@@ -32,20 +31,31 @@ describe('FieldArray.Model', () => {
 
   })
 
-  describe('values', () => {
+  describe('forEach', () => {
 
-    it('is all values in the model', () => {
-      const model = FieldArray.Model.create(null, ['foo', 'bar'])
-      expect(model.values).to.deep.equal(['foo', 'bar'])
+    it('calls a procedure for each value in the model', () => {
+      const values = ['foo', 'bar']
+      const model = FieldArray.Model.create(null, values)
+      model.forEach((value, index, array) => {
+        expect(value).to.equal(values[index])
+        expect(array).to.equal(model)
+      })
     })
 
   })
 
-  describe('length', () => {
+  describe('map', () => {
 
-    it('is the length of the model\'s values', () => {
-      const model = FieldArray.Model.create(null, ['foo', 'bar'])
-      expect(model.length).to.equal(2)
+    it('applies a transform to the keys in the model', () => {
+      const values = ['foo', 'bar']
+      const model = FieldArray.Model.create(null, values)
+      const mapped = model.map((value, index, array, key) => {
+        expect(value).to.equal(values[index])
+        expect(array).to.equal(model)
+        expect(key).to.be.a('number')
+        return value.toUpperCase()
+      })
+      expect(mapped).to.deep.equal(['FOO', 'BAR'])
     })
 
   })
@@ -148,34 +158,6 @@ describe('FieldArray.Model', () => {
 
   })
 
-  describe('forEach', () => {
-
-    it('calls a procedure for each value in the model', () => {
-      const values = ['foo', 'bar']
-      const model = FieldArray.Model.create(null, values)
-      model.forEach((value, index, array) => {
-        expect(value).to.equal(values[index])
-        expect(array).to.equal(model)
-      })
-    })
-
-  })
-
-  describe('map', () => {
-
-    it('applies a transform to the values in the model', () => {
-      const values = ['foo', 'bar']
-      const model = FieldArray.Model.create(null, values)
-      const mapped = model.map((value, index, array) => {
-        expect(value).to.equal(values[index])
-        expect(array).to.equal(model)
-        return value.toUpperCase()
-      })
-      expect(mapped).to.deep.equal(['FOO', 'BAR'])
-    })
-
-  })
-
 })
 
 describe('FieldArray.View', () => {
@@ -187,34 +169,38 @@ describe('FieldArray.View', () => {
     mount = mountWith({ context: { '@@super-controls': form } })
   })
 
+  describe('prop', () => {
+
+    it('includes the model\'s state and methods', () => {
+      const wrapper = mount(<FieldArray.View name='test'/>)
+      const { model, prop } = wrapper.instance()
+      expect(prop).to.include(model.getState())
+      expect(prop.at).to.be.a('function')
+      expect(prop.insert).to.be.a('function')
+      expect(prop.push).to.be.a('function')
+      expect(prop.unshift).to.be.a('function')
+      expect(prop.remove).to.be.a('function')
+      expect(prop.pop).to.be.a('function')
+      expect(prop.shift).to.be.a('function')
+      expect(prop.clear).to.be.a('function')
+      expect(prop.touch).to.be.a('function')
+      expect(prop.change).to.be.a('function')
+      expect(prop.untouch).to.be.a('function')
+      expect(prop.touchAll).to.be.a('function')
+      expect(prop.untouchAll).to.be.a('function')
+    })
+
+  })
+
   describe('render', () => {
 
     it('calls a render prop with a fields prop', done => {
       const test = ({ fields }) => {
-        expect(fields).to.deep.include({
-          name: 'test',
-          path: 'test',
-          init: ['foo', 'bar'],
-          values: ['foo', 'bar'],
-          length: 2,
-          error: null,
-          notice: null,
-          anyTouched: false
-        })
-        expect(fields.at).to.be.a('function')
-        expect(fields.insert).to.be.a('function')
-        expect(fields.push).to.be.a('function')
-        expect(fields.unshift).to.be.a('function')
-        expect(fields.remove).to.be.a('function')
-        expect(fields.pop).to.be.a('function')
-        expect(fields.shift).to.be.a('function')
-        expect(fields.clear).to.be.a('function')
-        expect(fields.map).to.be.a('function')
-        expect(fields.forEach).to.be.a('function')
+        expect(fields).to.be.an('object')
         done()
         return null
       }
-      mount(<FieldArray.View name='test' init={['foo', 'bar']} render={test}/>)
+      mount(<FieldArray.View name='test' render={test}/>)
     })
 
   })

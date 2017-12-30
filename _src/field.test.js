@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Component } from 'react'
 import { describe, beforeEach, it } from 'mocha'
 import { expect, stub, mountWith } from './__test__'
 import * as Form from './form'
@@ -6,81 +6,129 @@ import * as Field from './field'
 
 describe('Field.Model', () => {
 
-  describe('state', () => {
+  let form
 
-    it('is the state of the field', () => {
-      const model = Field.Model.create()
-      expect(model.state).to.deep.equal({
-        touches: 0,
-        visits: 0,
-        init: null,
-        value: null,
-        error: null,
-        notice: null,
-        isActive: false
+  beforeEach(() => {
+    form = { values: { foo: 'bar' }, patch: stub(), state: {} }
+  })
+
+  describe('getState', () => {
+
+    describe('isPristine', () => {
+
+      it('is true if its value shallow equals its intial value', () => {
+        const field = Field.Model.create()
+        expect(field.getState()).to.include({ isPristine: true })
+        field.patch({ value: ['foo', 'baz'] })
+        expect(field.getState()).to.include({ isPristine: false })
       })
+
+    })
+
+    describe('isDirty', () => {
+
+      it('is the opposite of isPristine', () => {
+        const field = Field.Model.create()
+        expect(field.getState()).to.include({ isDirty: false })
+        field.patch({ value: ['foo', 'baz'] })
+        expect(field.getState()).to.include({ isDirty: true })
+      })
+
     })
 
   })
 
-  describe('update', () => {
+  describe('change', () => {
 
-    let form
-
-    beforeEach(() => {
-      form = { values: { foo: 'bar' }, patch: stub(), state: {} }
-    })
-
-    it('patches the field state through the form', () => {
+    it('patches the field\'s value state through the form', () => {
       const field = Field.Model.create(form)
       form.patch.callsFake((_, ...args) => field.patch(...args))
-      field.update({ value: 'foo' })
-      expect(field.state).to.deep.equal({
-        touches: 0,
-        visits: 0,
-        init: null,
-        value: 'foo',
-        error: null,
-        notice: null,
-        isActive: false
-      })
+      expect(field.getState()).to.include({ value: null })
+      field.change('foo')
+      expect(field.getState()).to.include({ value: 'foo' })
     })
 
-    it('overrides the value being sent to the form', () => {
+    it('overrides the value state being sent to the form', () => {
       const field = Field.Model.create(form, null, void 0, {
         override: (value, values) => {
           return values.foo === 'bar' ? 'baz' : value
         }
       })
       form.patch.callsFake((_, ...args) => field.patch(...args))
-      field.update({ value: 'foo' })
-      expect(field.state).to.deep.equal({
-        touches: 0,
-        visits: 0,
-        init: null,
-        value: 'baz',
-        error: null,
-        notice: null,
-        isActive: false
-      })
+      field.change('foo')
+      expect(field.getState()).to.include({ value: 'baz' })
     })
 
-    it('forces the value being sent to the form', () => {
+    it('forces the value state being sent to the form', () => {
       const field = Field.Model.create(form, null, void 0, {
         override: (value, values) => {
           return values.foo === 'bar' ? 'baz' : value
         }
       })
       form.patch.callsFake((_, ...args) => field.patch(...args))
-      field.update({ value: 'foo' }, { force: true })
-      expect(field.state).to.deep.equal({
-        touches: 0,
-        visits: 0,
-        init: null,
-        value: 'foo',
-        error: null,
-        notice: null,
-        isActive: false
+      field.change('foo', { force: true })
+      expect(field.getState()).to.include({ value: 'foo' })
+    })
+
+  })
+
+  describe('visit', () => {
+
+    it('patches the field\'s isVisited state through the form', () => {
+      const field = Field.Model.create(form)
+      form.patch.callsFake((_, ...args) => field.patch(...args))
+      expect(field.getState()).to.include({ isVisited: false })
+      field.visit()
+      expect(field.getState()).to.include({ isVisited: true })
+    })
+
+  })
+
+  describe('touch', () => {
+
+    it('patches the field\'s isTouched state through the form', () => {
+      const field = Field.Model.create(form)
+      form.patch.callsFake((_, ...args) => field.patch(...args))
+      expect(field.getState()).to.include({ isTouched: false })
+      field.touch()
+      expect(field.getState()).to.include({ isTouched: true })
+    })
+
+  })
+
+  describe('untouch', () => {
+
+    it('resets the field\'s isTouched state through the form', () => {
+      const field = Field.Model.create(form)
+      form.patch.callsFake((_, ...args) => field.patch(...args))
+      field.touch()
+      field.touch()
+      field.touch()
+      expect(field.getState()).to.include({ isTouched: true })
+      field.untouch()
+      expect(field.getState()).to.include({ isTouched: false })
+    })
+
+  })
+
+  describe('reset', () => {
+
+    it('resets the field\'s state', () => {
+      const field = Field.Model.create(form)
+      form.patch.callsFake((_, ...args) => field.patch(...args))
+      field.change('test')
+      field.visit()
+      field.touch()
+      expect(field.getState()).to.include({
+        value: 'test',
+        isVisited: true,
+        isTouched: true
+      })
+      field.reset()
+      expect(field.getState()).to.include({
+        value: null,
+        isVisited: false,
+        isTouched: false
       })
     })
 
@@ -94,7 +142,7 @@ describe('Field.View', () => {
   let mount
 
   beforeEach(() => {
-    form = Form.Model.create('test', {})
+    form = Form.Model.create()
     mount = mountWith({ context: { '@@super-controls': form } })
   })
 
@@ -150,8 +198,8 @@ describe('Field.View', () => {
       )
       wrapper.find('[value="foo"]').getDOMNode().selected = true
       wrapper.find('[value="baz"]').getDOMNode().selected = true
-      const select = wrapper.getDOMNode()
-      const value = wrapper.instance().getValue({ target: select })
+      const target = wrapper.getDOMNode()
+      const value = wrapper.instance().getValue({ target })
       expect(value).to.deep.equal(['foo', 'baz'])
     })
 
@@ -159,94 +207,15 @@ describe('Field.View', () => {
 
   describe('prop', () => {
 
-    it('includes the field\'s name and current state', () => {
+    it('includes the field\'s state and public methods', () => {
       const wrapper = mount(<Field.View name='test'/>)
       const { prop } = wrapper.instance()
-      expect(prop).to.include({
-        name: 'test',
-        path: 'test',
-        init: '',
-        value: '',
-        error: null,
-        notice: null,
-        isActive: false,
-        hasError: false,
-        hasNotice: false,
-        isValid: true,
-        isInvalid: false
-      })
+      expect(prop).to.include(wrapper.state())
+      expect(prop.reset).to.be.a('function')
       expect(prop.visit).to.be.a('function')
       expect(prop.touch).to.be.a('function')
       expect(prop.change).to.be.a('function')
       expect(prop.untouch).to.be.a('function')
-    })
-
-    describe('isVisited', () => {
-
-      it('is true if the field has been visited', () => {
-        const wrapper = mount(<Field.View name='test'/>)
-        const view = wrapper.instance()
-        expect(view.prop).to.include({ isVisited: false })
-        view.model.patch({ visits: 1 })
-        expect(view.prop).to.include({ isVisited: true })
-      })
-
-    })
-
-    describe('isTouched', () => {
-
-      it('is true if the field has been touched', () => {
-        const wrapper = mount(<Field.View name='test'/>)
-        const view = wrapper.instance()
-        expect(view.prop).to.include({ isTouched: false })
-        view.model.patch({ touches: 1 })
-        expect(view.prop).to.include({ isTouched: true })
-      })
-
-    })
-
-    describe('isActive', () => {
-
-      it('is true if the field currently has focus', () => {
-        const wrapper = mount(<Field.View name='test'/>)
-        const view = wrapper.instance()
-        expect(view.prop).to.include({ isActive: false })
-        view.model.patch({ visits: 1 })
-        expect(view.prop).to.include({ isActive: true })
-        view.model.patch({ touches: 1 })
-        expect(view.prop).to.include({ isActive: false })
-      })
-
-    })
-
-    describe('isPristine', () => {
-
-      it('is true if its value shallow equals its intial value', () => {
-        const wrapper = mount(<Field.View name='test' init={['foo', 'bar']}/>)
-        const view = wrapper.instance()
-        expect(view.prop).to.include({ isPristine: true })
-        view.setState({ value: ['foo', 'baz'] })
-        expect(view.prop).to.include({ isPristine: false })
-      })
-
-    })
-
-    describe('isDirty', () => {
-
-      it('is the opposite of isPristine', () => {
-        const wrapper = mount(<Field.View name='test' init={['foo', 'bar']}/>)
-        const view = wrapper.instance()
-        expect(view.prop).to.include({
-          isDirty: false,
-          isPristine: true
-        })
-        view.setState({ value: ['foo', 'baz'] })
-        expect(view.prop).to.include({
-          isDirty: true,
-          isPristine: false
-        })
-      })
-
     })
 
   })
@@ -291,11 +260,8 @@ describe('Field.View', () => {
 
       it('sets the field as touched', () => {
         const wrapper = mount(<Field.View name='test' component='input'/>)
-        const { model } = wrapper.instance()
-        expect(model.state).to.include({ touches: 0 })
         expect(wrapper.state()).to.include({ isTouched: false })
         wrapper.simulate('blur')
-        expect(model.state).to.include({ touches: 1 })
         expect(wrapper.state()).to.include({ isTouched: true })
       })
 
@@ -305,18 +271,15 @@ describe('Field.View', () => {
 
       it('sets the fields\'s isActive and isVisited state', () => {
         const wrapper = mount(<Field.View name='test' component='input'/>)
-        const { model } = wrapper.instance()
-        expect(model.state).to.include({
-          visits: 0,
+        expect(wrapper.state()).to.include({
+          isVisited: false,
           isActive: false
         })
-        expect(wrapper.state()).to.include({ isActive: false })
         wrapper.simulate('focus')
-        expect(model.state).to.include({
-          visits: 1,
+        expect(wrapper.state()).to.include({
+          isVisited: true,
           isActive: true
         })
-        expect(wrapper.state()).to.include({ isActive: true })
       })
 
     })
@@ -325,11 +288,8 @@ describe('Field.View', () => {
 
       it('sets the field\'s value state', () => {
         const wrapper = mount(<Field.View name='test' component='input'/>)
-        const { model } = wrapper.instance()
-        expect(model.state).to.include({ value: '' })
         expect(wrapper.state()).to.include({ value: '' })
         wrapper.simulate('change', { target: { value: 'test' } })
-        expect(model.state).to.include({ value: 'test' })
         expect(wrapper.state()).to.include({ value: 'test' })
       })
 
@@ -350,9 +310,9 @@ describe('Field.View', () => {
             parse={value => new Date(value)}/>
         )
         wrapper.simulate('change', { target: { value: '1970-01-01' } })
-        expect(wrapper)
-          .to.have.state('value')
-          .that.is.a('date')
+        const { value } = wrapper.state()
+        expect(value).to.be.a('date')
+        expect(value.valueOf()).to.equal(0)
       })
 
     })
@@ -483,11 +443,15 @@ describe('Field.View', () => {
     })
 
     it('passes field and control props to a component function', done => {
-      const Test = ({ field, control }) => {
-        expect(field).to.be.an('object')
-        expect(control).to.be.an('object')
-        done()
-        return null
+      class Test extends Component {
+        render() {
+          // eslint-disable-next-line react/prop-types
+          const { field, control } = this.props
+          expect(field).to.be.an('object')
+          expect(control).to.be.an('object')
+          done()
+          return null
+        }
       }
       mount(<Field.View name='test' component={Test}/>)
     })
@@ -495,6 +459,7 @@ describe('Field.View', () => {
     it('spreads its control into the props of a tagName component', () => {
       const wrapper = mount(<Field.View name='test' component='input'/>)
       const input = wrapper.find('input')
+      expect(input).to.have.props({ name: 'test', value: '' })
       expect(input).to.have.prop('onBlur').that.is.a('function')
       expect(input).to.have.prop('onFocus').that.is.a('function')
       expect(input).to.have.prop('onChange').that.is.a('function')

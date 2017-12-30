@@ -1,4 +1,4 @@
-import { PureComponent, createElement } from 'react'
+import { Component, createElement } from 'react'
 import PropTypes from 'prop-types'
 import * as _ from './util'
 
@@ -17,11 +17,13 @@ export const Model = class SuperControlModel {
       root,
       route,
       state,
-      subscribers: []
+      subscribers: [],
+      publish: this.publish.bind(this)
     })
   }
   get name() {
-    return this.route[this.route.length - 1]()
+    return (this.route.length || null) &&
+           this.route[this.route.length - 1]()
   }
   get names() {
     return this.route.map(_.invoke)
@@ -30,15 +32,28 @@ export const Model = class SuperControlModel {
     return _.toPath(this.names)
   }
   getState() {
-    const { visits, touches, ...state } = this.state
-    return { ...state, isVisited: !!visits, isTouched: !!touches }
+    const {
+      name, path, state: { visits, touches, error, notice, ...state }
+    } = this
+    return {
+      ...state,
+      name,
+      path,
+      error,
+      notice,
+      isValid: !error,
+      isInvalid: !!error,
+      hasNotice: !!notice,
+      isVisited: !!visits,
+      isTouched: !!touches
+    }
   }
   subscribe(subscriber) {
     const index = this.subscribers.push(subscriber) - 1
     subscriber(this.getState())
     return _ => {
       this.subscribers.splice(index, 1)
-      this.subscribers.length || this.root.unregister(this.names)
+      !this.subscribers.length && this.root.unregister(this.names, this)
     }
   }
   publish() {
@@ -46,23 +61,22 @@ export const Model = class SuperControlModel {
     this.subscribers.forEach(subscriber => subscriber(state))
     return this
   }
-  patch(state, { notify = false, validate = false, ...options } = {}) {
-    const next = _.assign({}, this.state, _.omit(state, ['visits', 'touches']))
-    if ('visits' in state) next.visits += state.visits
-    if ('touches' in state) next.touches += state.touches
-    if (notify) {
-      next.notice = this.notify(next.value, this.root.values)
-    }
-    if (validate) {
-      next.error = this.validate(next.value, this.root.values)
-    }
-    next.isActive = (next.visits > this.state.visits) ||
-                     (this.state.isActive && next.touches <= this.state.touches)
-    return this.setState(next, options)
-  }
   setState(nextState, { silent = false } = {}) {
     this.state = nextState
     return silent ? this : this.publish()
+  }
+  patch(change, { notify = false, validate = false, ...options } = {}) {
+    const current = this.state
+    const next = _.assign({}, current, _.omit(change, ['visits', 'touches']))
+    if (notify) next.notice = this.notify(next.value, this.root.values)
+    if (validate) next.error = this.validate(next.value, this.root.values)
+    if (change.visits || change.touches) {
+      if (change.visits) next.visits += change.visits
+      if (change.touches) next.touches += change.touches
+      next.isActive = (next.visits > current.visits) ||
+                      (current.isActive && next.touches <= current.touches)
+    }
+    return this.setState(next, options)
   }
   static create(root, init = null, route = [], config = {}) {
     return new this(root, init, route, _.defaults({}, config, {
@@ -73,7 +87,7 @@ export const Model = class SuperControlModel {
   }
 }
 
-export class View extends PureComponent {
+export const View = class SuperControlView extends Component {
   get init() {
     return this.props.init
   }
@@ -84,28 +98,35 @@ export class View extends PureComponent {
     return _.pick(this.props, ['notify', 'validate'])
   }
   get prop() {
-    const { state: { error, notice } } = this
-    const isValid = !error
-    const hasError = !isValid
-    const isInvalid = hasError
-    const hasNotice = !!notice
-    return _.assign(_.pick(this.model, [
-      'name', 'path'
-    ]), _.pick(this.state, [
-      'init', 'value', 'isActive'
-    ]), {
-      error, notice, isValid, hasError, isInvalid, hasNotice
-    })
+    return _.assign({}, this.state)
+  }
+  equalProps(current, next) {
+    const ignored = ['name', 'init']
+    _.isFunction(current.children) &&
+       _.isFunction(next.children) &&
+          ignored.push('children')
+    return _.shallowEqual(_.omit(current, ignored), _.omit(next, ignored))
+  }
+  equalState(current, next) {
+    return _.shallowEqual(current, next)
   }
   componentWillMount() {
     this.model = this.context['@@super-controls'].register({
-      route: [_.wrap(this.props.name)],
+      route: [_ => this.props.name],
       ..._.pick(this, ['init', 'Model', 'config'])
     })
     this.unsubscribe = this.model.subscribe(this.setState.bind(this))
   }
+  componentWillReceiveProps(next) {
+    next.name !== this.props.name &&
+    setTimeout(() => this.model.publish())
+  }
+  shouldComponentUpdate(nextProps, nextState) {
+    return !this.equalProps(this.props, nextProps) ||
+           !this.equalState(this.state, nextState)
+  }
   componentWillUnmount() {
-    this.unsubscribe()
+    this.unsubscribe = this.unsubscribe()
   }
   render(props = {}) {
     const { render, component, children } = this.props

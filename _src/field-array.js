@@ -2,6 +2,8 @@ import PropTypes from 'prop-types'
 import * as _ from './util'
 import * as FieldSet from './field-set'
 
+let key = 0
+
 export const Model = class FieldArrayModel extends FieldSet.Model {
   constructor(...args) {
     super(...args)
@@ -14,48 +16,60 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
     this.pop = this.pop.bind(this)
     this.shift = this.shift.bind(this)
     this.clear = this.clear.bind(this)
+    this.forEach = this.forEach.bind(this)
+    this.map = this.map.bind(this)
+    this.keys = this.state.value.map(_ => ++key)
   }
-  get length() {
-    return this.values.length
+  getState() {
+    const { values, ...state } = super.getState()
+    const { length } = values
+    return { length, values, ...state }
   }
   at(index) {
-    return this.values[index]
+    return this.state.value[index]
+  }
+  forEach(procedure) {
+    this.state.value.forEach((value, index) => procedure(value, index, this))
+  }
+  map(transform) {
+    return this.keys.map((key, index) => {
+      return transform(this.state.value[index], index, this, key)
+    })
   }
   insert(index, value) {
+    this.keys = _.sliceIn(this.keys, index, ++key)
+    this.fields = _.sliceIn(this.fields, index, void 0)
     this.root.patch(this.names, {
-      init: _.sliceIn(this.values, index, value),
-      value: _.sliceIn(this.values, index, value)
+      init: _.sliceIn(this.state.value, index, value),
+      value: _.sliceIn(this.state.value, index, value)
     })
   }
   push(value) {
-    this.insert(this.length, value)
+    this.insert(this.state.value.length, value)
   }
   unshift(value) {
     this.insert(0, value)
   }
   remove(index) {
+    this.keys = _.remove(this.keys, index)
+    this.fields = _.remove(this.fields, index)
     this.root.patch(this.names, {
-      init: _.remove(this.values, index),
-      value: _.remove(this.values, index)
+      init: _.remove(this.state.init, index),
+      value: _.remove(this.state.value, index)
     })
   }
   clear() {
+    this.keys = []
     this.root.patch(this.names, {
       init: [],
-      value: [],
+      value: []
     })
   }
   pop() {
-    this.remove(this.length - 1)
+    this.remove(this.state.value.length - 1)
   }
   shift() {
     this.remove(0)
-  }
-  forEach(procedure) {
-    this.values.forEach((value, index) => procedure(value, index, this))
-  }
-  map(transform) {
-    return this.values.map((value, index) => transform(value, index, this))
   }
   static create(root, init = [], route, checks) {
     return super.create(root, init, route, checks)
@@ -68,8 +82,9 @@ export class View extends FieldSet.View {
   }
   get prop() {
     return _.assign(super.prop, _.pick(this.model, [
-      'length', 'at', 'insert', 'push', 'unshift',
-      'remove', 'pop', 'shift', 'clear', 'forEach', 'map'
+      'at', 'forEach', 'map',
+      'insert', 'push', 'unshift',
+      'remove', 'pop', 'shift', 'clear'
     ]))
   }
   static get displayName() {

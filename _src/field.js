@@ -5,30 +5,41 @@ import * as SuperControl from './super-control'
 export const Model = class FieldModel extends SuperControl.Model {
   constructor(...args) {
     super(...args)
-    this.update = this.update.bind(this)
+    this.reset = this.reset.bind(this)
     this.visit = this.visit.bind(this)
     this.touch = this.touch.bind(this)
     this.change = this.change.bind(this)
     this.untouch = this.untouch.bind(this)
   }
-  update(state, { force = false, ...options } = {}) {
-    const nextState = _.assign({}, state)
-    if ('value' in state && !force) {
-      nextState.value = this.override(state.value, this.root.values)
+  update(change, options = {}) {
+    const next = _.assign({}, change)
+    if ('value' in change && !options.force) {
+      next.value = this.override(change.value, this.root.values)
     }
-    this.root.patch(this.names, nextState, options)
+    this.root.patch(this.names, next, options)
   }
-  visit() {
-    this.update({ visits: 1 })
+  getState() {
+    const { init, value, ...state } = super.getState()
+    const isPristine = _.shallowEqual(value, init)
+    const isDirty = !isPristine
+    return { init, value, isPristine, isDirty, ...state }
   }
-  touch() {
-    this.update({ touches: 1 })
+  visit(options) {
+    this.update({ visits: 1 }, options)
   }
-  change(value) {
-    this.update({ value })
+  touch(options) {
+    this.update({ touches: 1 }, options)
   }
-  untouch() {
-    this.update({ touches: -this.state.touches })
+  change(value, options) {
+    this.update({ value }, options)
+  }
+  untouch(options) {
+    this.update({ touches: -this.state.touches }, options)
+  }
+  reset(options) {
+    const { init, visits, touches } = this.state
+    const change = { value: init, visits: -visits, touches: -touches }
+    this.update(change, options)
   }
 }
 
@@ -56,15 +67,9 @@ export class View extends SuperControl.View {
            !!this.props.multiple
   }
   get prop() {
-    const isPristine = _.shallowEqual(this.state.value, this.state.init)
-    const isDirty = !isPristine
     return _.assign(super.prop, _.pick(this.model, [
-      'visit', 'touch', 'change', 'untouch'
-    ]), _.pick(this.state, [
-      'isVisited', 'isTouched'
-    ]), {
-      isDirty, isPristine
-    })
+      'visit', 'touch', 'change', 'untouch', 'reset'
+    ]))
   }
   createControl(field) {
     const { type, name, format } = this.props
@@ -106,7 +111,7 @@ export class View extends SuperControl.View {
       const wrapped = _.wrapEvent(event)
       this.props.onBlur(wrapped, field)
       if (wrapped.defaultPrevented) return
-      field.touch()
+      field.touch({ validate: true, notify: true })
     }
   }
   handleFocus(field) {
@@ -123,7 +128,7 @@ export class View extends SuperControl.View {
       const wrapped = _.wrapEvent(event)
       this.props.onChange(wrapped, value, field)
       if (wrapped.defaultPrevented) return
-      field.change(value)
+      field.change(value, { validate: true, notify: true, quiet: true })
     }
   }
   render() {

@@ -24,7 +24,7 @@ describe('Form.Model', () => {
         visits: 0,
         error: null,
         notice: null,
-        focused: null,
+        active: null,
         isActive: false,
         init: { foo: '' },
         value: { foo: '' }
@@ -79,18 +79,18 @@ describe('Form.Model', () => {
       const form = Form.Model.create('test', {})
       form.register({ init: '', Model: Field.Model, route: toRoute('foo') })
       const field = form.getField(['foo'])
-      form.patch(['foo'], { isVisited: true })
-      expect(form.state).to.include({ focused: field })
+      form.patch(['foo'], { visits: 1 })
+      expect(form.state).to.include({ active: field })
     })
 
     it('tracks touches of descendant fields', () => {
       const form = Form.Model.create('test', {})
       form.register({ init: '', Model: Field.Model, route: toRoute('foo') })
       const field = form.getField(['foo'])
-      form.patch(['foo'], { isVisited: true })
-      expect(form.state).to.include({ focused: field })
-      form.patch(['foo'], { isTouched: true })
-      expect(form.state).to.include({ focused: null })
+      form.patch(['foo'], { visits: 1 })
+      expect(form.state).to.include({ active: field })
+      form.patch(['foo'], { touches: 1 })
+      expect(form.state).to.include({ active: null })
     })
 
   })
