@@ -32,15 +32,14 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
     this.state.value.forEach((value, index) => procedure(value, index, this))
   }
   map(transform) {
-    return this.keys.map((key, index) => {
-      return transform(this.state.value[index], index, this, key)
+    return this.state.value.map((value, index) => {
+      return transform(value, index, this, this.keys[index])
     })
   }
   insert(index, value) {
     this.keys = _.sliceIn(this.keys, index, ++key)
     this.fields = _.sliceIn(this.fields, index, void 0)
     this.root.patch(this.names, {
-      init: _.sliceIn(this.state.value, index, value),
       value: _.sliceIn(this.state.value, index, value)
     })
   }
@@ -52,24 +51,28 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
   }
   remove(index) {
     this.keys = _.remove(this.keys, index)
+    const { state: { visits, touches } } = this.fields[index]
     this.fields = _.remove(this.fields, index)
     this.root.patch(this.names, {
-      init: _.remove(this.state.init, index),
+      visits: -visits,
+      touches: -touches,
       value: _.remove(this.state.value, index)
     })
   }
   clear() {
     this.keys = []
-    this.root.patch(this.names, {
-      init: [],
-      value: []
-    })
+    this.root.patch(this.names, { value: [] })
   }
   pop() {
     this.remove(this.state.value.length - 1)
   }
   shift() {
     this.remove(0)
+  }
+  reset(options) {
+    const { keys, state: { init: { length } } } = this
+    this.keys = keys.slice(0, length)
+    super.reset(options)
   }
   static create(root, init = [], route, checks) {
     return super.create(root, init, route, checks)

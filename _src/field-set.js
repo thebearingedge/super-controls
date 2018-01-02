@@ -6,6 +6,7 @@ export const Model = class FieldSetModel extends SuperControl.Model {
   constructor(...args) {
     super(...args)
     this.fields = {}
+    this.reset = this.reset.bind(this)
     this.touch = this.touch.bind(this)
     this.change = this.change.bind(this)
     this.untouch = this.untouch.bind(this)
@@ -42,7 +43,6 @@ export const Model = class FieldSetModel extends SuperControl.Model {
     super.patch({
       visits: -registered.state.visits,
       touches: -registered.state.touches,
-      init: _.unset(this.state.init, names),
       value: _.unset(this.state.value, names)
     })
     const [ first, ...rest ] = names
@@ -54,8 +54,8 @@ export const Model = class FieldSetModel extends SuperControl.Model {
   patch(names, change, options = {}) {
     if (!names.length) return super.patch(change, options)
     const current = this.state
-    const next = _.assign({}, change)
-    if ('init' in change) {
+    const next = _.omit(change, ['init', 'value'])
+    if ('init' in change && !this.root.isInitialized) {
       next.init = _.set(current.init, names, change.init)
     }
     if ('value' in change) {
@@ -68,6 +68,13 @@ export const Model = class FieldSetModel extends SuperControl.Model {
       ? field.patch(rest, change, options)
       : field.patch(change, options)
     return this
+  }
+  initialize(init) {
+    _.keys(init).forEach(key => {
+      this.fields[key] &&
+      this.fields[key].initialize(init[key])
+    })
+    super.patch({ init, value: init })
   }
   broadcast() {
     this.publish()
@@ -100,6 +107,15 @@ export const Model = class FieldSetModel extends SuperControl.Model {
     _.keys(this.fields).forEach(key => {
       _.invoke(this.fields[key].untouchAll || this.fields[key].untouch)
     })
+  }
+  reset(options) {
+    const { root, names, fields, state: { init } } = this
+    _.keys(fields).reverse().forEach(key => {
+      _.exists(init, key)
+        ? fields[key].reset(options)
+        : root.unregister(fields[key].names, fields[key])
+    })
+    root.patch(names, { value: init, error: null, notice: null }, options)
   }
   static create(root, init = {}, route, checks) {
     return super.create(root, init, route, checks)
@@ -139,13 +155,13 @@ export class View extends SuperControl.View {
     next.name !== this.props.name &&
     setTimeout(() => this.model.broadcast())
   }
-  render() {
+  render(props = {}) {
     if (_.isFunction(this.props.render) ||
         _.isFunction(this.props.component) ||
         _.isFunction(this.props.children)) {
-      return super.render({ fields: this.prop })
+      return super.render({ fields: this.prop, ...props })
     }
-    return super.render()
+    return super.render(props)
   }
   static get displayName() {
     return 'FieldSet'

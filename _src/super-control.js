@@ -39,13 +39,13 @@ export const Model = class SuperControlModel {
       ...state,
       name,
       path,
-      error,
-      notice,
       isValid: !error,
       isInvalid: !!error,
       hasNotice: !!notice,
       isVisited: !!visits,
-      isTouched: !!touches
+      isTouched: !!touches,
+      error: error || null,
+      notice: notice || null
     }
   }
   subscribe(subscriber) {
@@ -61,8 +61,8 @@ export const Model = class SuperControlModel {
     this.subscribers.forEach(subscriber => subscriber(state))
     return this
   }
-  setState(nextState, { silent = false } = {}) {
-    this.state = nextState
+  setState(next, { silent = false } = {}) {
+    this.state = next
     return silent ? this : this.publish()
   }
   patch(change, { notify = false, validate = false, ...options } = {}) {
@@ -77,6 +77,9 @@ export const Model = class SuperControlModel {
                       (current.isActive && next.touches <= current.touches)
     }
     return this.setState(next, options)
+  }
+  initialize(init) {
+    this.patch({ init, value: init })
   }
   static create(root, init = null, route = [], config = {}) {
     return new this(root, init, route, _.defaults({}, config, {

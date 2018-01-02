@@ -1,7 +1,8 @@
 import React from 'react'
 import { describe, beforeEach, it } from 'mocha'
-import { expect, mountWith } from './__test__'
+import { expect, mountWith, toRoute } from './__test__'
 import * as Form from './form'
+import * as Field from './field'
 import * as FieldArray from './field-array'
 
 describe('FieldArray.Model', () => {
@@ -46,7 +47,7 @@ describe('FieldArray.Model', () => {
 
   describe('map', () => {
 
-    it('applies a transform to the keys in the model', () => {
+    it('applies a transform to the values in the model', () => {
       const values = ['foo', 'bar']
       const model = FieldArray.Model.create(null, values)
       const mapped = model.map((value, index, array, key) => {
@@ -67,7 +68,6 @@ describe('FieldArray.Model', () => {
       model.root = model
       model.insert(1, 'bar')
       expect(model.state).to.deep.include({
-        init: ['foo', 'bar', 'baz'],
         value: ['foo', 'bar', 'baz']
       })
     })
@@ -81,7 +81,6 @@ describe('FieldArray.Model', () => {
       model.root = model
       model.push('baz')
       expect(model.state).to.deep.include({
-        init: ['foo', 'bar', 'baz'],
         value: ['foo', 'bar', 'baz']
       })
     })
@@ -95,7 +94,6 @@ describe('FieldArray.Model', () => {
       model.root = model
       model.unshift('foo')
       expect(model.state).to.deep.include({
-        init: ['foo', 'bar', 'baz'],
         value: ['foo', 'bar', 'baz']
       })
     })
@@ -105,11 +103,14 @@ describe('FieldArray.Model', () => {
   describe('remove', () => {
 
     it('removes a value from the model at the given index', () => {
-      const model = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
-      model.root = model
-      model.remove(1)
-      expect(model.state).to.deep.include({
-        init: ['foo', 'baz'],
+      const array = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
+      array.root = array
+      array
+        .register([0], Field.Model.create(array, 'foo', toRoute('0')))
+        .register([1], Field.Model.create(array, 'bar', toRoute('1')))
+        .register([2], Field.Model.create(array, 'baz', toRoute('2')))
+      array.remove(1)
+      expect(array.state).to.deep.include({
         value: ['foo', 'baz']
       })
     })
@@ -119,25 +120,31 @@ describe('FieldArray.Model', () => {
   describe('pop', () => {
 
     it('removes a value from the end of the model', () => {
-      const model = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
-      model.root = model
-      model.pop()
-      expect(model.state).to.deep.include({
-        init: ['foo', 'bar'],
+      const array = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
+      array.root = array
+      array
+        .register([0], Field.Model.create(array, 'foo', toRoute('0')))
+        .register([1], Field.Model.create(array, 'bar', toRoute('1')))
+        .register([2], Field.Model.create(array, 'baz', toRoute('2')))
+      array.pop()
+      expect(array.state).to.deep.include({
         value: ['foo', 'bar']
       })
     })
 
   })
 
-  describe('unshift', () => {
+  describe('shift', () => {
 
     it('removes a value from the beginning of the model', () => {
-      const model = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
-      model.root = model
-      model.shift()
-      expect(model.state).to.deep.include({
-        init: ['bar', 'baz'],
+      const array = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
+      array.root = array
+      array
+        .register([0], Field.Model.create(array, 'foo', toRoute('0')))
+        .register([1], Field.Model.create(array, 'bar', toRoute('1')))
+        .register([2], Field.Model.create(array, 'baz', toRoute('2')))
+      array.shift()
+      expect(array.state).to.deep.include({
         value: ['bar', 'baz']
       })
     })
@@ -150,10 +157,7 @@ describe('FieldArray.Model', () => {
       const model = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
       model.root = model
       model.clear()
-      expect(model.state).to.deep.include({
-        init: [],
-        value: []
-      })
+      expect(model.state).to.deep.include({ value: [] })
     })
 
   })

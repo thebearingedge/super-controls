@@ -9,10 +9,16 @@ import * as SuperControl from './super-control'
 
 describe('FieldSet.Model', () => {
 
+  let form
+
+  beforeEach(() => {
+    form = { isInitialized: false }
+  })
+
   describe('register', () => {
 
     it('registers a child field', () => {
-      const fieldSet = FieldSet.Model.create(null, {})
+      const fieldSet = FieldSet.Model.create(form, {})
       const field = Field.Model.create(fieldSet, '', toRoute('foo'))
       fieldSet.register(['foo'], field)
       expect(fieldSet.fields.foo).to.equal(field)
@@ -20,7 +26,7 @@ describe('FieldSet.Model', () => {
     })
 
     it('registers a child fieldSet', () => {
-      const parent = FieldSet.Model.create(null, {})
+      const parent = FieldSet.Model.create(form, {})
       const child = FieldSet.Model.create(parent, {}, toRoute('foo'))
       parent.register(['foo'], child)
       expect(parent.fields.foo).to.equal(child)
@@ -28,7 +34,7 @@ describe('FieldSet.Model', () => {
     })
 
     it('registers a grandchild field', () => {
-      const parent = FieldSet.Model.create(null, {})
+      const parent = FieldSet.Model.create(form, {})
       const child = FieldSet.Model.create(parent, {}, toRoute('foo'))
       const grandchild = Field.Model.create(parent, '', toRoute('foo.bar'))
       parent
@@ -45,7 +51,7 @@ describe('FieldSet.Model', () => {
     describe('anyTouched', () => {
 
       it('is true if any of its descendant fields are touched', () => {
-        const fieldSet = FieldSet.Model.create()
+        const fieldSet = FieldSet.Model.create(form)
         fieldSet.root = fieldSet
         const field = Field.Model.create(fieldSet, '', toRoute('foo'))
         fieldSet.register(['foo'], field)
@@ -59,7 +65,7 @@ describe('FieldSet.Model', () => {
     describe('anyVisited', () => {
 
       it('is true if any of its descendant fields are touched', () => {
-        const fieldSet = FieldSet.Model.create()
+        const fieldSet = FieldSet.Model.create(form)
         fieldSet.root = fieldSet
         const field = Field.Model.create(fieldSet, '', toRoute('foo'))
         fieldSet.register(['foo'], field)
@@ -75,7 +81,7 @@ describe('FieldSet.Model', () => {
   describe('patch', () => {
 
     it('patches its own state', () => {
-      const fieldSet = FieldSet.Model.create(null, {})
+      const fieldSet = FieldSet.Model.create(form, {})
       fieldSet.patch([], { value: { foo: 'bar' } })
       expect(fieldSet.state).to.deep.include({
         value: { foo: 'bar' }
@@ -83,8 +89,8 @@ describe('FieldSet.Model', () => {
     })
 
     it('patches the state of descendant fields', () => {
-      const fieldSet = FieldSet.Model.create(null, {})
-      const field = Field.Model.create(null, '', toRoute('foo'))
+      const fieldSet = FieldSet.Model.create(form, {})
+      const field = Field.Model.create(form, '', toRoute('foo'))
       fieldSet
         .register(['foo'], field)
         .patch(['foo'], { value: 'bar' })
@@ -97,7 +103,7 @@ describe('FieldSet.Model', () => {
     })
 
     it('tracks the visits of descendant fields', () => {
-      const fieldSet = FieldSet.Model.create(null, {})
+      const fieldSet = FieldSet.Model.create(form, {})
       const field = Field.Model.create(fieldSet, '', toRoute('foo'))
       fieldSet
         .register(['foo'], field)
@@ -106,7 +112,7 @@ describe('FieldSet.Model', () => {
     })
 
     it('tracks the touches of descendant fields', () => {
-      const fieldSet = FieldSet.Model.create(null, {})
+      const fieldSet = FieldSet.Model.create(form, {})
       const field = Field.Model.create(fieldSet, '', toRoute('foo'))
       fieldSet
         .register(['foo'], field)
@@ -115,7 +121,7 @@ describe('FieldSet.Model', () => {
     })
 
     it('tracks isActive of descendant fields', () => {
-      const fieldSet = FieldSet.Model.create(null, {})
+      const fieldSet = FieldSet.Model.create(form, {})
       const field = Field.Model.create(fieldSet, '', toRoute('foo'))
       fieldSet
         .register(['foo'], field)
@@ -130,7 +136,7 @@ describe('FieldSet.Model', () => {
   describe('broadcast', () => {
 
     it('calls subscribers on itself and all descendants', done => {
-      const parent = FieldSet.Model.create(null, {})
+      const parent = FieldSet.Model.create(form, {})
       const child = FieldSet.Model.create(parent, {}, toRoute('foo'))
       const grandchild = Field.Model.create(parent, '', toRoute('foo.bar'))
       parent
@@ -150,7 +156,7 @@ describe('FieldSet.Model', () => {
   describe('getField', () => {
 
     it('returns a registered child field', () => {
-      const fieldSet = FieldSet.Model.create(null, {})
+      const fieldSet = FieldSet.Model.create(form, {})
       fieldSet.root = fieldSet
       const field = Field.Model.create(fieldSet, '', toRoute('foo'))
       fieldSet.register(['foo'], field)
@@ -158,7 +164,7 @@ describe('FieldSet.Model', () => {
     })
 
     it('returns a registered granchild field', () => {
-      const parent = FieldSet.Model.create(null, {})
+      const parent = FieldSet.Model.create(form, {})
       const child = FieldSet.Model.create(parent, {}, toRoute('foo'))
       const grandchild = Field.Model.create(parent, {}, toRoute('foo.bar'))
       parent
@@ -168,7 +174,7 @@ describe('FieldSet.Model', () => {
     })
 
     it('returns null if a field is not registered', () => {
-      const parent = FieldSet.Model.create(null, {})
+      const parent = FieldSet.Model.create(form, {})
       const child = FieldSet.Model.create(parent, {}, toRoute('foo'))
       parent.register(child.names, child)
       const unregistered = parent.getField(['foo', 'bar'])
@@ -176,7 +182,7 @@ describe('FieldSet.Model', () => {
     })
 
     it('returns null if the names list is too long', () => {
-      const parent = FieldSet.Model.create(null, {})
+      const parent = FieldSet.Model.create(form, {})
       const child = Field.Model.create(parent, {}, toRoute('foo'))
       parent.register(child.names, child)
       const unregistered = parent.getField(['foo', 'bar'])
@@ -208,7 +214,7 @@ describe('FieldSet.Model', () => {
       })
       fieldSet.unregister(['foo'], field)
       expect(fieldSet.state).to.deep.include({
-        init: {},
+        init: { foo: '' },
         value: {}
       })
     })
@@ -248,7 +254,7 @@ describe('FieldSet.Model', () => {
       })
       parent.unregister(['foo', 'bar'], grandchild)
       expect(parent.state).to.deep.include({
-        init: { foo: {} },
+        init: { foo: { bar: '' } },
         value: { foo: {} }
       })
     })
@@ -264,7 +270,7 @@ describe('FieldSet.Model', () => {
       parent.unregister(['foo'], child)
       expect(parent.fields).to.deep.equal({})
       expect(parent.state).to.deep.include({
-        init: {},
+        init: { foo: { bar: '' } },
         value: {}
       })
     })
@@ -373,6 +379,117 @@ describe('FieldSet.Model', () => {
       expect(fieldSet.fields.foo.state.touches).to.equal(0)
       expect(fieldSet.fields.bar.state.touches).to.equal(0)
       expect(fieldSet.fields.baz.state.touches).to.equal(0)
+    })
+
+  })
+
+  describe('initialize', () => {
+
+    it('patches the init and value states of itself', () => {
+      const fieldSet = FieldSet.Model.create(null, {})
+      fieldSet.initialize({ foo: 'bar' })
+      expect(fieldSet.getState()).to.deep.include({
+        init: { foo: 'bar' },
+        values: { foo: 'bar' }
+      })
+    })
+
+    it('patches the init and value states of its descendants', () => {
+      const parent = FieldSet.Model.create(form, {})
+      const child = FieldSet.Model.create(parent, {}, toRoute('foo'))
+      const grandchild = Field.Model.create(parent, '', toRoute('foo.bar'))
+      parent
+        .register(['foo'], child)
+        .register(['foo', 'bar'], grandchild)
+      parent.initialize({ foo: { bar: 'baz' } })
+      expect(parent.getState()).to.deep.include({
+        init: { foo: { bar: 'baz' } },
+        values: { foo: { bar: 'baz' } }
+      })
+      expect(child.getState()).to.deep.include({
+        init: { bar: 'baz' },
+        values: { bar: 'baz' }
+      })
+      expect(grandchild.getState()).to.include({
+        init: 'baz',
+        value: 'baz'
+      })
+    })
+
+  })
+
+  describe('reset', () => {
+
+    it('resets the value state of the form to its init state', () => {
+      const fieldSet = FieldSet.Model.create(null, {})
+      fieldSet.root = fieldSet
+      const fieldArray = FieldArray.Model.create(fieldSet, [], toRoute('foo'))
+      const field = Field.Model.create(fieldSet, '', toRoute('foo[0]'))
+      fieldSet
+        .register(['foo'], fieldArray)
+        .register(['foo', 0], field)
+      fieldSet.change('foo[0]', 'bar')
+      expect(fieldSet.getState()).to.deep.include({
+        init: { foo: [''] },
+        values: { foo: ['bar'] }
+      })
+      expect(fieldArray.getState()).to.deep.include({
+        init: [''],
+        values: ['bar']
+      })
+      expect(field.getState()).to.include({
+        init: '',
+        value: 'bar'
+      })
+      fieldSet.reset()
+      expect(fieldSet.getState()).to.deep.include({
+        init: { foo: [''] },
+        values: { foo: [''] }
+      })
+      expect(fieldArray.getState()).to.deep.include({
+        init: [''],
+        values: ['']
+      })
+      expect(field.getState()).to.include({
+        init: '',
+        value: ''
+      })
+    })
+
+    it('retains the active state of itself and active descendant', () => {
+      const fieldSet = FieldSet.Model.create(null, {})
+      fieldSet.root = fieldSet
+      const fieldArray = FieldArray.Model.create(fieldSet, [], toRoute('foo'))
+      const field = Field.Model.create(fieldSet, '', toRoute('foo[0]'))
+      fieldSet
+        .register(['foo'], fieldArray)
+        .register(['foo', 0], field)
+      field.visit()
+      expect(fieldSet.getState()).to.include({
+        isActive: true,
+        anyVisited: true
+      })
+      expect(fieldArray.getState()).to.include({
+        isActive: true,
+        anyVisited: true
+      })
+      expect(field.getState()).to.include({
+        isActive: true,
+        isVisited: true
+      })
+      fieldSet.reset()
+      expect(fieldSet.getState()).to.include({
+        isActive: true,
+        anyVisited: false
+      })
+      expect(fieldArray.getState()).to.include({
+        isActive: true,
+        anyVisited: false
+      })
+      expect(field.getState()).to.include({
+        isActive: true,
+        isVisited: false
+      })
     })
 
   })

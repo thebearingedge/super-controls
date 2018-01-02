@@ -9,7 +9,7 @@ describe('Field.Model', () => {
   let form
 
   beforeEach(() => {
-    form = { values: { foo: 'bar' }, patch: stub(), state: {} }
+    form = { state: {}, patch: stub(), values: { foo: 'bar' } }
   })
 
   describe('getState', () => {

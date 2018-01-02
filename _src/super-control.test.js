@@ -91,40 +91,14 @@ describe('SuperControl.Model', () => {
 
   describe('publish', () => {
 
-    it('calls subscribers with the model\'s state', done => {
+    it('calls subscribers with the state of the model', done => {
       const model = SuperControl.Model.create()
       const subscriber = stub()
         .onCall(0).callsFake(state => {
-          expect(state).to.deep.equal({
-            path: '',
-            name: null,
-            init: null,
-            value: null,
-            error: null,
-            notice: null,
-            isValid: true,
-            isInvalid: false,
-            hasNotice: false,
-            isActive: false,
-            isVisited: false,
-            isTouched: false
-          })
+          expect(state).to.deep.equal(model.getState())
         })
         .onCall(1).callsFake(state => {
-          expect(state).to.deep.equal({
-            path: '',
-            name: null,
-            init: null,
-            value: null,
-            error: null,
-            notice: null,
-            isValid: true,
-            isInvalid: false,
-            hasNotice: false,
-            isActive: false,
-            isVisited: false,
-            isTouched: false
-          })
+          expect(state).to.deep.equal(model.getState())
           done()
         })
       model.subscribe(subscriber)
@@ -135,7 +109,7 @@ describe('SuperControl.Model', () => {
 
   describe('setState', () => {
 
-    it('replaces the model\'s state', () => {
+    it('replaces the state of the model', () => {
       const model = SuperControl.Model.create()
       model.setState({ ...model.state, value: 'foo' })
       expect(model.getState()).to.deep.equal({
@@ -154,7 +128,7 @@ describe('SuperControl.Model', () => {
       })
     })
 
-    it('publishes the model\'s new state', done => {
+    it('publishes the new state of the model', done => {
       const model = SuperControl.Model.create()
       model.subscribe(stub().onCall(1).callsFake(state => {
         expect(state).to.deep.equal({
@@ -176,7 +150,7 @@ describe('SuperControl.Model', () => {
       model.setState({ ...model.state, value: 'foo' })
     })
 
-    it('silently replaces the model\'s new state', () => {
+    it('silently replaces the state of the model', () => {
       const model = SuperControl.Model.create()
       model
         .subscribe(stub().onCall(1).throws(new Error('setState not silenced')))
@@ -207,7 +181,7 @@ describe('SuperControl.Model', () => {
       form = { values: { foo: 'foo' } }
     })
 
-    it('patches the model\'s value state', () => {
+    it('patches the value state of the model', () => {
       const model = SuperControl.Model.create()
       model.patch({ value: 'bar' })
       expect(model.getState()).to.deep.equal({
@@ -256,28 +230,45 @@ describe('SuperControl.Model', () => {
       })
     })
 
-    it('patches the model\'s isVisited state', () => {
-      const model = SuperControl.Model.create(null)
+    it('patches the isVisited state of the model', () => {
+      const model = SuperControl.Model.create()
       model.patch({ visits: 1 })
       expect(model.getState()).to.include({ isVisited: true })
       model.patch({ visits: -1 })
       expect(model.getState()).to.include({ isVisited: false })
     })
 
-    it('patches the model\'s isTouched state', () => {
-      const model = SuperControl.Model.create(null)
+    it('patches the isTouched state of the model', () => {
+      const model = SuperControl.Model.create()
       model.patch({ touches: 1 })
       expect(model.getState()).to.include({ isTouched: true })
       model.patch({ touches: -1 })
       expect(model.getState()).to.include({ isTouched: false })
     })
 
-    it('patches the model\'s isActive state', () => {
-      const model = SuperControl.Model.create(null)
+    it('patches the isActive state of the model', () => {
+      const model = SuperControl.Model.create()
       model.patch({ visits: 1 })
       expect(model.getState()).to.include({ isActive: true })
       model.patch({ touches: 1 })
       expect(model.getState()).to.include({ isActive: false })
+    })
+
+  })
+
+  describe('initialize', () => {
+
+    it('patches the init and value states of the model', () => {
+      const model = SuperControl.Model.create()
+      expect(model.getState()).to.include({
+        init: null,
+        value: null
+      })
+      model.initialize('test')
+      expect(model.getState()).to.include({
+        init: 'test',
+        value: 'test'
+      })
     })
 
   })

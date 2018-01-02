@@ -127,6 +127,35 @@ describe('Form.View', () => {
 
   })
 
+  describe('createControl', () => {
+
+    describe('onReset', () => {
+
+      it('resets the form to its initial state', () => {
+        const wrapper = mount(
+          <Form.View init={{ foo: 'bar' }}>
+            <Field.View name='foo' component='input'/>
+          </Form.View>
+        )
+        const input = wrapper.find('input').hostNodes()
+        input.simulate('change', { target: { value: 'baz' } })
+        const { model } = wrapper.instance()
+        expect(model.getState()).to.deep.include({
+          init: { foo: 'bar' },
+          values: { foo: 'baz' }
+        })
+        const form = wrapper.find('form')
+        form.simulate('reset')
+        expect(model.getState()).to.deep.include({
+          init: { foo: 'bar' },
+          values: { foo: 'bar' }
+        })
+      })
+
+    })
+
+  })
+
   describe('prop', () => {
 
     describe('name', () => {
@@ -137,6 +166,7 @@ describe('Form.View', () => {
         expect(view.prop).to.include({ name: 'test' })
       })
     })
+
   })
 
 })

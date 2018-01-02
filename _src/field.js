@@ -37,9 +37,11 @@ export const Model = class FieldModel extends SuperControl.Model {
     this.update({ touches: -this.state.touches }, options)
   }
   reset(options) {
-    const { init, visits, touches } = this.state
-    const change = { value: init, visits: -visits, touches: -touches }
-    this.update(change, options)
+    const { root, names, state: { init, visits, touches } } = this
+    const change = {
+      value: init, visits: -visits, touches: -touches, error: null, notice: null
+    }
+    root.patch(names, change, options)
   }
 }
 

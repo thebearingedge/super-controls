@@ -1,15 +1,12 @@
 /* eslint-disable react/prop-types */
 import React, { Fragment } from 'react'
 import { render } from 'react-dom'
-import { Form } from '~/src/form'
-import { Field } from '~/src/field'
-import { FieldSet } from '~/src/field-set'
-import { FieldArray } from '~/src/field-array'
+import { Form, Field, FieldSet, FieldArray } from '~/_src'
 
 const handleSubmit = values =>
   console.log(JSON.stringify(values, null, 2))
 
-const validateUsername = (value = '') =>
+const validateUsername = value =>
   value.trim().length < 3 &&
   'Username must be at least 3 characters long'
 
@@ -17,56 +14,59 @@ const notifyUsername = value =>
   value.length > 5 &&
   'That is a great username!'
 
-const Username = ({ field, control, ...props }) =>
+const validateFriends = friends => {
+  if (friends.length < 3) {
+    return 'Please name at least three friends.'
+  }
+  if (friends.some(friend => !friend.name.trim())) {
+    return 'Please fill out all friends.'
+  }
+}
+
+const validateFriendName = name =>
+  !name.trim() &&
+  'Friends require a name.'
+
+const notifyFriends = friends =>
+  (friends.length > 3 && friends.every(friend => friend.name.trim())) &&
+  'You sure are popular!'
+
+const Username = ({ field, control: { name, ...control }, ...props }) =>
   <Fragment>
     <div className='form-group'>
-      <label htmlFor={control.id}>Username</label>
-      <input type='text' className='form-control' {...control}/>
+      <label htmlFor={name}>Username</label>
+      <input name={name} type='text' className='form-control' {...control}/>
     </div>
     { field.isInvalid &&
-      (field.isTouched || field.form.submitFailed) &&
+      field.isTouched &&
       <div className='alert alert-danger'>{ field.error }</div>
     }
     { field.isValid &&
-      field.notice &&
+      field.hasNotice &&
       <div className='alert alert-success'>{ field.notice }</div>
     }
   </Fragment>
 
-render(
-  <Form
-    name='signUp'
-    onSubmit={handleSubmit}
-    className='container'>
-    <legend>Join Up!</legend>
-    <Field
-      id
-      name='username'
-      component={Username}
-      notify={notifyUsername}
-      validate={validateUsername}/>
-    <FieldSet name='contactInfo' className='form-group'>
-      <legend><small>Contact Info</small></legend>
-      <label htmlFor='email'>Email</label>
+const renderFriend = (friend, index, fields, key) =>
+  <FieldSet name={index} key={key}>
+    { _ =>
       <Field
-        id
-        name='email'
-        component='input'
-        className='form-control'/>
-    </FieldSet>
-    <FieldArray name='friends'>
-      { ({ fields }) =>
-        <div className='form-group'>
-          <legend><small>Friends ({ fields.length })</small></legend>
-          { fields.map((friend, index) =>
-            <FieldSet name={index} key={index}>
+        name='name'
+        className={'form-control'}
+        validate={validateFriendName}
+        render={({ field, control }) => {
+          const showError = field.isInvalid && field.isTouched
+          return (
+            <Fragment>
+              { showError &&
+                <small className='text-danger'>{ field.error }</small>
+              }
               <div className='input-group form-group'>
-                <Field
+                <input
                   type='text'
-                  name='name'
-                  component='input'
+                  {...control}
                   placeholder='Name'
-                  className='form-control'/>
+                  className={`form-control${showError ? ' border-danger' : ''}`}/>
                 <span className='input-group-btn'>
                   <button
                     type='button'
@@ -76,17 +76,66 @@ render(
                   </button>
                 </span>
               </div>
-            </FieldSet>
-          )}
-          <button
-            type='button'
-            onClick={_ => fields.push({ name: '' })}
-            className='btn btn-outline-success'>
-            <i className='oi oi-plus'/>
-          </button>
-        </div>
-      }
-    </FieldArray>
+            </Fragment>
+          )
+        }}/>
+    }
+  </FieldSet>
+
+const renderFriends = ({ fields }) =>
+  <Fragment>
+    <div className='form-group'>
+      <legend><small>Friends ({ fields.length })</small></legend>
+      { fields.map(renderFriend) }
+      <button
+        type='button'
+        onClick={_ => fields.push({ name: '' })}
+        className='btn btn-outline-success'>
+        <i className='oi oi-plus'/>
+      </button>
+    </div>
+    { fields.isInvalid &&
+      fields.anyTouched &&
+      <div className='alert alert-danger'>{ fields.error }</div>
+    }
+    { fields.isValid &&
+      fields.hasNotice &&
+      <div className='alert alert-success'>{ fields.notice }</div>
+    }
+  </Fragment>
+
+const renderContactInfo = _ =>
+  <fieldset>
+    <legend><small>Contact Info</small></legend>
+    <label htmlFor='email'>Email</label>
+    <Field
+      id='email'
+      name='email'
+      component='input'
+      className='form-control'/>
+  </fieldset>
+
+render(
+  <Form
+    name='signUp'
+    onSubmit={handleSubmit}
+    className='container'>
+    <legend>Join Up!</legend>
+    <Field
+      id='username'
+      name='username'
+      component={Username}
+      notify={notifyUsername}
+      validate={validateUsername}/>
+    <FieldSet
+      name='contactInfo'
+      className='form-group'
+      render={renderContactInfo}/>
+    <FieldArray
+      name='friends'
+      render={renderFriends}
+      notify={notifyFriends}
+      validate={validateFriends}/>
     <button type='reset' className='btn btn-outline-secondary'>
       Reset
     </button>
