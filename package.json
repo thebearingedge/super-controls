@@ -21,7 +21,7 @@
     "lint": "eslint src/",
     "clean": "run-p -s src:clean book:clean demo:clean",
     "nuke": "rimraf node_modules/ && npm install && npm run travis",
-    "test": "mocha -r babel-register _src/*.test.js",
+    "test": "mocha -r babel-register src/*.test.js",
     "tdd": "npm -s t -- -w -R min",
     "cover": "nyc npm -s t",
     "report": "codecov",

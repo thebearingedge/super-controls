@@ -1,61 +1,191 @@
-import React from 'react'
-import { describe, it } from 'mocha'
-import { mount, expect, spy, stub } from './__test__'
-import { Form } from './form'
-import { Field } from './field'
+import React, { Component } from 'react'
+import { describe, beforeEach, it } from 'mocha'
+import { expect, stub, mountWith } from './__test__'
+import * as Form from './form'
+import * as Field from './field'
 
-describe('Field', () => {
+describe('Field.Model', () => {
 
-  describe('modelField', () => {
+  let form
 
-    it('registers a field model on its parent form', () => {
-      const form = mount(
-        <Form init={{ foo: 'bar' }}>
-          <Field name='foo'/>
-        </Form>
-      ).instance()
-      expect(form.fields.foo).to.deep.include({
-        form: form,
-        init: 'bar',
-        value: 'bar',
-        path: ['foo'],
-        error: null,
-        notice: null,
-        isTouched: false,
+  beforeEach(() => {
+    form = { state: {}, _patch: stub(), values: { foo: 'bar' } }
+  })
+
+  describe('change', () => {
+
+    it('patches the field\'s value state through the form', () => {
+      const field = Field.Model.create(form)
+      form._patch.callsFake((_, ...args) => field._patch(...args))
+      expect(field.getState()).to.include({ value: null })
+      field.change('foo')
+      expect(field.getState()).to.include({ value: 'foo' })
+    })
+
+    it('overrides the value state being sent to the form', () => {
+      const field = Field.Model.create(form, null, void 0, {
+        override: (value, values) => {
+          return values.foo === 'bar' ? 'baz' : value
+        }
+      })
+      form._patch.callsFake((_, ...args) => field._patch(...args))
+      field.change('foo')
+      expect(field.getState()).to.include({ value: 'baz' })
+    })
+
+    it('forces the value state being sent to the form', () => {
+      const field = Field.Model.create(form, null, void 0, {
+        override: (value, values) => {
+          return values.foo === 'bar' ? 'baz' : value
+        }
+      })
+      form._patch.callsFake((_, ...args) => field._patch(...args))
+      field.change('foo', { force: true })
+      expect(field.getState()).to.include({ value: 'foo' })
+    })
+
+  })
+
+  describe('visit', () => {
+
+    it('patches the field\'s isVisited state through the form', () => {
+      const field = Field.Model.create(form)
+      form._patch.callsFake((_, ...args) => field._patch(...args))
+      expect(field.getState()).to.include({ isVisited: false })
+      field.visit()
+      expect(field.getState()).to.include({ isVisited: true })
+    })
+
+  })
+
+  describe('touch', () => {
+
+    it('patches the field\'s isTouched state through the form', () => {
+      const field = Field.Model.create(form)
+      form._patch.callsFake((_, ...args) => field._patch(...args))
+      expect(field.getState()).to.include({ isTouched: false })
+      field.touch()
+      expect(field.getState()).to.include({ isTouched: true })
+    })
+
+  })
+
+  describe('untouch', () => {
+
+    it('resets the field\'s isTouched state through the form', () => {
+      const field = Field.Model.create(form)
+      form._patch.callsFake((_, ...args) => field._patch(...args))
+      field.touch()
+      field.touch()
+      field.touch()
+      expect(field.getState()).to.include({ isTouched: true })
+      field.untouch()
+      expect(field.getState()).to.include({ isTouched: false })
+    })
+
+  })
+
+  describe('reset', () => {
+
+    it('resets the field\'s state', () => {
+      const field = Field.Model.create(form)
+      form._patch.callsFake((_, ...args) => field._patch(...args))
+      field.change('test')
+      field.visit()
+      field.touch()
+      expect(field.getState()).to.include({
+        value: 'test',
+        isVisited: true,
+        isTouched: true
+      })
+      field.reset()
+      expect(field.getState()).to.include({
+        value: null,
         isVisited: false,
-        isFocused: false
+        isTouched: false
       })
     })
 
   })
 
-  describe('render', () => {
+})
 
-    it('renders a component prop', () => {
-      const wrapper = mount(
-        <Form>
-          <Field name='foo' init='bar' component={_ => <input/>}/>
-        </Form>
-      )
-      expect(wrapper).to.contain(<input/>)
+describe('Field.View', () => {
+
+  let form
+  let mount
+
+  beforeEach(() => {
+    form = Form.Model.create()
+    mount = mountWith({ context: { '@@super-controls': form } })
+  })
+
+  describe('init', () => {
+
+    it('is a String by default', () => {
+      const wrapper = mount(<Field.View name='test'/>)
+      const view = wrapper.instance()
+      expect(view.init).to.equal('')
     })
 
-    it('renders an element type', () => {
+    it('is a Boolean when its component is a checkbox', () => {
       const wrapper = mount(
-        <Form>
-          <Field name='foo' component='input' type='checkbox'/>
-        </Form>
+        <Field.View name='test' component='input' type='checkbox'/>
       )
-      expect(wrapper.find('input')).to.have.attr('type', 'checkbox')
+      const view = wrapper.instance()
+      expect(view.init).to.equal(false)
     })
 
-    it('injects a control prop into its component', done => {
-      const Test = ({ control }) => {
+    it('is an Array when its component is a multiple select', () => {
+      const wrapper = mount(
+        <Field.View name='test' component='select' multiple/>
+      )
+      const view = wrapper.instance()
+      expect(view.init).to.deep.equal([])
+    })
+
+  })
+
+  describe('getValue', () => {
+
+    it('returns the form control value', () => {
+      const wrapper = mount(<Field.View name='test' component='input'/>)
+      const value = wrapper.instance().getValue({ target: { value: 'foo' } })
+      expect(value).to.equal('foo')
+    })
+
+    it('returns a boolean when the component is a checkbox', () => {
+      const wrapper = mount(
+        <Field.View name='test' component='input' type='checkbox'/>
+      )
+      const value = wrapper.instance().getValue({ target: { checked: true } })
+      expect(value).to.equal(true)
+    })
+
+    it('returns an array when the component is a multiple select', () => {
+      const wrapper = mount(
+        <Field.View name='test' component='select' multiple>
+          <option value='foo'>Foo</option>
+          <option value='bar'>Bar</option>
+          <option value='baz'>Baz</option>
+        </Field.View>
+      )
+      wrapper.find('[value="foo"]').getDOMNode().selected = true
+      wrapper.find('[value="baz"]').getDOMNode().selected = true
+      const target = wrapper.getDOMNode()
+      const value = wrapper.instance().getValue({ target })
+      expect(value).to.deep.equal(['foo', 'baz'])
+    })
+
+  })
+
+  describe('control', () => {
+
+    it('models a form control', done => {
+      const test = ({ control }) => {
         expect(control).to.include({
-          id: 'test',
-          name: 'foo',
-          value: 'bar',
-          type: 'number'
+          name: 'test',
+          value: ''
         })
         expect(control.onBlur).to.be.a('function')
         expect(control.onFocus).to.be.a('function')
@@ -63,314 +193,247 @@ describe('Field', () => {
         done()
         return null
       }
-      mount(
-        <Form>
-          <Field
-            id='test'
-            name='foo'
-            init='bar'
-            type='number'
-            component={Test}/>
-        </Form>
-      )
+      mount(<Field.View name='test' render={test}/>)
     })
 
-    it('automatically set its control id to its name', done => {
-      const Test = ({ control }) => {
-        expect(control).to.include({
-          id: 'foo'
-        })
-        done()
-        return null
-      }
-      mount(
-        <Form>
-          <Field id name='foo' component={Test}/>
-        </Form>
-      )
-    })
-
-    it('injects a field prop into its component', done => {
-      const Test = ({ field }) => {
-        expect(field).to.deep.include({
-          name: 'foo',
-          init: 'bar',
-          value: 'bar',
-          error: null,
-          notice: null,
-          isDirty: false,
-          isFocused: false,
-          isVisited: false,
-          isPristine: true,
-          isTouched: false,
-          isValid: true,
-          isInvalid: false
-        })
-        expect(field.form).to.be.an('object')
-        expect(field.update).to.be.a('function')
-        done()
-        return null
-      }
-      mount(
-        <Form>
-          <Field name='foo' init='bar' component={Test}/>
-        </Form>
-      )
-    })
-
-    it('forwards other props to its component', done => {
-      const Test = ({ field, control, ...props }) => {
-        expect(props).to.include({
-          className: 'form-control'
-        })
-        done()
-        return null
-      }
-      mount(
-        <Form>
-          <Field name='foo' className='form-control' component={Test}/>
-        </Form>
-      )
-    })
-
-    it('decides whether a control is checkable', done => {
-      const Test = ({ control }) => {
+    it('is checkable when it is a checkbox', done => {
+      const test = ({ control }) => {
+        expect(control).to.include({ checked: false })
         expect(control).not.to.have.property('value')
+        done()
+        return null
+      }
+      mount(<Field.View name='test' type='checkbox' render={test}/>)
+    })
+
+    it('is checkable when it is a radio button', done => {
+      const test = ({ control }) => {
         expect(control).to.include({
-          checked: true
+          checked: true,
+          value: 'foo'
         })
         done()
         return null
       }
       mount(
-        <Form>
-          <Field name='foo' type='checkbox' init={true} component={Test}/>
-        </Form>
+        <Field.View
+          name='test'
+          type='radio'
+          init='foo'
+          value='foo'
+          render={test}/>
       )
     })
 
-    it('decides whether a radio button is checked', done => {
-      const Test = ({ control }) => {
-        expect(control).to.include({
-          value: 'bar',
-          checked: false
-        })
-        done()
-        return null
-      }
-      mount(
-        <Form>
-          <Field
-            name='foo'
-            type='radio'
-            value='bar'
-            init='baz'
-            component={Test}/>
-        </Form>
-      )
-    })
+    describe('onBlur', () => {
 
-  })
-
-  describe('onChange', () => {
-
-    it('receives value change updates from its component', () => {
-      const wrapper = mount(
-        <Form>
-          <Field name='foo' init='bar' component='input'/>
-        </Form>
-      )
-      const { fields: { foo } } = wrapper.instance()
-      const update = spy(foo, 'update')
-      wrapper.find('input').simulate('change', { target: { value: 'baz' } })
-      expect(update).to.have.been.calledWith({ value: 'baz' })
-    })
-
-    it('receives checked change updates from its component', () => {
-      const wrapper = mount(
-        <Form>
-          <Field name='foo' type='checkbox' init={false} component='input'/>
-        </Form>
-      )
-      const { fields: { foo } } = wrapper.instance()
-      const update = spy(foo, 'update')
-      wrapper.find('input').getDOMNode().checked = true
-      wrapper.find('input').simulate('change')
-      expect(update).to.have.been.calledWith({ value: true })
-    })
-
-  })
-
-  describe('onBlur', () => {
-
-    it('receives blur updates from its component', () => {
-      const wrapper = mount(
-        <Form>
-          <Field name='foo' init='bar' component='input'/>
-        </Form>
-      )
-      wrapper.find('input').simulate('blur')
-      expect(wrapper.state()).to.deep.include({
-        values: { foo: 'bar' },
-        touched: { foo: true },
-        focused: null
+      it('sets the field as touched', () => {
+        const wrapper = mount(<Field.View name='test' component='input'/>)
+        expect(wrapper.state()).to.include({ isTouched: false })
+        wrapper.simulate('blur')
+        expect(wrapper.state()).to.include({ isTouched: true })
       })
+
+    })
+
+    describe('onFocus', () => {
+
+      it('sets the fields\'s isActive and isVisited state', () => {
+        const wrapper = mount(<Field.View name='test' component='input'/>)
+        expect(wrapper.state()).to.include({
+          isVisited: false,
+          isActive: false
+        })
+        wrapper.simulate('focus')
+        expect(wrapper.state()).to.include({
+          isVisited: true,
+          isActive: true
+        })
+      })
+
+    })
+
+    describe('onChange', () => {
+
+      it('sets the field\'s value state', () => {
+        const wrapper = mount(<Field.View name='test' component='input'/>)
+        expect(wrapper.state()).to.include({ value: '' })
+        wrapper.simulate('change', { target: { value: 'test' } })
+        expect(wrapper.state()).to.include({ value: 'test' })
+      })
+
     })
 
   })
 
-  describe('onFocus', () => {
+  describe('props', () => {
 
-    it('receives focus updates from its component', () => {
-      const wrapper = mount(
-        <Form init={{ foo: 'bar' }}>
-          <Field name='foo' init='bar' component='input'/>
-        </Form>
-      )
-      const { fields: { foo } } = wrapper.instance()
-      const update = spy(foo, 'update')
-      wrapper.find('input').simulate('focus')
-      expect(update).to.have.been.calledWith({ isFocused: foo })
-    })
+    describe('parse', () => {
 
-  })
-
-  describe('componentWillUnmount', () => {
-
-    it('unregisters its model when it unmounts', () => {
-      const wrapper = mount(
-        <Form>
-          <Field name='foo' init='bar'/>
-        </Form>
-      )
-      const { fields: { foo } } = wrapper.instance()
-      const unregister = spy(foo, 'unregister')
-      wrapper.unmount()
-      expect(unregister).to.have.callCount(1)
-    })
-
-  })
-
-  describe('shouldComponentUpdate', () => {
-
-    it('re-renders if it receives new props', done => {
-      class TestField extends Field {
-        componentWillUpdate() {}
-      }
-      stub(TestField.prototype, 'componentWillUpdate')
-        .callsFake(() => done())
-      const Test = props =>
-        <Form>
-          <TestField name='foo' {...props}/>
-        </Form>
-      const wrapper = mount(<Test/>)
-      wrapper.setProps({ className: 'form-control' })
-    })
-
-    it('re-renders if its value state is out of sync with its model', done => {
-      class TestField extends Field {
-        componentWillUpdate() {}
-      }
-      stub(TestField.prototype, 'componentWillUpdate')
-        .callsFake(() => done())
-      const wrapper = mount(
-        <Form>
-          <TestField name='foo'/>
-        </Form>
-      )
-      wrapper.setState({ values: { foo: 'bar' } })
-    })
-
-    it('re-renders if its touched state is out of sync with its model', done => {
-      class TestField extends Field {
-        componentWillUpdate() {}
-      }
-      stub(TestField.prototype, 'componentWillUpdate')
-        .callsFake(() => done())
-      const wrapper = mount(
-        <Form>
-          <TestField name='foo'/>
-        </Form>
-      )
-      wrapper.setState({ touched: { foo: true } })
-    })
-
-  })
-
-  describe('format', () => {
-
-    it('formats the form value for rendering', () => {
-      const format = value => {
-        if (!value) return value
-        const year = value.getFullYear()
-        const month = `${value.getMonth() + 1}`.padStart(2, 0)
-        const day = `${value.getDate()}`.padStart(2, 0)
-        return `${year}-${month}-${day}`
-      }
-      const init = new Date('1/1/1970')
-      const wrapper = mount(
-        <Form>
-          <Field
-            name='date'
+      it('parses the value from the control', () => {
+        const wrapper = mount(
+          <Field.View
+            name='test'
             type='date'
-            init={init}
-            format={format}
-            component='input'/>
-        </Form>
-      )
-      expect(wrapper.find('input')).to.have.value('1970-01-01')
-      expect(wrapper.state()).to.deep.include({ values: { date: init } })
-    })
-
-  })
-
-  describe('parse', () => {
-
-    it('parses the input value to be stored in the form', () => {
-      const parse = value => new Date(value || '1970-01-01')
-      const wrapper = mount(
-        <Form>
-          <Field
-            name='date'
-            type='date'
-            parse={parse}
-            component='input'/>
-        </Form>
-      )
-      const { values: { date: init } } = wrapper.state()
-      expect(init).to.be.a('date')
-      expect(init.getUTCFullYear()).to.equal(1970)
-      wrapper
-        .find('input')
-        .simulate('change', { target: { value: '2017-01-01' } })
-      const { values: { date: parsed } } = wrapper.state()
-      expect(parsed).to.be.a('date')
-      expect(parsed.getUTCFullYear()).to.equal(2017)
-    })
-
-  })
-
-  describe('override', () => {
-
-    it('overrides the input value to be stored in the form', () => {
-      const override = (end, { start }) => end < start ? start : end
-      const wrapper = mount(
-        <Form init={{ start: 2017, end: 2018 }}>
-          <Field name='start' component='input' type='number'/>
-          <Field
-            name='end'
-            type='number'
-            parse={Number}
             component='input'
-            override={override}/>
-        </Form>
+            parse={value => new Date(value)}/>
+        )
+        wrapper.simulate('change', { target: { value: '1970-01-01' } })
+        const { value } = wrapper.state()
+        expect(value).to.be.a('date')
+        expect(value.valueOf()).to.equal(0)
+      })
+
+    })
+
+    describe('format', () => {
+
+      it('formats the value from the field state', () => {
+        const format = value => {
+          const year = value.getFullYear()
+          const month = `${value.getMonth() + 1}`.padStart(2, 0)
+          const day = `${value.getDate()}`.padStart(2, 0)
+          return `${year}-${month}-${day}`
+        }
+        const wrapper = mount(
+          <Field.View
+            name='test'
+            type='date'
+            component='input'
+            format={format}
+            init={new Date('1/1/1970')}/>
+        )
+        const { value } = wrapper.state()
+        expect(value).to.be.a('date')
+        expect(wrapper).to.have.value('1970-01-01')
+      })
+
+    })
+
+    describe('override', () => {
+
+      it('sets the field model\'s override method', () => {
+        const override = _ => _
+        const wrapper = mount(<Field.View name='test' override={override}/>)
+        const { model } = wrapper.instance()
+        expect(model.config).to.include({ override })
+      })
+
+    })
+
+    describe('onBlur', () => {
+
+      it('intercepts blur events', done => {
+        class TestField extends Field.View {
+          componentDidUpdate() {
+            done(new Error('default not prevented'))
+          }
+        }
+        const test = (event, field) => {
+          event.preventDefault()
+          expect(field).to.be.an('object')
+          done()
+        }
+        const wrapper = mount(
+          <TestField name='test' onBlur={test} component='input'/>
+        )
+        wrapper.simulate('blur')
+      })
+
+    })
+
+    describe('onFocus', () => {
+
+      it('intercepts focus events', done => {
+        class TestField extends Field.View {
+          componentDidUpdate() {
+            done(new Error('default not prevented'))
+          }
+        }
+        const test = (event, field) => {
+          event.preventDefault()
+          expect(field).to.be.an('object')
+          done()
+        }
+        const wrapper = mount(
+          <TestField name='test' onFocus={test} component='input'/>
+        )
+        wrapper.simulate('focus')
+      })
+
+    })
+
+    describe('onChange', () => {
+
+      it('intercepts change events', done => {
+        class TestField extends Field.View {
+          componentDidUpdate() {
+            done(new Error('default not prevented'))
+          }
+        }
+        const test = (event, nextValue, field) => {
+          event.preventDefault()
+          expect(nextValue).to.equal('foo')
+          expect(field).to.be.an('object')
+          done()
+        }
+        const wrapper = mount(
+          <TestField name='test' onChange={test} component='input'/>
+        )
+        wrapper.simulate('change', { target: { value: 'foo' } })
+      })
+
+    })
+
+  })
+
+  describe('render', () => {
+
+    it('passes field and control props to a render function', done => {
+      const test = ({ field, control }) => {
+        expect(field).to.be.an('object')
+        expect(control).to.be.an('object')
+        done()
+        return null
+      }
+      mount(<Field.View name='test' render={test}/>)
+    })
+
+    it('passes field and control props to a child function', done => {
+      const test = ({ field, control }) => {
+        expect(field).to.be.an('object')
+        expect(control).to.be.an('object')
+        done()
+        return null
+      }
+      mount(
+        <Field.View name='test'>
+          { test }
+        </Field.View>
       )
-      wrapper
-        .find('[name="end"]')
-        .hostNodes()
-        .simulate('change', { target: { value: '1970' } })
-      const { values: { end: overridden } } = wrapper.state()
-      expect(overridden).to.equal(2017)
+    })
+
+    it('passes field and control props to a component function', done => {
+      class Test extends Component {
+        render() {
+          // eslint-disable-next-line react/prop-types
+          expect(this.props.field).to.be.an('object')
+          // eslint-disable-next-line react/prop-types
+          expect(this.props.control).to.be.an('object')
+          done()
+          return null
+        }
+      }
+      mount(<Field.View name='test' component={Test}/>)
+    })
+
+    it('spreads its control into the props of a tagName component', () => {
+      const wrapper = mount(<Field.View name='test' component='input'/>)
+      const input = wrapper.find('input')
+      expect(input).to.have.props({ name: 'test', value: '' })
+      expect(input).to.have.prop('onBlur').that.is.a('function')
+      expect(input).to.have.prop('onFocus').that.is.a('function')
+      expect(input).to.have.prop('onChange').that.is.a('function')
     })
 
   })

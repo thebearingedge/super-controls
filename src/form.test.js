@@ -1,318 +1,274 @@
 import React from 'react'
 import { describe, it } from 'mocha'
-import { mount, expect, stub, spy, toThunks } from './__test__'
-import { Form } from './form'
-import { Field, modelField } from './field'
-import { FieldSet, modelFieldSet } from './field-set'
-import { modelFieldArray } from './field-array'
+import { expect, mount, stub, toRoute } from './__test__'
+import * as Form from './form'
+import * as Field from './field'
+import * as FieldSet from './field-set'
+import * as FieldArray from './field-array'
 
-describe('Form', () => {
+describe('Form.Model', () => {
 
-  describe('render', () => {
+  describe('register', () => {
 
-    it('renders a form element', () => {
-      const wrapper = mount(<Form/>)
-      expect(wrapper).to.have.tagName('form')
+    it('registers child fields', () => {
+      const form = Form.Model.create('test', {})
+      const field = form.register({
+        init: '',
+        route: toRoute('foo'),
+        Model: Field.Model
+      })
+      expect(field).to.be.an.instanceOf(Field.Model)
+      expect(form.fields.foo).to.equal(field)
+      expect(form.getState()).to.deep.include({
+        error: null,
+        notice: null,
+        active: null,
+        isActive: false,
+        anyVisited: false,
+        anyTouched: false,
+        isSubmitting: false,
+        init: { foo: '' },
+        value: { foo: '' }
+      })
+    })
+
+    it('does not register a field more than once', () => {
+      const form = Form.Model.create('test', {})
+      const first = form.register({
+        init: '',
+        route: toRoute('foo'),
+        Model: Field.Model
+      })
+      const second = form.register({
+        init: '',
+        route: toRoute('foo'),
+        Model: Field.Model
+      })
+      expect(first).to.be.an.instanceOf(Field.Model)
+      expect(first).to.equal(second)
+      expect(form.fields.foo).to.equal(first)
+      expect(form.fields.foo).to.equal(second)
+    })
+
+    it('overrides initial values of child fields', () => {
+      const form = Form.Model.create('test', { foo: [{ bar: 'baz' }] })
+      const array = form.register({
+        init: [],
+        route: toRoute('foo'),
+        Model: FieldArray.Model
+      })
+      const set = form.register({
+        init: {},
+        route: toRoute('foo[0]'),
+        Model: FieldSet.Model
+      })
+      const field = form.register({
+        init: '',
+        route: toRoute('foo[0].bar'),
+        Model: Field.Model
+      })
+      expect(array.getState()).to.deep.include({
+        init: [{ bar: 'baz' }],
+        values: [{ bar: 'baz' }]
+      })
+      expect(set.getState()).to.deep.include({
+        init: { bar: 'baz' },
+        values: { bar: 'baz' }
+      })
+      expect(field.getState()).to.include({
+        init: 'baz',
+        value: 'baz'
+      })
     })
 
   })
 
-  describe('constructor', () => {
+  describe('submit', () => {
 
-    it('has an initial state', () => {
-      const form = mount(<Form/>).instance()
-      expect(form.state).to.deep.equal({
-        init: {},
-        values: {},
-        errors: {},
-        notices: {},
-        touched: {},
-        visited: {},
-        focused: null,
-        submitFailed: false
+    it('calls the models onSubmit method with its values', done => {
+      const form = Form.Model.create('test', {}, {
+        onSubmit(errors, values, model) {
+          expect(errors).to.equal(null)
+          expect(values).to.equal(form.values)
+          expect(model).to.equal(form)
+          done()
+        }
+      })
+      form.submit()
+    })
+
+    it('calls the model\'s onSubmit method with its errors', done => {
+      const form = Form.Model.create('test', {}, {
+        validate(values) {
+          return !Object.keys(values).length && 'incomplete'
+        },
+        onSubmit(errors, values, model) {
+          expect(errors).to.deep.equal({
+            $self: 'incomplete'
+          })
+          expect(values).to.equal(form.values)
+          expect(model).to.equal(form)
+          done()
+        }
+      })
+      form.submit()
+    })
+
+    it('forwards promise rejections from within its onSubmit', done => {
+      const err = new Error('Oops!')
+      const form = Form.Model.create('test', {}, {
+        onSubmit() {
+          throw err
+        }
+      })
+      form
+        .submit()
+        .catch(_err => {
+          expect(_err).to.equal(err)
+          done()
+        })
+    })
+
+  })
+
+})
+
+describe('Form.View', () => {
+
+  describe('render', () => {
+
+    it('renders a form element by default', () => {
+      const wrapper = mount(<Form.View/>)
+      expect(wrapper).to.have.tagName('form')
+    })
+
+    it('passes name, onReset, and onSubmit props to the form element', () => {
+      const wrapper = mount(<Form.View name='test'/>)
+      const { handleReset, handleSubmit } = wrapper.instance()
+      const form = wrapper.find('form')
+      expect(form).to.have.props({
+        name: 'test',
+        onReset: handleReset,
+        onSubmit: handleSubmit
       })
     })
 
-    it('reads its initial values from props', () => {
-      const values = {
-        foo: [
-          { bar: '' },
-          { bar: '' }
-        ]
+    it('passes form and control props to a render function', done => {
+      const test = ({ form, control }) => {
+        expect(form).to.be.an.instanceOf(Form.Model)
+        expect(control).to.be.an('object')
+        done()
+        return null
       }
-      const form = mount(<Form init={values}/>).instance()
-      expect(form.state).to.deep.equal({
-        errors: {},
-        visited: {},
-        notices: {},
-        touched: {},
-        values,
-        init: values,
-        focused: null,
-        submitFailed: false
-      })
+      mount(<Form.View name='test' render={test}/>)
+    })
+
+    it('passes form and control props to a component function', done => {
+      const test = ({ form, control }) => {
+        expect(form).to.be.an.instanceOf(Form.Model)
+        expect(control).to.be.an('object')
+        done()
+        return null
+      }
+      mount(<Form.View name='test' component={test}/>)
+    })
+
+    it('passes form and control props to a child function', done => {
+      const test = ({ form, control }) => {
+        expect(form).to.be.an.instanceOf(Form.Model)
+        expect(control).to.be.an('object')
+        done()
+        return null
+      }
+      mount(
+        <Form.View name='test'>
+          { test }
+        </Form.View>
+      )
     })
 
   })
 
   describe('register', () => {
 
-    it('registers fields by path', () => {
-      const values = {
-        foo: {
-          bar: {
-            baz: [{ qux: 'quux' }]
+    it('registers descendant fields', () => {
+      const wrapper = mount(
+        <Form.View init={{ foo: { bar: [''] } }}>
+          <FieldSet.View name='foo'>
+            <FieldArray.View name='bar'>
+              <Field.View name={0}/>
+            </FieldArray.View>
+          </FieldSet.View>
+        </Form.View>
+      )
+      const { model } = wrapper.instance()
+      expect(model.fields.foo.fields.bar.fields[0])
+        .to.be.an.instanceOf(Field.Model)
+    })
+
+  })
+
+  describe('control', () => {
+
+    describe('onReset', () => {
+
+      it('resets the form to its initial state', () => {
+        const wrapper = mount(
+          <Form.View name='test' init={{ foo: 'bar' }}>
+            <Field.View name='foo' component='input'/>
+          </Form.View>
+        )
+        const input = wrapper.find('input').hostNodes()
+        input.simulate('change', { target: { value: 'baz' } })
+        const { model } = wrapper.instance()
+        expect(model.getState()).to.deep.include({
+          init: { foo: 'bar' },
+          values: { foo: 'baz' }
+        })
+        const form = wrapper.find('form')
+        form.simulate('reset')
+        expect(model.getState()).to.deep.include({
+          init: { foo: 'bar' },
+          values: { foo: 'bar' }
+        })
+      })
+
+    })
+
+    describe('onSubmit', () => {
+      it('prevents the default submit event behavior', () => {
+        const wrapper = mount(<Form.View name='test'/>)
+        const event = { preventDefault: stub() }
+        wrapper.simulate('submit', event)
+        expect(event.preventDefault).to.have.callCount(1)
+      })
+
+    })
+
+  })
+
+  describe('props', () => {
+
+    describe('onReset', () => {
+
+      it('intercepts reset events', done => {
+        class TestForm extends Form.View {
+          componentWillMount() {
+            super.componentWillMount()
+            this.setState({ value: { foo: 'bar' } })
+          }
+          componentDidUpdate() {
+            done(new Error('default not prevented'))
           }
         }
-      }
-      const form = mount(<Form init={values}/>).instance()
-      form.register({
-        model: modelFieldSet,
-        paths: toThunks('foo')
-      })
-      form.register({
-        model: modelFieldSet,
-        paths: toThunks('foo.bar')
-      })
-      form.register({
-        model: modelFieldArray,
-        paths: toThunks('foo.bar.baz')
-      })
-      form.register({
-        model: modelFieldSet,
-        paths: toThunks('foo.bar.baz.0')
-      })
-      const field = form.register({
-        model: modelField,
-        paths: toThunks('foo.bar.baz.0.qux')
-      })
-      expect(field).to.deep.include({
-        init: 'quux',
-        value: 'quux',
-        isTouched: false
-      })
-    })
-
-    it('registers fields with intial values', () => {
-      const form = mount(<Form/>).instance()
-      const field = form.register({
-        model: modelField,
-        paths: toThunks('foo'),
-        init: 'foo'
-      })
-      expect(field).to.deep.include({
-        init: 'foo',
-        value: 'foo',
-        isTouched: false
-      })
-      expect(form.state).to.deep.include({
-        touched: {},
-        init: { foo: 'foo' },
-        values: { foo: 'foo' }
-      })
-    })
-
-    it('receives value updates from fields', () => {
-      const form = mount(<Form init={{ foo: '' }}/>).instance()
-      const field = form.register({
-        model: modelField,
-        paths: toThunks('foo')
-      })
-      field.update({ value: 'bar' })
-      expect(form.state).to.deep.include({
-        touched: {},
-        init: { foo: '' },
-        values: { foo: 'bar' }
-      })
-      expect(field).to.deep.include({
-        init: '',
-        value: 'bar',
-        isTouched: false
-      })
-    })
-
-    it('receives touch updates from fields', () => {
-      const form = mount(<Form init={{ foo: '' }}/>).instance()
-      const field = form.register({
-        model: modelField,
-        paths: toThunks('foo')
-      })
-      field.update({ isTouched: true })
-      expect(form.state).to.deep.equal({
-        errors: {},
-        notices: {},
-        visited: {},
-        focused: null,
-        init: { foo: '' },
-        values: { foo: '' },
-        touched: { foo: true },
-        submitFailed: false
-      })
-      expect(field).to.deep.include({
-        init: '',
-        value: '',
-        isTouched: true
-      })
-    })
-
-    it('does not overwrite touched state for duplicate fields', () => {
-      const form = mount(<Form init={{ foo: 'foo' }}/>).instance()
-      const first = form.register({
-        model: modelField,
-        paths: toThunks('foo'),
-        value: 'foo'
-      })
-      first.update({ isTouched: true })
-      expect(first.isTouched).to.equal(true)
-      const second = form.register({
-        model: modelField,
-        paths: toThunks('foo'),
-        value: 'foo'
-      })
-      expect(second.isTouched).to.equal(true)
-    })
-
-  })
-
-  describe('unregister', () => {
-
-    it('unregisters fields by path', () => {
-      const form = mount(<Form init={{ foo: 'bar' }}/>).instance()
-      const field = form.register({
-        model: modelField,
-        paths: toThunks('foo')
-      })
-      field.unregister()
-      expect(form.state).to.deep.equal({
-        init: {},
-        values: {},
-        errors: {},
-        notices: {},
-        touched: {},
-        visited: {},
-        focused: null,
-        submitFailed: false
-      })
-    })
-
-    it('does not unregister fields that are not registered', () => {
-      const form = mount(<Form init={{ foo: 'bar' }}/>).instance()
-      const field = form.register({
-        model: modelField,
-        paths: toThunks('foo')
-      })
-      field.unregister()
-      field.unregister()
-      expect(form.state).to.deep.equal({
-        init: {},
-        values: {},
-        errors: {},
-        notices: {},
-        touched: {},
-        visited: {},
-        focused: null,
-        submitFailed: false
-      })
-    })
-
-  })
-
-  describe('onSubmit', () => {
-
-    it('does nothing by default', () => {
-      const wrapper = mount(<Form/>)
-      expect(() => wrapper.simulate('submit')).not.to.throw()
-    })
-
-    it('calls a submit handler prop with its values', done => {
-      const values = { foo: [{ bar: 'baz' }, { bar: 'qux' }] }
-      const handleSubmit = submitted => {
-        expect(submitted).not.to.equal(values)
-        expect(submitted).to.deep.equal(values)
-        done()
-      }
-      const wrapper = mount(
-        <Form init={values} onSubmit={handleSubmit}/>
-      )
-      wrapper.simulate('submit')
-    })
-
-    it('does not submit if form-level validation fails', () => {
-      const handleSubmit = spy()
-      const validate = ({ username = '' }) =>
-        !username.trim() &&
-        'username is required'
-      const wrapper = mount(
-        <Form validate={validate} onSubmit={handleSubmit}/>
-      )
-      wrapper.simulate('submit')
-      expect(handleSubmit).to.have.callCount(0)
-      expect(wrapper)
-        .to.have.state('errors')
-        .that.deep.equals({
-          '0': 'username is required'
-        })
-    })
-
-    it('does not submit if field-level validation fails', () => {
-      const handleSubmit = spy()
-      const required = (username = '') =>
-        !username.trim() &&
-        'username is required'
-      const wrapper = mount(
-        <Form onSubmit={handleSubmit}>
-          <Field name='id' component='input' type='hidden'/>
-          <FieldSet name='user'>
-            <Field
-              type='text'
-              name='username'
-              component='input'
-              validate={required}/>
-          </FieldSet>
-        </Form>
-      )
-      wrapper.simulate('submit')
-      expect(handleSubmit).to.have.callCount(0)
-      const { state, submitFailed } = wrapper.instance()
-      expect(state).to.deep.include({
-        errors: {
-          '0': null,
-          '1': null,
-          '2': null,
-          '3': 'username is required'
+        const test = (event, form) => {
+          event.preventDefault()
+          expect(form).to.be.an.instanceOf(Form.Model)
+          done()
         }
-      })
-      expect(submitFailed).to.equal(true)
-    })
-
-  })
-
-  describe('onReset', () => {
-
-    it('resets to its initial state', done => {
-      class TestForm extends Form {
-        componentDidUpdate() {}
-      }
-      const wrapper = mount(<TestForm/>)
-      wrapper.setState({
-        init: { foos: ['foo'] },
-        touched: { foos: [true] },
-        values: { foos: ['foo'] }
-      }, _ => {
-        stub(wrapper.instance(), 'componentDidUpdate')
-          .callsFake(() => {
-            expect(wrapper.state()).to.deep.equal({
-              init: {},
-              values: {},
-              errors: {},
-              notices: {},
-              touched: {},
-              visited: {},
-              focused: null,
-              submitFailed: false
-            })
-            done()
-          })
+        const wrapper = mount(
+          <TestForm name='test' onReset={test}/>
+        )
         wrapper.simulate('reset')
       })
 

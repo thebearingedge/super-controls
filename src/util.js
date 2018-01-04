@@ -1,132 +1,127 @@
-export const id = x => x
+export const id = _ => _
 
-export const noop = () => {}
+export const noop = _ => {}
+
+export const toNull = _ => null
 
 export const invoke = (fn, ...args) => fn(...args)
 
-export const isArray = val => Array.isArray(val)
+export const wrap = value => () => value
 
-export const isObject = val => ({}).toString.call(val) === '[object Object]'
+export const isUndefined = value => value === void 0
 
-export const isString = val => typeof val === 'string'
+export const isString = value => typeof value === 'string'
 
-export const isBoolean = val => typeof val === 'boolean'
+export const isFunction = value => typeof value === 'function'
 
-export const isUndefined = val => val === void 0
+export const { keys } = Object
 
-export const isIndex = val => Number.isInteger(val)
-
-export const keys = obj => Object.keys(obj)
-
-export const omit = (source, props) => keys(source)
-  .reduce((omitted, key) =>
-    props.includes(key)
+export const omit = (source, omitting) =>
+  keys(source).reduce((omitted, key) => {
+    return ~omitting.indexOf(key)
       ? omitted
       : assign(omitted, { [key]: source[key] })
-    , {})
+  }, {})
 
-export const pick = (source, props) =>
-  props.reduce((picked, prop) => assign(
-    picked,
-    { [prop]: source[prop] }
+export const pick = (source, picking) =>
+  picking.reduce((picked, key) => assign(
+    picked, { [key]: source[key] }
   ), {})
 
-export const assign = (...args) => Object.assign({}, ...args)
+export const pickBy = (source, predicate) =>
+  keys(source).reduce((picked, key) => {
+    return predicate(source[key], key)
+      ? assign(picked, { [key]: source[key] })
+      : picked
+  }, {})
 
-export const sliceIn = (array, index, value) => [
-  ...array.slice(0, index),
-  value,
-  ...array.slice(index)
+export const exists = (target, key) => !isUndefined(target[key])
+
+export const defaults = (target, ...sources) =>
+  sources.reduce((defaulted, source) => assign(
+    defaulted, pickBy(source, (_, key) => !exists(defaulted, key))
+  ), target)
+
+export const { assign } = Object
+
+export const sliceIn = (target, index, value) => {
+  const init = target.slice(0, index)
+  init[index] = value
+  return init.concat(target.slice(index))
+}
+
+export const sliceOut = (target, index) => [
+  ...target.slice(0, index),
+  ...target.slice(index + 1)
 ]
 
-export const sliceOut = (array, index) => [
-  ...array.slice(0, index),
-  ...array.slice(index + 1)
-]
-
-export const sliceOver = ([ ...sliced ], index, val) => {
-  sliced[index] = val
+export const sliceOver = ([ ...sliced ], index, value) => {
+  sliced[index] = value
   return sliced
 }
 
-export const exists = (target, key) =>
-  isArray(target)
-    ? !isUndefined(target[key])
-    : target.hasOwnProperty(key)
+export const { isArray } = Array
 
-export const replace = (target, key, val) =>
+export const replace = (target, key, value) =>
   isArray(target)
-    ? sliceOver(target, key, val)
-    : assign(target, { [key]: val })
+    ? sliceOver(target, key, value)
+    : assign({}, target, { [key]: value })
 
 export const remove = (target, key) =>
   isArray(target)
     ? sliceOut(target, key)
     : omit(target, [key])
 
-export const get = (source, [key, ...path], fallback) => {
-  if (isUndefined(source) || !exists(source, key)) return fallback
-  if (!path.length) return source[key]
-  return get(source[key], path, fallback)
+export const get = (source, [ first, ...path ], fallback) => {
+  if (!exists(source, first)) return fallback
+  if (!path.length) return source[first]
+  return get(source[first], path, fallback)
 }
 
-export const set = (target, [key, index, ...path], val) => {
-  if (isUndefined(index)) return replace(target, key, val)
-  const nested = target[key] || (isIndex(index) ? [] : {})
-  return replace(target, key, set(nested, [index, ...path], val))
+export const set = (target, [ first, next, ...path ], value) => {
+  if (isUndefined(next)) return replace(target, first, value)
+  return replace(target, first, set(target[first], [next, ...path], value))
 }
 
-export const unset = (target, [key, ...path], val) => {
-  if (!exists(target, key)) return target
-  if (!path.length) return remove(target, key)
-  return replace(target, key, unset(target[key], path, val))
+export const unset = (target, [ first, ...path ]) => {
+  if (!path.length) return remove(target, first)
+  return replace(target, first, unset(target[first], path))
 }
 
-export const clone = source => {
-  if (isArray(source)) return source.map(clone)
-  if (isObject(source)) {
-    return keys(source)
-      .reduce((cloned, key) => assign(
-        cloned,
-        { [key]: clone(source[key]) }
-      ), {})
-  }
-  return source
-}
+export const isObject = value => ({}).toString.call(value) === '[object Object]'
 
-export const someValues = (target, predicate) => {
-  if (isArray(target)) {
-    return !!target.find(child => someValues(child, predicate))
-  }
-  if (isObject(target)) {
-    return !!keys(target).find(key => someValues(target[key], predicate))
-  }
-  return !!predicate(target)
-}
+export const isComplex = value => isArray(value) || isObject(value)
 
-export const equalExcept = (...ignore) => (a, b) => {
-  if (a === b) return true
+export const shallowEqual = (a, b) => {
   const aKeys = keys(a)
   const bKeys = keys(b)
   return aKeys.length === bKeys.length &&
-         aKeys.every(key => ignore.includes(key) || a[key] === b[key])
+         aKeys.every(key => a[key] === b[key])
 }
 
-export const equalProps = equalExcept('name', 'children')
+export const someValues = (target, predicate) =>
+  isComplex(target)
+    ? !!keys(target).some(key => someValues(target[key], predicate))
+    : !!predicate(target)
 
-export const shallowEqual = equalExcept()
+export const toPath = names =>
+  names
+    .map(name => name === Math.floor(name) ? `[${name}]` : name)
+    .join('.')
+    .replace('.[', '[')
 
-export const deepEqual = (a, b) => {
-  if (a === b) return true
-  if (isArray(a) && isArray(b)) {
-    return a.length === b.length &&
-           a.every((_, index) => deepEqual(a[index], b[index]))
-  }
-  if (isObject(a) && isObject(b)) {
-    const aKeys = keys(a)
-    const bKeys = keys(b)
-    return aKeys.length === bKeys.length &&
-           aKeys.every(key => deepEqual(a[key], b[key]))
-  }
-  return false
-}
+export const toNames = path =>
+  path
+    .split('.')
+    .map(name => name.split('[').filter(Boolean))
+    .reduce((flattened, names) => flattened.concat(names.map(name =>
+      /\d\]$/.test(name) ? +name.replace(']', '') : name
+    )), [])
+
+export const wrapEvent = event =>
+  assign({}, event, {
+    preventDefault() {
+      this.defaultPrevented = true
+      event.preventDefault && event.preventDefault()
+    }
+  })

@@ -1,88 +1,142 @@
-import { createElement } from 'react'
-import { oneOfType, any, bool, func, string, number } from 'prop-types'
+import PropTypes from 'prop-types'
 import * as _ from './util'
 import * as SuperControl from './super-control'
 
-export class Field extends SuperControl.View {
+export const Model = class FieldModel extends SuperControl.Model {
   constructor(...args) {
     super(...args)
-    this.onBlur = this.onBlur.bind(this)
-    this.onFocus = this.onFocus.bind(this)
-    this.onChange = this.onChange.bind(this)
-    this.ownProps = _.omit(this.props, [
-      'id', 'name', 'init', 'type', 'value', 'parse',
-      'format', 'override', 'notify', 'validate', 'component'
-    ])
+    this.reset = this.reset.bind(this)
+    this.visit = this.visit.bind(this)
+    this.touch = this.touch.bind(this)
+    this.change = this.change.bind(this)
+    this.untouch = this.untouch.bind(this)
   }
-  onChange(event) {
-    const {
-      getValue,
-      props: { parse, override },
-      model: { form: { values }, update }
-    } = this
-    const value = override(parse(getValue(event)), values)
-    update({ value })
+  visit(options) {
+    this.form._patch(this.names, { visits: 1 }, options)
   }
-  onBlur(event) {
-    const {
-      getValue,
-      props: { parse },
-      model: { update }
-    } = this
-    const value = parse(getValue(event))
-    update({ value, isTouched: true, isFocused: null })
+  touch(options) {
+    this.form._patch(this.names, { touches: 1 }, options)
   }
-  onFocus() {
-    this.model.update({ isFocused: this.model })
+  change(next, options = {}) {
+    const { form, names, config } = this
+    const value = options.force
+      ? next
+      : config.override(next, form.values)
+    form._patch(names, { value }, options)
   }
-  getValue({ target: { type, value, checked } }) {
-    return type === 'checkbox' ? !!checked : value
+  untouch(options) {
+    const { form, names, _state: { touches } } = this
+    form._patch(names, { touches: -touches }, options)
   }
-  getInit() {
-    const { init, type, parse } = this.props
-    if (_.isBoolean(init)) return init
-    if (type === 'checkbox') return !!init
-    return init || parse(init)
-  }
-  modelField(...args) {
-    return modelField(...args)
-  }
-  modelControl({ value: fieldValue }) {
-    const { id, type, name, format, value: propsValue } = this.props
-    const { onBlur, onFocus, onChange } = this
-    const control = { type, name, onBlur, onFocus, onChange }
-    if (id) control.id = id === true ? name : id
-    if (type === 'checkbox') {
-      return _.assign(control, { checked: !!fieldValue })
+  reset(options) {
+    const { form, names, _state: { init: value, visits, touches } } = this
+    const change = {
+      value, visits: -visits, touches: -touches, error: null, notice: null
     }
-    if (type === 'radio') {
+    form._patch(names, change, options)
+  }
+}
+
+export const View = class FieldView extends SuperControl.View {
+  constructor(...args) {
+    super(...args)
+    this.handleBlur = this.handleBlur.bind(this)
+    this.handleFocus = this.handleFocus.bind(this)
+    this.handleChange = this.handleChange.bind(this)
+  }
+  get init() {
+    const { init, parse } = this.props
+    if (this.isCheckbox) return parse(!!init)
+    if (this.isMultipleSelect) return parse(init || [])
+    return parse(init)
+  }
+  get Model() {
+    return Model
+  }
+  get config() {
+    return _.pick(this.props, ['notify', 'validate', 'override'])
+  }
+  get isCheckbox() {
+    return this.props.type === 'checkbox'
+  }
+  get isRadio() {
+    return this.props.type === 'radio'
+  }
+  get isMultipleSelect() {
+    return this.props.component === 'select' &&
+           !!this.props.multiple
+  }
+  get control() {
+    const { type, name, format } = this.props
+    const control = {
+      name,
+      onBlur: this.handleBlur,
+      onFocus: this.handleFocus,
+      onChange: this.handleChange
+    }
+    if (type) control.type = type
+    if (this.isCheckbox) {
       return _.assign(control, {
-        value: propsValue,
-        checked: propsValue === fieldValue
+        checked: !!this.state.value
       })
     }
-    return _.assign(control, { value: format(fieldValue) })
+    if (this.isRadio) {
+      return _.assign(control, {
+        value: this.props.value,
+        checked: this.props.value === this.state.value
+      })
+    }
+    return _.assign(control, { value: format(this.state.value) })
+  }
+  getValue({ target: { value, checked, options = [] } }) {
+    if (this.isCheckbox) {
+      return this.props.parse(!!checked)
+    }
+    if (this.isMultipleSelect) {
+      return this.props.parse(
+        Array.from(options)
+          .filter(option => option.selected)
+          .map(option => option.value)
+      )
+    }
+    return this.props.parse(value)
+  }
+  handleBlur(event) {
+    const wrapped = _.wrapEvent(event)
+    this.props.onBlur(wrapped, this.model)
+    if (wrapped.defaultPrevented) return
+    this.model.touch({ validate: true, notify: true })
+  }
+  handleFocus(event) {
+    const wrapped = _.wrapEvent(event)
+    this.props.onFocus(wrapped, this.model)
+    if (wrapped.defaultPrevented) return
+    this.model.visit()
+  }
+  handleChange(event) {
+    const value = this.getValue(event)
+    const wrapped = _.wrapEvent(event)
+    this.props.onChange(wrapped, value, this.model)
+    if (wrapped.defaultPrevented) return
+    this.model.change(value, { validate: true, notify: true, quiet: true })
   }
   render() {
-    const { props: { component }, model: { value }, ownProps: props } = this
-    const control = this.modelControl({ value })
-    if (_.isString(component)) {
-      return createElement(component, { ...control, ...props })
-    }
-    const field = this.model.toProp()
-    return createElement(component, { field, control, ...props })
+    const { control, props: { component } } = this
+    if (_.isString(component)) return super.render(control)
+    return super.render({ field: this.model, control })
+  }
+  static get displayName() {
+    return 'Field'
   }
   static get propTypes() {
     return {
       ...super.propTypes,
-      init: any,
-      value: any,
-      type: string,
-      parse: func,
-      format: func,
-      override: func,
-      component: oneOfType([string, func]),
-      id: oneOfType([number, string, bool])
+      type: PropTypes.string,
+      value: PropTypes.string,
+      multiple: PropTypes.bool,
+      parse: PropTypes.func.isRequired,
+      format: PropTypes.func.isRequired,
+      override: PropTypes.func.isRequired
     }
   }
   static get defaultProps() {
@@ -91,46 +145,10 @@ export class Field extends SuperControl.View {
       init: '',
       parse: _.id,
       format: _.id,
-      override: _.id
+      override: _.id,
+      onBlur: _.noop,
+      onFocus: _.noop,
+      onChange: _.noop
     }
   }
 }
-
-export class FieldModel extends SuperControl.Model {
-  constructor(...args) {
-    super(...args)
-    this.update = this.update.bind(this)
-  }
-  get isFocused() {
-    return this.form.getFocused() === this
-  }
-  get isVisited() {
-    return this.form.getVisited(this.path, false)
-  }
-  get isTouched() {
-    return this.form.getTouched(this.path, false)
-  }
-  update(state, { notify = true, validate = true } = {}) {
-    this.form.update(this.path, state, { notify, validate })
-  }
-  toState() {
-    return _.pick(this, [
-      'init', 'value', 'error', 'notice',
-      'isFocused', 'isVisited', 'isTouched'
-    ])
-  }
-  toProp() {
-    const name = this.path.pop()
-    const state = this.toState()
-    const { form, update } = this
-    const isValid = !state.error
-    const isInvalid = !isValid
-    const isPristine = _.deepEqual(state.init, state.value)
-    const isDirty = !isPristine
-    return _.assign(state, {
-      form, name, update, isValid, isInvalid, isDirty, isPristine
-    })
-  }
-}
-
-export const modelField = (...args) => new FieldModel(...args)

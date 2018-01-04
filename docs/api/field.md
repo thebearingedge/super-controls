@@ -134,7 +134,7 @@ The truthy value returned from the `Field`'s [`validate` prop](#validate-value-a
 
 The truthy value returned from the `Field`'s [`notify` prop](#notify-value-allvalues---notice-optional) the last time it was called. Otherwise `null`.
 
-##### `field.isFocused: Boolean`
+##### `field.isActive: Boolean`
 
 `true` if the `Field` currently has focus.
 
