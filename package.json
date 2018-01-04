@@ -28,8 +28,8 @@
     "precommit": "run-s -s lint test",
     "travis": "run-s -s lint cover src:build demo:build book:build",
     "prepublishOnly": "run-s -s travis",
-    "src:clean": "rimraf es/ cjs/ umd/ coverage/ .nyc_output/",
-    "src:build": "run-s -s src:clean && babel-node build.js",
+    "src:clean": "rimraf es/ cjs/ umd/",
+    "src:build": "run-s -s src:clean && babel-node build.js && bundlesize",
     "demo:clean": "rimraf _demo/",
     "demo:pug": "pug demo/ -o _demo/ -P",
     "demo:js": "globify 'demo/**/index.js' -vd -o '_demo/*.js'",
@@ -54,6 +54,15 @@
     "react-dom": "global:ReactDOM",
     "prop-types": "global:PropTypes"
   },
+  "bundlesize": [
+    {
+      "path": "umd/super-controls.js"
+    },
+    {
+      "path": "umd/super-controls.min.js",
+      "maxSize": "6 kB"
+    }
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/thebearingedge/super-controls.git"
@@ -80,14 +89,15 @@
     "babel-preset-env": "^1.6.1",
     "babel-register": "^6.26.0",
     "babelify": "^8.0.0",
-    "browser-sync": "^2.18.13",
+    "browser-sync": "^2.20.0",
     "browserify-shim": "^3.8.14",
+    "bundlesize": "^0.15.3",
     "chai": "^4.1.2",
     "chai-enzyme": "^1.0.0-beta.0",
     "codecov": "^3.0.0",
     "deep-freeze": "0.0.1",
     "enzyme": "^3.2.0",
-    "enzyme-adapter-react-16": "^1.1.0",
+    "enzyme-adapter-react-16": "^1.1.1",
     "eslint": "^4.13.1",
     "eslint-config-standard": "^11.0.0-beta.0",
     "eslint-plugin-import": "^2.8.0",
@@ -101,19 +111,17 @@
     "gitbook-plugin-github": "2.0.0",
     "gitbook-plugin-prism": "2.3.0",
     "globify": "^2.2.1",
-    "gzip-size": "^4.1.0",
     "husky": "^0.14.3",
     "jsdom": "^11.5.1",
     "mkdirp": "^0.5.1",
     "mocha": "^4.0.1",
     "npm-run-all": "^4.1.2",
     "nyc": "^11.4.1",
-    "pretty-bytes": "^4.0.2",
     "pug-cli": "^1.0.0-alpha6",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "rimraf": "^2.6.2",
-    "rollup": "^0.52.2",
+    "rollup": "^0.52.3",
     "rollup-plugin-babel": "^3.0.3",
     "rollup-plugin-commonjs": "^8.2.6",
     "rollup-plugin-uglify": "^2.0.1",

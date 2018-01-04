@@ -1,6 +1,3 @@
-import gzipSize from 'gzip-size'
-import { readFileSync } from 'fs'
-import prettyBytes from 'pretty-bytes'
 import { execSync } from 'child_process'
 
 const exec = (cmd, env) =>
@@ -34,9 +31,3 @@ exec('rollup -c -f umd -o umd/super-controls.min.js', {
   BABEL_ENV: 'umd',
   NODE_ENV: 'production'
 })
-
-const min = readFileSync('umd/super-controls.min.js', 'utf8')
-const size = gzipSize.sync(min)
-const bytes = prettyBytes(size)
-
-console.log('\nThe gzipped UMD bundle size is %s.', bytes)

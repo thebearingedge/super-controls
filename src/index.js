@@ -1,11 +1,4 @@
-import { Form } from './form'
-import { Field } from './field'
-import { FieldSet } from './field-set'
-import { FieldArray } from './field-array'
-
-export {
-  Form,
-  Field,
-  FieldSet,
-  FieldArray
-}
+export { View as Form } from './form'
+export { View as Field } from './field'
+export { View as FieldSet } from './field-set'
+export { View as FieldArray } from './field-array'
