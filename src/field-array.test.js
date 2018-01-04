@@ -266,7 +266,7 @@ describe('FieldArray.Model', () => {
       array
         .register([0], set)
         .register([0, 'foo'], field)
-      field.visit()
+      field.visit({ activate: true })
       expect(array.getState()).to.deep.include({
         isActive: true,
         anyVisited: true

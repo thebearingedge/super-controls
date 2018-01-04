@@ -93,9 +93,9 @@ describe('FieldSet.Model', () => {
       const field = Field.Model.create(fieldSet, '', toRoute('foo'))
       fieldSet
         .register(['foo'], field)
-        ._patch(['foo'], { visits: 1 })
+        ._patch(['foo'], { visits: 1 }, { activate: true })
       expect(fieldSet.getState()).to.include({ isActive: true })
-      fieldSet._patch(['foo'], { touches: 1 })
+      fieldSet._patch(['foo'], { touches: 1 }, { activate: true })
       expect(fieldSet.getState()).to.include({ isActive: false })
     })
 
@@ -104,7 +104,7 @@ describe('FieldSet.Model', () => {
       const field = Field.Model.create(fieldSet, '', toRoute('foo'))
       fieldSet
         .register(['foo'], field)
-        ._patch(['foo'], { visits: 1 })
+        ._patch(['foo'], { visits: 1 }, { activate: true })
       expect(fieldSet.getState()).to.include({ active: field })
     })
 
@@ -511,7 +511,7 @@ describe('FieldSet.Model', () => {
       fieldSet
         .register(['foo'], fieldArray)
         .register(['foo', 0], field)
-      field.visit()
+      field.visit({ activate: true })
       expect(fieldSet.getState()).to.include({
         isActive: true,
         anyVisited: true

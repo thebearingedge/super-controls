@@ -105,13 +105,13 @@ export const View = class FieldView extends SuperControl.View {
     const wrapped = _.wrapEvent(event)
     this.props.onBlur(wrapped, this.model)
     if (wrapped.defaultPrevented) return
-    this.model.touch({ validate: true, notify: true })
+    this.model.touch({ validate: true, notify: true, activate: true })
   }
   handleFocus(event) {
     const wrapped = _.wrapEvent(event)
     this.props.onFocus(wrapped, this.model)
     if (wrapped.defaultPrevented) return
-    this.model.visit()
+    this.model.visit({ activate: true })
   }
   handleChange(event) {
     const value = this.getValue(event)

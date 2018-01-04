@@ -3,16 +3,21 @@ import React, { Fragment } from 'react'
 import { render } from 'react-dom'
 import { Form, Field, FieldSet, FieldArray } from '~/src'
 
-const handleSubmit = (errors, values) =>
+const handleSubmit = (errors, values, form) => {
+  if (errors) return form.touchAll()
   console.log(JSON.stringify(values, null, 2))
+}
 
 const validateUsername = value =>
   value.trim().length < 3 &&
-  'Username must be at least 3 characters long'
+  'Username must be at least 3 characters long.'
 
 const notifyUsername = value =>
-  value.length > 5 &&
+  value.length > 2 &&
   'That is a great username!'
+
+const validateEmail = value =>
+  !/\w+@\w+\.\w+/.test(value) && 'Please enter a valid email.'
 
 const validateFriends = friends => {
   if (friends.some(friend => !friend.name.trim())) {
@@ -31,7 +36,7 @@ const notifyFriends = friends =>
   (friends.length > 3 && friends.every(friend => friend.name.trim())) &&
   'You sure are popular!'
 
-const Username = ({ field, control: { name, ...control }, ...props }) => {
+const renderField = ({ field, control, ...props }) => {
   const showError = field.isInvalid && field.isTouched
   const inputClass = showError
     ? 'form-control border-danger'
@@ -39,16 +44,18 @@ const Username = ({ field, control: { name, ...control }, ...props }) => {
   return (
     <Fragment>
       <div className='form-group'>
-        <label htmlFor={name}>Username</label>
+        { props.label &&
+          <label htmlFor={props.id}>{ props.label }</label>
+        }
         { showError &&
           <div>
             <small className='text-danger'>{ field.error }</small>
           </div>
         }
-        <input name={name} type='text' className={inputClass} {...control}/>
+        <input id={props.id} className={inputClass} {...control}/>
       </div>
-      { field.isValid &&
-        field.hasNotice &&
+      { field.hasNotice &&
+        !field.isInvalid &&
         <div className='alert alert-success'>{ field.notice }</div>
       }
     </Fragment>
@@ -112,8 +119,7 @@ const renderFriends = ({ fields }) =>
       !fields.isActive &&
       <div className='alert alert-danger'>{ fields.error }</div>
     }
-    { fields.isValid &&
-      fields.hasNotice &&
+    { fields.hasNotice &&
       <div className='alert alert-success'>{ fields.notice }</div>
     }
   </Fragment>
@@ -125,43 +131,42 @@ const renderContactInfo = _ =>
     <Field
       id='email'
       name='email'
-      component='input'
-      className='form-control'/>
+      type='email'
+      render={renderField}
+      validate={validateEmail}/>
   </fieldset>
 
 render(
   <Form
     name='signUp'
     onSubmit={handleSubmit}
-    render={({ form, control }) => {
-      window.form = form
-      return (
-        <form {...control} className='container'>
-          <legend>Join Up!</legend>
-          <Field
-            id='username'
-            name='username'
-            component={Username}
-            notify={notifyUsername}
-            validate={validateUsername}/>
-          <FieldSet
-            name='contactInfo'
-            className='form-group'
-            render={renderContactInfo}/>
-          <FieldArray
-            name='friends'
-            render={renderFriends}
-            notify={notifyFriends}
-            validate={validateFriends}/>
-          <button type='reset' className='btn btn-outline-secondary'>
-            Reset
-          </button>
-          { ' ' }
-          <button type='submit' className='btn btn-primary'>
-            Sign Up
-          </button>
-        </form>
-      )
-    }}/>,
+    render={({ form, control }) =>
+      <form {...control} className='container'>
+        <legend>Join Up!</legend>
+        <Field
+          id='username'
+          name='username'
+          label='Username'
+          render={renderField}
+          notify={notifyUsername}
+          validate={validateUsername}/>
+        <FieldSet
+          name='contactInfo'
+          className='form-group'
+          render={renderContactInfo}/>
+        <FieldArray
+          name='friends'
+          render={renderFriends}
+          notify={notifyFriends}
+          validate={validateFriends}/>
+        <button type='reset' className='btn btn-outline-secondary'>
+          Reset
+        </button>
+        { ' ' }
+        <button type='submit' className='btn btn-primary'>
+          Sign Up
+        </button>
+      </form>
+    }/>,
   document.querySelector('#app')
 )

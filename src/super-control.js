@@ -91,8 +91,10 @@ export const Model = class SuperControlModel {
     if (change.visits || change.touches) {
       if (change.visits) next.visits += change.visits
       if (change.touches) next.touches += change.touches
-      next.isActive = (next.visits > current.visits) ||
-                      (current.isActive && next.touches <= current.touches)
+      if (options.activate) {
+        next.isActive = (next.visits > current.visits) ||
+                        (current.isActive && next.touches <= current.touches)
+      }
     }
     if (options.notify) {
       next.notice = config.notify(next.value, form.values, this)

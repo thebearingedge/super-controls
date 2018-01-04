@@ -82,10 +82,10 @@ export const Model = class FieldSetModel extends SuperControl.Model {
     if ('value' in change) {
       next.value = _.set(current.value, names, change.value)
     }
-    if ('visits' in change && change.visits > 0) {
+    if ('visits' in change && change.visits > 0 && options.activate) {
       next.active = this.getField(names)
     }
-    if ('touches' in change && change.touches > 0) {
+    if ('touches' in change && change.touches > 0 && options.activate) {
       next.active = null
     }
     super._patch(next, { ...options, silent: !!options.quiet })
@@ -121,6 +121,7 @@ export const Model = class FieldSetModel extends SuperControl.Model {
     field && field.untouch()
   }
   touchAll() {
+    super._patch({ touches: 1 })
     this.eachField(field => _.invoke(field.touchAll || field.touch))
   }
   untouchAll() {
@@ -135,14 +136,14 @@ export const Model = class FieldSetModel extends SuperControl.Model {
     this.eachField(field => _.invoke(field.validateAll || field.validate))
     return this
   }
-  reset(options) {
+  reset() {
     const { form, names, fields, init } = this
     _.keys(fields).reverse().forEach(key => {
       _.exists(init, key)
-        ? fields[key].reset(options)
+        ? fields[key].reset()
         : form.unregister(fields[key].names, fields[key])
     })
-    form._patch(names, { value: init, error: null, notice: null }, options)
+    form._patch(names, { value: init, error: null, notice: null })
   }
   eachField(procedure) {
     _.keys(this.fields).forEach(key => procedure(this.fields[key]))

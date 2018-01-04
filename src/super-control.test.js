@@ -241,9 +241,9 @@ describe('SuperControl.Model', () => {
 
     it('patches the isActive state of the model', () => {
       const model = SuperControl.Model.create()
-      model._patch({ visits: 1 })
+      model._patch({ visits: 1 }, { activate: true })
       expect(model.getState()).to.include({ isActive: true })
-      model._patch({ touches: 1 })
+      model._patch({ touches: 1 }, { activate: true })
       expect(model.getState()).to.include({ isActive: false })
     })
 
