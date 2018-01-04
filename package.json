@@ -59,7 +59,8 @@
       "path": "umd/super-controls.js"
     },
     {
-      "path": "umd/super-controls.min.js"
+      "path": "umd/super-controls.min.js",
+      "maxSize": "6 kB"
     }
   ],
   "repository": {
