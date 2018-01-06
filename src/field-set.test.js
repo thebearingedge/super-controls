@@ -373,19 +373,19 @@ describe('FieldSet.Model', () => {
         validate: values => {
           return Object.keys(values).some(key => {
             return !values[key]
-          }) && 'incomplete'
+          }) && { error: 'incomplete' }
         }
       })
       fieldSet.form = fieldSet
       fieldSet
         .register(['foo'], Field.Model.create(fieldSet, '', toRoute('foo'), {
-          validate: value => !value && 'foo required'
+          validate: value => !value && { error: 'foo required' }
         }))
         .register(['bar'], Field.Model.create(fieldSet, '', toRoute('bar'), {
-          validate: value => !value && 'bar required'
+          validate: value => !value && { error: 'bar required' }
         }))
         .register(['baz'], Field.Model.create(fieldSet, '', toRoute('baz'), {
-          validate: value => !value && 'baz required'
+          validate: value => !value && { error: 'baz required' }
         }))
         .validateAll()
       expect(fieldSet.error).to.equal('incomplete')
@@ -403,19 +403,19 @@ describe('FieldSet.Model', () => {
         validate: values => {
           return Object.keys(values).some(key => {
             return !values[key]
-          }) && 'incomplete'
+          }) && { error: 'incomplete' }
         }
       })
       fieldSet.form = fieldSet
       fieldSet
         .register(['foo'], Field.Model.create(fieldSet, '', toRoute('foo'), {
-          validate: value => !value && 'foo required'
+          validate: value => !value && { error: 'foo required' }
         }))
         .register(['bar'], Field.Model.create(fieldSet, '', toRoute('bar'), {
-          validate: value => !value && 'bar required'
+          validate: value => !value && { error: 'bar required' }
         }))
         .register(['baz'], Field.Model.create(fieldSet, '', toRoute('baz'), {
-          validate: value => !value && 'baz required'
+          validate: value => !value && { error: 'baz required' }
         }))
         .validateAll()
       expect(fieldSet.errors).to.deep.equal({

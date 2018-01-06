@@ -14,6 +14,8 @@ export const isString = value => typeof value === 'string'
 
 export const isFunction = value => typeof value === 'function'
 
+export const isPromise = value => !!value && isFunction(value.then)
+
 export const { keys } = Object
 
 export const omit = (source, omitting) =>
@@ -117,6 +119,8 @@ export const toNames = path =>
     .reduce((flattened, names) => flattened.concat(names.map(name =>
       /\d\]$/.test(name) ? +name.replace(']', '') : name
     )), [])
+
+export const toRoute = path => toNames(path).map(wrap)
 
 export const wrapEvent = event =>
   assign({}, event, {

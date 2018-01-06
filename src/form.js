@@ -22,6 +22,7 @@ export const Model = class FormModel extends FieldSet.Model {
     ]))
   }
   register({ init, route, config, Model }) {
+    route = _.isString(route) ? _.toRoute(route) : route
     const names = route.map(_.invoke)
     const registered = this.getField(names)
     if (registered) return registered
@@ -45,7 +46,7 @@ export const Model = class FormModel extends FieldSet.Model {
     }).then(done, done)
   }
   static create(name, init, config = {}) {
-    return super.create(null, init, [_ => name], _.defaults({}, config, {
+    return super.create(null, init, name, _.defaults({}, config, {
       onSubmit: _.noop
     }))
   }

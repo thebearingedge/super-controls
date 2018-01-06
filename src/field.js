@@ -31,7 +31,14 @@ export const Model = class FieldModel extends SuperControl.Model {
   reset(options) {
     const { form, names, _state: { init: value, visits, touches } } = this
     const change = {
-      value, visits: -visits, touches: -touches, error: null, notice: null
+      value,
+      visits: -visits,
+      touches: -touches,
+      error: null,
+      notice: null,
+      validation: null,
+      isValidated: false,
+      isAsyncValidated: false
     }
     form._patch(names, change, options)
   }
@@ -105,7 +112,7 @@ export const View = class FieldView extends SuperControl.View {
     const wrapped = _.wrapEvent(event)
     this.props.onBlur(wrapped, this.model)
     if (wrapped.defaultPrevented) return
-    this.model.touch({ validate: true, notify: true, activate: true })
+    this.model.touch({ validate: true, activate: true })
   }
   handleFocus(event) {
     const wrapped = _.wrapEvent(event)
@@ -118,7 +125,7 @@ export const View = class FieldView extends SuperControl.View {
     const wrapped = _.wrapEvent(event)
     this.props.onChange(wrapped, value, this.model)
     if (wrapped.defaultPrevented) return
-    this.model.change(value, { validate: true, notify: true, quiet: true })
+    this.model.change(value, { validate: true, quiet: true })
   }
   render() {
     const { control, props: { component } } = this

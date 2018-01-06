@@ -100,7 +100,7 @@ describe('Form.Model', () => {
     it('calls the model\'s onSubmit method with its errors', done => {
       const form = Form.Model.create('test', {}, {
         validate(values) {
-          return !Object.keys(values).length && 'incomplete'
+          return !Object.keys(values).length && { error: 'incomplete' }
         },
         onSubmit(errors, values, model) {
           expect(errors).to.deep.equal({

@@ -1,6 +1,6 @@
 import React from 'react'
 import { describe, beforeEach, it } from 'mocha'
-import { expect, stub, toRoute, mountWith } from './__test__'
+import { expect, stub, mountWith } from './__test__'
 import * as Form from './form'
 import * as SuperControl from './super-control'
 
@@ -14,7 +14,7 @@ describe('SuperControl.Model', () => {
     })
 
     it('is the last name in the model\'s route', () => {
-      const model = SuperControl.Model.create(null, null, toRoute('foo[0]'))
+      const model = SuperControl.Model.create(null, null, 'foo[0]')
       expect(model.name).to.equal(0)
     })
 
@@ -23,7 +23,7 @@ describe('SuperControl.Model', () => {
   describe('names', () => {
 
     it('is the list of names in the model\'s hierarchy', () => {
-      const named = SuperControl.Model.create(null, null, toRoute('foo[0]'))
+      const named = SuperControl.Model.create(null, null, 'foo[0]')
       expect(named.names).to.deep.equal(['foo', 0])
       const unnamed = SuperControl.Model.create()
       expect(unnamed.names).to.deep.equal([])
@@ -34,7 +34,7 @@ describe('SuperControl.Model', () => {
   describe('path', () => {
 
     it('is a string notation of the model\'s path', () => {
-      const named = SuperControl.Model.create(null, null, toRoute('foo[0].bar'))
+      const named = SuperControl.Model.create(null, null, 'foo[0].bar')
       expect(named.path).to.equal('foo[0].bar')
       const unnamed = SuperControl.Model.create()
       expect(unnamed.path).to.equal('')
@@ -53,11 +53,16 @@ describe('SuperControl.Model', () => {
         value: null,
         error: null,
         notice: null,
-        isActive: false,
-        isVisited: false,
-        isTouched: false,
+        isValid: false,
         isInvalid: false,
-        hasNotice: false
+        isValidated: false,
+        isValidating: false,
+        isAsyncValidated: false,
+        hasNotice: false,
+        isActive: false,
+        isInactive: true,
+        isVisited: false,
+        isTouched: false
       })
     })
 
@@ -69,7 +74,7 @@ describe('SuperControl.Model', () => {
       const model = SuperControl.Model.create()
       model.subscribe(() => {})
       model.subscribe(() => {})
-      expect(model.subscribers).to.have.lengthOf(2)
+      expect(model.subscribers).to.equal(2)
     })
 
     it('returns an unsubscribe function', () => {
@@ -80,7 +85,7 @@ describe('SuperControl.Model', () => {
 
     it('unregisters when the last subscriber unsubscribes', () => {
       const form = { unregister: stub(), state: {} }
-      const model = SuperControl.Model.create(form, null, toRoute('foo'))
+      const model = SuperControl.Model.create(form, null, 'foo')
       const unsubscribe = model.subscribe(_ => {})
       unsubscribe()
       expect(form.unregister).to.have.been.calledWith(['foo'])
@@ -106,6 +111,150 @@ describe('SuperControl.Model', () => {
 
   })
 
+  describe('validate', () => {
+
+    let form
+
+    beforeEach(() => {
+      form = { values: {} }
+    })
+
+    it('sets the isValidated state of the model', () => {
+      const model = SuperControl.Model.create(form)
+      expect(model.getState()).to.include({
+        error: null,
+        notice: null,
+        isValid: false,
+        isInvalid: false,
+        isValidated: false
+      })
+      model.validate()
+      expect(model.getState()).to.include({
+        error: null,
+        notice: null,
+        isValid: true,
+        isInvalid: false,
+        isValidated: true
+      })
+    })
+
+    it('sets the error state of the model', () => {
+      const model = SuperControl.Model.create(form, null, 'foo', {
+        validate(value, values, self) {
+          expect(value).to.equal(null)
+          expect(values).to.equal(form.values)
+          expect(self).to.equal(model)
+          return { error: 'foo cannot be null' }
+        }
+      })
+      model.validate()
+      expect(model.getState()).to.include({
+        notice: null,
+        isValid: false,
+        isInvalid: true,
+        isValidated: true,
+        error: 'foo cannot be null'
+      })
+    })
+
+    it('sets the notice state of the model', () => {
+      const model = SuperControl.Model.create(form, 'bar', 'foo', {
+        validate(value, values, self) {
+          expect(value).to.equal('bar')
+          expect(values).to.equal(form.values)
+          expect(self).to.equal(model)
+          return { notice: 'bar is a good foo' }
+        }
+      })
+      model.validate()
+      expect(model.getState()).to.include({
+        error: null,
+        isValid: true,
+        hasNotice: true,
+        isInvalid: false,
+        isValidated: true,
+        notice: 'bar is a good foo'
+      })
+    })
+
+    it('sets the isValidating state of the model', done => {
+      const model = SuperControl.Model.create(form, 'bar', 'foo', {
+        validate() {
+          return Promise.resolve({ notice: 'bar is a good foo' })
+        }
+      })
+      const subscriber = stub()
+        .onCall(1).callsFake(state => {
+          expect(state).to.include({
+            error: null,
+            notice: null,
+            isValid: false,
+            isInvalid: false,
+            isValidated: false,
+            isValidating: true
+          })
+        })
+        .onCall(2).callsFake(state => {
+          expect(state).to.include({
+            error: null,
+            isValid: true,
+            isInvalid: false,
+            isValidated: true,
+            isValidating: false,
+            notice: 'bar is a good foo'
+          })
+          done()
+        })
+        .onCall(3).callsFake(_ => done())
+      model.subscribe(subscriber)
+      model.validate()
+    })
+
+    it('only sets messages from the most recent async validation', done => {
+      const validate = stub()
+        .onCall(0).resolves({ error: 'bad' })
+        .onCall(1).resolves({ error: null })
+      const model = SuperControl.Model.create(form, null, 'foo', {
+        validate
+      })
+      const subscriber = stub()
+        .onCall(0).callsFake(state => {
+          expect(state).to.include({
+            error: null,
+            isValid: false,
+            isValidating: false
+          })
+        })
+        .onCall(1).callsFake(state => {
+          expect(state).to.include({
+            error: null,
+            isValid: false,
+            isValidating: true
+          })
+        })
+        .onCall(2).callsFake(state => {
+          expect(state).to.include({
+            error: null,
+            isValid: false,
+            isValidating: true
+          })
+        })
+        .onCall(3).callsFake(state => {
+          expect(state).to.include({
+            error: null,
+            isValid: true,
+            isValidating: false
+          })
+          done()
+        })
+        .onCall(4).callsFake(_ => done())
+      model.subscribe(subscriber)
+      model.validate()
+      model.validate()
+    })
+
+  })
+
   describe('_setState', () => {
 
     it('replaces the state of the model', () => {
@@ -118,11 +267,16 @@ describe('SuperControl.Model', () => {
         value: 'foo',
         error: null,
         notice: null,
-        isActive: false,
-        isVisited: false,
-        isTouched: false,
+        isValid: false,
         isInvalid: false,
-        hasNotice: false
+        isValidated: false,
+        isValidating: false,
+        isAsyncValidated: false,
+        hasNotice: false,
+        isActive: false,
+        isInactive: true,
+        isVisited: false,
+        isTouched: false
       })
     })
 
@@ -136,11 +290,16 @@ describe('SuperControl.Model', () => {
           value: 'foo',
           error: null,
           notice: null,
-          isActive: false,
-          isVisited: false,
-          isTouched: false,
+          isValid: false,
           isInvalid: false,
-          hasNotice: false
+          isValidated: false,
+          isValidating: false,
+          isAsyncValidated: false,
+          hasNotice: false,
+          isActive: false,
+          isInactive: true,
+          isVisited: false,
+          isTouched: false
         })
         done()
       }))
@@ -159,11 +318,16 @@ describe('SuperControl.Model', () => {
         value: 'foo',
         error: null,
         notice: null,
-        isActive: false,
-        isVisited: false,
-        isTouched: false,
+        isValid: false,
         isInvalid: false,
-        hasNotice: false
+        isValidated: false,
+        isValidating: false,
+        isAsyncValidated: false,
+        hasNotice: false,
+        isActive: false,
+        isInactive: true,
+        isVisited: false,
+        isTouched: false
       })
     })
 
@@ -187,17 +351,26 @@ describe('SuperControl.Model', () => {
         value: 'bar',
         error: null,
         notice: null,
-        isActive: false,
-        isVisited: false,
-        isTouched: false,
+        isValid: false,
         isInvalid: false,
-        hasNotice: false
+        isValidated: false,
+        isValidating: false,
+        isAsyncValidated: false,
+        hasNotice: false,
+        isActive: false,
+        isInactive: true,
+        isVisited: false,
+        isTouched: false
       })
     })
 
     it('validates a new value state', () => {
       const model = SuperControl.Model.create(form, null, void 0, {
-        validate: (value, allValues) => value === allValues.foo && 'dupe!'
+        validate(value, allValues) {
+          if (value === allValues.foo) {
+            return { error: 'dupe!' }
+          }
+        }
       })
       model._patch({ value: 'foo' }, { validate: true })
       expect(model.getState()).to.include({
@@ -206,20 +379,6 @@ describe('SuperControl.Model', () => {
         error: 'dupe!',
         isInvalid: true,
         hasNotice: false
-      })
-    })
-
-    it('notifies the new value state', () => {
-      const model = SuperControl.Model.create(form, null, void 0, {
-        notify: (value, allValues) => value === allValues.foo && 'match!'
-      })
-      model._patch({ value: 'foo' }, { notify: true })
-      expect(model.getState()).to.include({
-        value: 'foo',
-        error: null,
-        notice: 'match!',
-        isInvalid: false,
-        hasNotice: true
       })
     })
 
@@ -258,7 +417,7 @@ describe('SuperControl.Model', () => {
     })
 
     it('patches the init and value of the model through the form', () => {
-      const model = SuperControl.Model.create(form, null, toRoute('foo'))
+      const model = SuperControl.Model.create(form, null, 'foo')
       form._patch.callsFake((_, ...args) => model._patch(...args))
       expect(model.getState()).to.include({
         init: null,
@@ -304,9 +463,14 @@ describe('SuperControl.View', () => {
         value: null,
         error: null,
         notice: null,
+        isValid: false,
         isInvalid: false,
+        isValidated: false,
+        isValidating: false,
+        isAsyncValidated: false,
         hasNotice: false,
         isActive: false,
+        isInactive: true,
         isVisited: false,
         isTouched: false
       })
@@ -322,9 +486,14 @@ describe('SuperControl.View', () => {
         value: null,
         error: null,
         notice: null,
+        isValid: false,
         isInvalid: false,
+        isValidated: false,
+        isValidating: false,
+        isAsyncValidated: false,
         hasNotice: false,
         isActive: false,
+        isInactive: true,
         isVisited: false,
         isTouched: false
       })
@@ -336,9 +505,14 @@ describe('SuperControl.View', () => {
         value: 'test',
         error: null,
         notice: null,
+        isValid: false,
         isInvalid: false,
+        isValidated: false,
+        isValidating: false,
+        isAsyncValidated: false,
         hasNotice: false,
         isActive: false,
+        isInactive: true,
         isVisited: false,
         isTouched: false
       })
@@ -351,9 +525,9 @@ describe('SuperControl.View', () => {
     it('unsubscribes the view from its model', () => {
       const wrapper = mount(<SuperControl.View name='test'/>)
       const { model } = wrapper.instance()
-      expect(model.subscribers).to.have.lengthOf(1)
+      expect(model.subscribers).to.equal(1)
       wrapper.unmount()
-      expect(model.subscribers).to.have.lengthOf(0)
+      expect(model.subscribers).to.equal(0)
     })
 
   })
@@ -363,7 +537,7 @@ describe('SuperControl.View', () => {
     it('defers updates of its name field', done => {
       const foo = form.register({
         init: null,
-        route: toRoute('foo'),
+        route: 'foo',
         Model: SuperControl.Model
       })
       class TestControl extends SuperControl.View {

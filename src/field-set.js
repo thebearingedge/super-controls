@@ -121,15 +121,10 @@ export const Model = class FieldSetModel extends SuperControl.Model {
     field && field.untouch()
   }
   touchAll() {
-    super._patch({ touches: 1 })
     this.eachField(field => _.invoke(field.touchAll || field.touch))
   }
   untouchAll() {
     this.eachField(field => _.invoke(field.untouchAll || field.untouch))
-  }
-  validate(options) {
-    const { form, config, value } = this
-    super._patch({ error: config.validate(value, form.values, this) }, options)
   }
   validateAll() {
     this.validate()
