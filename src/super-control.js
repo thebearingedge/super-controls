@@ -18,21 +18,22 @@ export const Model = class SuperControlModel {
     }
     _.assign(this, {
       form,
-      route,
       config,
       _state,
+      _route: route,
       _subscribers: [],
+      reset: this.reset.bind(this),
       publish: this.publish.bind(this),
       validate: this.validate.bind(this),
       initialize: this.initialize.bind(this)
     })
   }
   get name() {
-    return (this.route.length || null) &&
-           this.route[this.route.length - 1]()
+    return (this._route.length || null) &&
+           this._route[this._route.length - 1]()
   }
   get names() {
-    return this.route.map(_.invoke)
+    return this._route.map(_.invoke)
   }
   get path() {
     return _.toPath(this.names)
@@ -98,7 +99,7 @@ export const Model = class SuperControlModel {
     subscriber(this.getState())
     return _ => {
       this._subscribers.splice(index, 1)
-      this.subscribers || this.form.unregister(this.names, this)
+      this.subscribers || this.form._unregister(this.names, this)
     }
   }
   publish() {
@@ -110,12 +111,12 @@ export const Model = class SuperControlModel {
     this._state = next
     return silent ? this : this.publish()
   }
-  _patch(change, options = {}) {
+  _patch(patch, options = {}) {
     const { _state: current } = this
-    let next = _.assign({}, current, _.omit(change, ['visits', 'touches']))
-    if (change.visits || change.touches) {
-      if (change.visits) next.visits += change.visits
-      if (change.touches) next.touches += change.touches
+    let next = _.assign({}, current, _.omit(patch, ['visits', 'touches']))
+    if (patch.visits || patch.touches) {
+      if (patch.visits) next.visits += patch.visits
+      if (patch.touches) next.touches += patch.touches
       if (options.activate) {
         next.isActive = (next.visits > current.visits) ||
                         (current.isActive && next.touches <= current.touches)
@@ -126,16 +127,17 @@ export const Model = class SuperControlModel {
   }
   initialize(init) {
     this.form.isInitialized = false
-    this.form._patch(this.names, { init, value: init }, { quiet: true })
+    this.form._patchField(this.names, { init, value: init }, { quiet: true })
     this.form.isInitialized = true
     return this
   }
   validate(options) {
-    return this._setState(this._validate(this._state), options)
+    const next = this._validate({ ...this._state })
+    return this._setState(next, options)
   }
   _validate(state) {
-    const { config, form: { values } } = this
-    const validation = config.validate(state.value, values, this)
+    const { config, form } = this
+    const validation = config.validate(state.value, form.values, this, form)
     if (_.isPromise(validation)) {
       _.assign(state, {
         error: null,
@@ -161,6 +163,21 @@ export const Model = class SuperControlModel {
       })
     }
     return state
+  }
+  reset(options) {
+    const { form, names, _state: { init, visits, touches } } = this
+    const patch = {
+      value: init,
+      visits: -visits,
+      touches: -touches,
+      error: null,
+      notice: null,
+      validation: null,
+      isValidated: false,
+      isAsyncValidated: false
+    }
+    form._patchField(names, patch, options)
+    return this
   }
   static create(form, init = null, route = [], config = {}) {
     route = _.isString(route) ? _.toRoute(route) : route

@@ -42,9 +42,9 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
   insert(index, value) {
     this.keys = _.sliceIn(this.keys, index, ++key)
     this.fields = _.sliceIn(this.fields, index, void 0)
-    this.form._patch(this.names, {
+    this.form._patchField(this.names, {
       value: _.sliceIn(this.values, index, value)
-    })
+    }, { validate: true })
   }
   push(value) {
     this.insert(this.values.length, value)
@@ -56,17 +56,17 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
     this.keys = _.remove(this.keys, index)
     const { _state: { visits, touches } } = this.fields[index]
     this.fields = _.remove(this.fields, index)
-    this.form._patch(this.names, {
+    this.form._patchField(this.names, {
       visits: -visits,
       touches: -touches,
       value: _.remove(this.values, index)
-    })
+    }, { validate: true })
   }
   clear() {
     this.keys = []
-    this.form._patch(this.names, { value: [] })
+    this.form._patchField(this.names, { value: [] })
     this.fields.slice().reverse().forEach(field => {
-      this.form.unregister(field.names, field)
+      this.form._unregister(field.names, field)
     })
   }
   pop() {
@@ -82,11 +82,11 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
   initialize(init) {
     this.fields
       .slice(init.length)
-      .forEach(field => this.form.unregister(field.names, field))
-    this.keys = this.keys.slice(0, init.length)
-    init.forEach((_, index) => {
-      this.keys[index] = this.keys[index] || ++key
-    })
+      .reverse()
+      .forEach(field => this.form._unregister(field.names, field, {
+        silent: true
+      }))
+    this.keys = init.map((_, index) => this.keys[index] || ++key)
     super.initialize(init)
   }
   static create(form, init = [], route, config) {

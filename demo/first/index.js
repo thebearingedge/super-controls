@@ -4,7 +4,10 @@ import { render } from 'react-dom'
 import { Form, Field, FieldSet, FieldArray } from '~/src'
 
 const handleSubmit = (errors, values, form) => {
-  if (errors) return form.touchAll()
+  if (errors) {
+    form.touchAll()
+    return console.log(JSON.stringify(errors, null, 2))
+  }
   console.log(JSON.stringify(values, null, 2))
 }
 
@@ -32,26 +35,23 @@ const validateEmail = value =>
   !/\w+@\w+\.\w+/.test(value) &&
   { error: 'Please enter a valid email.' }
 
-const validateFriends = (value, values, fields) => {
-  if (value.some(friend => !friend.name.trim()) &&
-      fields.anyTouched) {
-    return { error: 'Please name each friend.' }
-  }
-  if (value.length < 3) {
+const validateFriends = (friends, values, fields, form) => {
+  if (friends.length < 3) {
     return { error: 'Please name at least three friends.' }
   }
-  if (value.length > 3) {
-    return { notice: 'You sure are popular!' }
+  if (form.isSubmitting &&
+      friends.some(friend => !friend.name.trim())) {
+    return { error: 'Please name all friends.' }
   }
 }
 
 const validateFriendName = name =>
   !name.trim() &&
-  { error: 'Friends require a name.' }
+  { error: 'What is your friend\'s name?' }
 
 const renderField = ({ field, control, ...props }) => {
-  const showError = (field.isInvalid && field.isTouched) ||
-                    (field.isInvalid && field.isAsyncValidated)
+  const showError = field.isInvalid &&
+                    (field.isTouched || field.isAsyncValidated)
   const inputClass = showError
     ? 'form-control border-danger'
     : field.isValidating
@@ -123,25 +123,20 @@ const renderFriend = (friend, index, fields, key) =>
   </FieldSet>
 
 const renderFriends = ({ fields }) =>
-  <Fragment>
-    <div className='form-group'>
-      <legend><small>Friends ({ fields.length })</small></legend>
-      { fields.map(renderFriend) }
-      <button
-        type='button'
-        onClick={_ => fields.push({ name: '' })}
-        className='btn btn-outline-success'>
-        <i className='oi oi-plus'/>
-      </button>
-    </div>
+  <div className='form-group'>
+    <legend><small>Friends ({ fields.length })</small></legend>
     { fields.isInvalid &&
       fields.isInactive &&
       <div className='alert alert-danger'>{ fields.error }</div>
     }
-    { fields.hasNotice &&
-      <div className='alert alert-success'>{ fields.notice }</div>
-    }
-  </Fragment>
+    { fields.map(renderFriend) }
+    <button
+      type='button'
+      onClick={_ => fields.push({ name: '' })}
+      className='btn btn-outline-success'>
+      <i className='oi oi-plus'/>
+    </button>
+  </div>
 
 const renderContactInfo = _ =>
   <fieldset>

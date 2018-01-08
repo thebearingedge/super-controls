@@ -1,6 +1,6 @@
 import React from 'react'
 import { describe, beforeEach, it } from 'mocha'
-import { expect, mountWith, toRoute } from './__test__'
+import { expect, mountWith } from './__test__'
 import * as Form from './form'
 import * as Field from './field'
 import * as FieldSet from './field-set'
@@ -16,7 +16,7 @@ describe('FieldArray.Model', () => {
         const model = FieldArray.Model.create(null)
         model.form = model
         expect(model.getState()).to.include({ length: 0 })
-        model._patch([], { value: ['foo', 'bar'] })
+        model._patch({ value: ['foo', 'bar'] })
         expect(model.getState()).to.include({ length: 2 })
       })
 
@@ -107,9 +107,9 @@ describe('FieldArray.Model', () => {
       const array = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
       array.form = array
       array
-        .register([0], Field.Model.create(array, 'foo', toRoute('0')))
-        .register([1], Field.Model.create(array, 'bar', toRoute('1')))
-        .register([2], Field.Model.create(array, 'baz', toRoute('2')))
+        ._register([0], Field.Model.create(array, 'foo', '0'))
+        ._register([1], Field.Model.create(array, 'bar', '1'))
+        ._register([2], Field.Model.create(array, 'baz', '2'))
       array.remove(1)
       expect(array.getState()).to.deep.include({
         value: ['foo', 'baz']
@@ -124,9 +124,9 @@ describe('FieldArray.Model', () => {
       const array = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
       array.form = array
       array
-        .register([0], Field.Model.create(array, 'foo', toRoute('0')))
-        .register([1], Field.Model.create(array, 'bar', toRoute('1')))
-        .register([2], Field.Model.create(array, 'baz', toRoute('2')))
+        ._register([0], Field.Model.create(array, 'foo', '0'))
+        ._register([1], Field.Model.create(array, 'bar', '1'))
+        ._register([2], Field.Model.create(array, 'baz', '2'))
       array.pop()
       expect(array.getState()).to.deep.include({
         value: ['foo', 'bar']
@@ -141,9 +141,9 @@ describe('FieldArray.Model', () => {
       const array = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
       array.form = array
       array
-        .register([0], Field.Model.create(array, 'foo', toRoute('0')))
-        .register([1], Field.Model.create(array, 'bar', toRoute('1')))
-        .register([2], Field.Model.create(array, 'baz', toRoute('2')))
+        ._register([0], Field.Model.create(array, 'foo', '0'))
+        ._register([1], Field.Model.create(array, 'bar', '1'))
+        ._register([2], Field.Model.create(array, 'baz', '2'))
       array.shift()
       expect(array.getState()).to.deep.include({
         value: ['bar', 'baz']
@@ -158,9 +158,9 @@ describe('FieldArray.Model', () => {
       const array = FieldArray.Model.create()
       array.form = array
       array
-        .register([0], Field.Model.create(array, 'foo', toRoute('[0]')))
-        .register([1], Field.Model.create(array, 'bar', toRoute('[1]')))
-        .register([2], Field.Model.create(array, 'baz', toRoute('[2]')))
+        ._register([0], Field.Model.create(array, 'foo', '[0]'))
+        ._register([1], Field.Model.create(array, 'bar', '[1]'))
+        ._register([2], Field.Model.create(array, 'baz', '[2]'))
       expect(array.fields).to.have.lengthOf(3)
       expect(array.values).to.deep.equal(['foo', 'bar', 'baz'])
       array.clear()
@@ -185,11 +185,11 @@ describe('FieldArray.Model', () => {
     it('patches the init and value states of its descendants', () => {
       const parent = FieldArray.Model.create(null, [])
       parent.form = parent
-      const child = FieldSet.Model.create(parent, {}, toRoute('[0]'))
-      const grandchild = Field.Model.create(parent, '', toRoute('[0].foo'))
+      const child = FieldSet.Model.create(parent, {}, '[0]')
+      const grandchild = Field.Model.create(parent, '', '[0].foo')
       parent
-        .register([0], child)
-        .register([0, 'foo'], grandchild)
+        ._register([0], child)
+        ._register([0, 'foo'], grandchild)
       parent.initialize([{ foo: 'bar' }])
       expect(parent.getState()).to.deep.include({
         init: [{ foo: 'bar' }],
@@ -208,11 +208,11 @@ describe('FieldArray.Model', () => {
     it('unregisters fields that have no corresponding init state', () => {
       const fieldArray = FieldArray.Model.create(null, ['foo'])
       fieldArray.form = fieldArray
-      const first = Field.Model.create(fieldArray, 'foo', toRoute('[0]'))
-      const second = Field.Model.create(fieldArray, 'bar', toRoute('[1]'))
+      const first = Field.Model.create(fieldArray, 'foo', '[0]')
+      const second = Field.Model.create(fieldArray, 'bar', '[1]')
       fieldArray
-        .register([0], first)
-        .register([1], second)
+        ._register([0], first)
+        ._register([1], second)
       expect(fieldArray.fields[1]).to.equal(second)
       fieldArray.initialize(['foo'])
       expect(fieldArray.fields[1]).to.equal(void 0)
@@ -225,12 +225,12 @@ describe('FieldArray.Model', () => {
     it('resets the state of the model and its descendants', () => {
       const array = FieldArray.Model.create(null, [])
       array.form = array
-      const set = FieldSet.Model.create(array, {}, toRoute('[0]'))
-      const field = Field.Model.create(array, '', toRoute('[0].foo'))
+      const set = FieldSet.Model.create(array, {}, '[0]')
+      const field = Field.Model.create(array, '', '[0].foo')
       array
-        .register([0], set)
-        .register([0, 'foo'], field)
-      array.change('[0].foo', 'bar')
+        ._register([0], set)
+        ._register([0, 'foo'], field)
+      array.changeField('[0].foo', 'bar')
       expect(array.getState()).to.deep.include({
         init: [{ foo: '' }],
         values: [{ foo: 'bar' }]
@@ -261,11 +261,11 @@ describe('FieldArray.Model', () => {
     it('retains the active state of itself and active descendants', () => {
       const array = FieldArray.Model.create(null, [])
       array.form = array
-      const set = FieldSet.Model.create(array, {}, toRoute('[0]'))
-      const field = Field.Model.create(array, '', toRoute('[0].foo'))
+      const set = FieldSet.Model.create(array, {}, '[0]')
+      const field = Field.Model.create(array, '', '[0].foo')
       array
-        .register([0], set)
-        .register([0, 'foo'], field)
+        ._register([0], set)
+        ._register([0, 'foo'], field)
       field.visit({ activate: true })
       expect(array.getState()).to.deep.include({
         isActive: true,
@@ -297,11 +297,11 @@ describe('FieldArray.Model', () => {
     it('unregisters fields that were registered after initialization', () => {
       const fieldArray = FieldArray.Model.create(null, ['foo'])
       fieldArray.form = fieldArray
-      const first = Field.Model.create(fieldArray, 'foo', toRoute('[0]'))
-      fieldArray.register([0], first)
+      const first = Field.Model.create(fieldArray, 'foo', '[0]')
+      fieldArray._register([0], first)
       fieldArray.isInitialized = true
-      const second = Field.Model.create(fieldArray, 'bar', toRoute('[1]'))
-      fieldArray.register([1], second)
+      const second = Field.Model.create(fieldArray, 'bar', '[1]')
+      fieldArray._register([1], second)
       expect(fieldArray.fields[1]).to.equal(second)
       fieldArray.reset()
       expect(fieldArray.fields[1]).to.equal(void 0)

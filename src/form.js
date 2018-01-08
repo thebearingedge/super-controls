@@ -24,26 +24,28 @@ export const Model = class FormModel extends FieldSet.Model {
   register({ init, route, config, Model }) {
     route = _.isString(route) ? _.toRoute(route) : route
     const names = route.map(_.invoke)
-    const registered = this.getField(names)
+    const registered = this._getField(names)
     if (registered) return registered
     const value = _.get(this._state.init, names, init)
     const field = Model.create(this, value, route, config)
-    super.register(names, field)
+    this._register(names, field)
     return field
   }
   submit() {
-    this._patch([], { isSubmitting: true })
+    this._patch({ isSubmitting: true })
     const done = err => {
-      this._patch([], { isSubmitting: false })
+      this._patch({ isSubmitting: false })
       if (err) return Promise.reject(err)
     }
     this.validateAll()
-    const { errors, values, config } = this
-    return new Promise(resolve => {
-      _.someValues(errors, _.id)
-        ? resolve(config.onSubmit(errors, values, this))
-        : resolve(config.onSubmit(null, values, this))
-    }).then(done, done)
+    return _.resolveValues(this.allValidations)
+      .then(() => {
+        const { allErrors, values, config: { onSubmit } } = this
+        return _.someValues(allErrors, _.id)
+          ? onSubmit(allErrors, null, this)
+          : onSubmit(null, values, this)
+      })
+      .then(done, done)
   }
   static create(name, init, config = {}) {
     return super.create(null, init, name, _.defaults({}, config, {
@@ -76,13 +78,12 @@ export const View = class FormView extends FieldSet.View {
     return this.model.register(...args)
   }
   get control() {
-    const { handleReset, handleSubmit, props: { name } } = this
+    const { handleReset, handleSubmit, model: { name } } = this
     const control = {
       onReset: handleReset,
       onSubmit: handleSubmit
     }
-    if (name) control.name = name
-    return control
+    return name ? _.assign(control, { name }) : control
   }
   handleReset(event) {
     const wrapped = _.wrapEvent(event)

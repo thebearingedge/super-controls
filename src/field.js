@@ -5,42 +5,27 @@ import * as SuperControl from './super-control'
 export const Model = class FieldModel extends SuperControl.Model {
   constructor(...args) {
     super(...args)
-    this.reset = this.reset.bind(this)
     this.visit = this.visit.bind(this)
     this.touch = this.touch.bind(this)
     this.change = this.change.bind(this)
     this.untouch = this.untouch.bind(this)
   }
   visit(options) {
-    this.form._patch(this.names, { visits: 1 }, options)
+    this.form._patchField(this.names, { visits: 1 }, options)
   }
   touch(options) {
-    this.form._patch(this.names, { touches: 1 }, options)
+    this.form._patchField(this.names, { touches: 1 }, options)
   }
   change(next, options = {}) {
     const { form, names, config } = this
     const value = options.force
       ? next
       : config.override(next, form.values)
-    form._patch(names, { value }, options)
+    form._patchField(names, { value }, options)
   }
   untouch(options) {
     const { form, names, _state: { touches } } = this
-    form._patch(names, { touches: -touches }, options)
-  }
-  reset(options) {
-    const { form, names, _state: { init: value, visits, touches } } = this
-    const change = {
-      value,
-      visits: -visits,
-      touches: -touches,
-      error: null,
-      notice: null,
-      validation: null,
-      isValidated: false,
-      isAsyncValidated: false
-    }
-    form._patch(names, change, options)
+    form._patchField(names, { touches: -touches }, options)
   }
 }
 

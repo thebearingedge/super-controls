@@ -84,11 +84,11 @@ describe('SuperControl.Model', () => {
     })
 
     it('unregisters when the last subscriber unsubscribes', () => {
-      const form = { unregister: stub(), state: {} }
+      const form = { _unregister: stub(), state: {} }
       const model = SuperControl.Model.create(form, null, 'foo')
       const unsubscribe = model.subscribe(_ => {})
       unsubscribe()
-      expect(form.unregister).to.have.been.calledWith(['foo'])
+      expect(form._unregister).to.have.been.calledWith(['foo'], model)
     })
 
   })
@@ -126,7 +126,8 @@ describe('SuperControl.Model', () => {
         notice: null,
         isValid: false,
         isInvalid: false,
-        isValidated: false
+        isValidated: false,
+        isValidating: false
       })
       model.validate()
       expect(model.getState()).to.include({
@@ -134,16 +135,18 @@ describe('SuperControl.Model', () => {
         notice: null,
         isValid: true,
         isInvalid: false,
-        isValidated: true
+        isValidated: true,
+        isValidating: false
       })
     })
 
     it('sets the error state of the model', () => {
       const model = SuperControl.Model.create(form, null, 'foo', {
-        validate(value, values, self) {
+        validate(value, values, self, root) {
           expect(value).to.equal(null)
           expect(values).to.equal(form.values)
           expect(self).to.equal(model)
+          expect(root).to.equal(form)
           return { error: 'foo cannot be null' }
         }
       })
@@ -153,16 +156,18 @@ describe('SuperControl.Model', () => {
         isValid: false,
         isInvalid: true,
         isValidated: true,
+        isValidating: false,
         error: 'foo cannot be null'
       })
     })
 
     it('sets the notice state of the model', () => {
       const model = SuperControl.Model.create(form, 'bar', 'foo', {
-        validate(value, values, self) {
+        validate(value, values, self, root) {
           expect(value).to.equal('bar')
           expect(values).to.equal(form.values)
           expect(self).to.equal(model)
+          expect(root).to.equal(form)
           return { notice: 'bar is a good foo' }
         }
       })
@@ -173,6 +178,7 @@ describe('SuperControl.Model', () => {
         hasNotice: true,
         isInvalid: false,
         isValidated: true,
+        isValidating: false,
         notice: 'bar is a good foo'
       })
     })
@@ -413,12 +419,12 @@ describe('SuperControl.Model', () => {
     let form
 
     beforeEach(() => {
-      form = { _patch: stub() }
+      form = { _patchField: stub() }
     })
 
     it('patches the init and value of the model through the form', () => {
       const model = SuperControl.Model.create(form, null, 'foo')
-      form._patch.callsFake((_, ...args) => model._patch(...args))
+      form._patchField.callsFake((_, ...args) => model._patch(...args))
       expect(model.getState()).to.include({
         init: null,
         value: null
@@ -430,6 +436,43 @@ describe('SuperControl.Model', () => {
       })
     })
 
+  })
+
+  describe('reset', () => {
+
+    let form
+
+    beforeEach(() => {
+      form = { _patchField: stub() }
+    })
+
+    it('resets the model to its initial state', () => {
+      const model = SuperControl.Model.create(form, 'foo')
+      form._patchField.callsFake((_, ...args) => model._patch(...args))
+      model._patch({
+        visits: 1,
+        touches: 1,
+        value: 'bar',
+        error: 'oops',
+        isValidated: true
+      })
+      expect(model.getState()).to.include({
+        init: 'foo',
+        value: 'bar',
+        error: 'oops',
+        isVisited: true,
+        isTouched: true,
+        isValidated: true
+      })
+      model.reset()
+      expect(model.getState()).to.include({
+        init: 'foo',
+        value: 'foo',
+        isVisited: false,
+        isTouched: false,
+        isValidated: false
+      })
+    })
   })
 
 })
