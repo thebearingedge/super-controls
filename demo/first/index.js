@@ -150,8 +150,15 @@ const renderContactInfo = _ =>
       validate={validateEmail}/>
   </fieldset>
 
+class DemoForm extends Form {
+  componentDidMount() {
+    super.componentDidMount()
+    window.form = this.model
+  }
+}
+
 render(
-  <Form
+  <DemoForm
     noValidate
     name='signUp'
     onSubmit={handleSubmit}
