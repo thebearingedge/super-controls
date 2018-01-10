@@ -4,9 +4,7 @@ import * as SuperControl from './super-control'
 export const Model = class FieldModel extends SuperControl.Model {
   constructor(...args) {
     super(...args)
-    this.visit = this.visit.bind(this)
     this.touch = this.touch.bind(this)
-    this.change = this.change.bind(this)
     this.untouch = this.untouch.bind(this)
   }
   visit(options) {

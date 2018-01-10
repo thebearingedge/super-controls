@@ -7,16 +7,6 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
   constructor(...args) {
     super(...args)
     this.fields = []
-    this.at = this.at.bind(this)
-    this.insert = this.insert.bind(this)
-    this.push = this.push.bind(this)
-    this.unshift = this.unshift.bind(this)
-    this.remove = this.remove.bind(this)
-    this.pop = this.pop.bind(this)
-    this.shift = this.shift.bind(this)
-    this.clear = this.clear.bind(this)
-    this.forEach = this.forEach.bind(this)
-    this.map = this.map.bind(this)
     this.keys = this._state.value.map(_ => ++key)
   }
   getState() {

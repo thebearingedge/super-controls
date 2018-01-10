@@ -24,8 +24,7 @@ export const Model = class SuperControlModel {
       _subscribers: [],
       reset: this.reset.bind(this),
       publish: this.publish.bind(this),
-      validate: this.validate.bind(this),
-      initialize: this.initialize.bind(this)
+      validate: this.validate.bind(this)
     })
   }
   get name() {

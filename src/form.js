@@ -7,7 +7,6 @@ export const Model = class FormModel extends FieldSet.Model {
     this.form = this
     this.isInitialized = false
     this._state.isSubmitting = false
-    this.submit = this.submit.bind(this)
   }
   get names() {
     return []
