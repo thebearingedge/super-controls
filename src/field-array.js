@@ -68,13 +68,12 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
     this.initialize(this.init)
   }
   initialize(init) {
-    this.fields
+    const { form, fields, _keys } = this
+    fields
       .slice(init.length)
       .reverse()
-      .forEach(field => this.form._unregister(field.names, field, {
-        silent: true
-      }))
-    this._keys = init.map((_, index) => this._keys[index] || ++this._key)
+      .forEach(field => form._unregister(field.names, field, { silent: true }))
+    this._keys = init.map((_, index) => _keys[index] || ++this._key)
     super.initialize(init)
   }
   static create(form, init = [], route, config) {
