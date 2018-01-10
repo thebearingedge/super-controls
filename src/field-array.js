@@ -6,7 +6,7 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
     super(...args)
     this._key = 0
     this.fields = []
-    this._keys = this._state.value.map(_ => ++this._key)
+    this._keys = this.values.map(_ => ++this._key)
   }
   getState() {
     return _.assign(super.getState(), _.pick(this, [
@@ -63,18 +63,18 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
   shift() {
     this.remove(0)
   }
-  reset(options) {
-    super.reset({ silent: true })
-    this.initialize(this.init)
+  reset() {
+    this.initialize(this.init, { silent: true })
+    return super.reset()
   }
-  initialize(init) {
+  initialize(init, options) {
     const { form, fields, _keys } = this
     fields
       .slice(init.length)
       .reverse()
       .forEach(field => form._unregister(field.names, field, { silent: true }))
     this._keys = init.map((_, index) => _keys[index] || ++this._key)
-    super.initialize(init)
+    return super.initialize(init, options)
   }
   static create(form, init = [], route, config) {
     return super.create(form, init, route, config)

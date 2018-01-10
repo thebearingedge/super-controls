@@ -99,12 +99,12 @@ export const Model = class FieldSetModel extends SuperControl.Model {
       : child._patch(patch, options)
     return this
   }
-  initialize(init) {
+  initialize(init, options) {
     _.keys(init).forEach(name => {
       this.fields[name] &&
-      this.fields[name].initialize(init[name])
+      this.fields[name].initialize(init[name], options)
     })
-    return super.initialize(init)
+    return super.initialize(init, options)
   }
   broadcast() {
     this.publish()

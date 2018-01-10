@@ -124,10 +124,11 @@ export const Model = class SuperControlModel {
     if (options.validate) next = this._validate(next)
     return this._setState(next, options)
   }
-  initialize(init) {
-    this.form.isInitialized = false
-    this.form._patchField(this.names, { init, value: init }, { quiet: true })
-    this.form.isInitialized = true
+  initialize(init, options = {}) {
+    const { form, names } = this
+    form.isInitialized = false
+    form._patchField(names, { init, value: init }, { quiet: true, ...options })
+    form.isInitialized = true
     return this
   }
   validate(options) {
