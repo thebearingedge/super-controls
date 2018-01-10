@@ -11,25 +11,28 @@ export const Model = class SuperControlModel {
       value: init,
       error: null,
       notice: null,
-      isActive: false
+      isActive: false,
+      validation: null,
+      isValidated: false,
+      isAsyncValidated: false
     }
     _.assign(this, {
       form,
-      route,
-      _state,
       config,
-      subscribers: [],
+      _state,
+      _route: route,
+      _subscribers: [],
+      reset: this.reset.bind(this),
       publish: this.publish.bind(this),
-      validate: this.validate.bind(this),
-      initialize: this.initialize.bind(this)
+      validate: this.validate.bind(this)
     })
   }
   get name() {
-    return (this.route.length || null) &&
-           this.route[this.route.length - 1]()
+    return (this._route.length || null) &&
+           this._route[this._route.length - 1]()
   }
   get names() {
-    return this.route.map(_.invoke)
+    return this._route.map(_.invoke)
   }
   get path() {
     return _.toPath(this.names)
@@ -49,11 +52,11 @@ export const Model = class SuperControlModel {
   get hasNotice() {
     return !!this._state.notice
   }
-  get isInvalid() {
-    return !!this._state.error
-  }
   get isActive() {
     return this._state.isActive
+  }
+  get isInactive() {
+    return !this.isActive
   }
   get isVisited() {
     return !!this._state.visits
@@ -61,60 +64,123 @@ export const Model = class SuperControlModel {
   get isTouched() {
     return !!this._state.touches
   }
+  get validation() {
+    return this._state.validation
+  }
+  get isValidated() {
+    return this._state.isValidated
+  }
+  get isValidating() {
+    return !!this.validation
+  }
+  get isAsyncValidated() {
+    return this._state.isAsyncValidated
+  }
+  get isValid() {
+    return this.isValidated && !this.error
+  }
+  get isInvalid() {
+    return this.isValidated && !!this.error
+  }
+  get subscribers() {
+    return this._subscribers.length
+  }
   getState() {
     return _.pick(this, [
       'name', 'path', 'init', 'value',
-      'isVisited', 'isTouched', 'isActive',
-      'error', 'notice', 'isInvalid', 'hasNotice'
+      'error', 'notice', 'isValid', 'isInvalid',
+      'isValidated', 'isValidating', 'isAsyncValidated', 'hasNotice',
+      'isActive', 'isInactive', 'isVisited', 'isTouched'
     ])
   }
   subscribe(subscriber) {
-    const index = this.subscribers.push(subscriber) - 1
+    const index = this._subscribers.push(subscriber) - 1
     subscriber(this.getState())
     return _ => {
-      this.subscribers.splice(index, 1)
-      !this.subscribers.length && this.form.unregister(this.names, this)
+      this._subscribers.splice(index, 1)
+      this.subscribers || this.form._unregister(this.names, this)
     }
   }
   publish() {
     const state = this.getState()
-    this.subscribers.forEach(subscriber => subscriber(state))
+    this._subscribers.forEach(subscriber => subscriber(state))
     return this
   }
   _setState(next, { silent = false } = {}) {
     this._state = next
     return silent ? this : this.publish()
   }
-  _patch(change, options = {}) {
-    const { form, config, _state: current } = this
-    const next = _.assign({}, current, _.omit(change, ['visits', 'touches']))
-    if (change.visits || change.touches) {
-      if (change.visits) next.visits += change.visits
-      if (change.touches) next.touches += change.touches
+  _patch(patch, options = {}) {
+    const { _state: current } = this
+    let next = _.assign({}, current, _.omit(patch, ['visits', 'touches']))
+    if (patch.visits || patch.touches) {
+      if (patch.visits) next.visits += patch.visits
+      if (patch.touches) next.touches += patch.touches
       if (options.activate) {
         next.isActive = (next.visits > current.visits) ||
                         (current.isActive && next.touches <= current.touches)
       }
     }
-    if (options.notify) {
-      next.notice = config.notify(next.value, form.values, this)
-    }
-    if (options.validate) {
-      next.error = config.validate(next.value, form.values, this)
-    }
+    if (options.validate) next = this._validate(next)
     return this._setState(next, options)
   }
-  initialize(init) {
-    this.form.isInitialized = false
-    this.form._patch(this.names, { init, value: init }, { quiet: true })
-    this.form.isInitialized = true
+  initialize(init, options = {}) {
+    const { form, names } = this
+    form.isInitialized = false
+    form._patchField(names, { init, value: init }, { quiet: true, ...options })
+    form.isInitialized = true
+    return this
   }
   validate(options) {
-    const { form, config, value } = this
-    this._patch({ error: config.validate(value, form.values, this) }, options)
+    const next = this._validate({ ...this._state })
+    return this._setState(next, options)
+  }
+  _validate(state) {
+    const { config, form } = this
+    const validation = config.validate(state.value, form.values, this, form)
+    if (_.isPromise(validation)) {
+      _.assign(state, {
+        error: null,
+        notice: null,
+        validation,
+        isValidated: false,
+        isAsyncValidated: false
+      })
+      validation.then(messages => {
+        if (this.validation !== validation) return
+        this._patch(_.assign({
+          error: null, notice: null
+        }, messages, {
+          validation: null, isValidated: true, isAsyncValidated: true
+        }))
+      })
+    }
+    else {
+      _.assign(state, {
+        error: null, notice: null
+      }, validation, {
+        validation: null, isValidated: true, isAsyncValidated: false
+      })
+    }
+    return state
+  }
+  reset(options) {
+    const { form, names, _state: { init, visits, touches } } = this
+    const patch = {
+      value: init,
+      visits: -visits,
+      touches: -touches,
+      error: null,
+      notice: null,
+      validation: null,
+      isValidated: false,
+      isAsyncValidated: false
+    }
+    form._patchField(names, patch, options)
     return this
   }
   static create(form, init = null, route = [], config = {}) {
+    route = _.isString(route) ? _.toRoute(route) : route
     return new this(form, init, route, _.defaults({}, config, {
       override: _.id,
       notify: _.toNull,
@@ -198,23 +264,6 @@ export const View = class SuperControlView extends Component {
       '@@super-controls': PropTypes.shape({
         register: PropTypes.func.isRequired
       })
-    }
-  }
-  static get propTypes() {
-    return {
-      init: PropTypes.any,
-      render: PropTypes.func,
-      notify: PropTypes.func,
-      validate: PropTypes.func,
-      name: PropTypes.oneOfType([
-        PropTypes.string, PropTypes.number
-      ]).isRequired,
-      children: PropTypes.oneOfType([
-        PropTypes.array, PropTypes.func
-      ]),
-      component: PropTypes.oneOfType([
-        PropTypes.string, PropTypes.func
-      ])
     }
   }
   static get defaultProps() {

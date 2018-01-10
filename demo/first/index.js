@@ -1,64 +1,83 @@
-/* eslint-disable react/prop-types */
 import React, { Fragment } from 'react'
 import { render } from 'react-dom'
 import { Form, Field, FieldSet, FieldArray } from '~/src'
 
 const handleSubmit = (errors, values, form) => {
-  if (errors) return form.touchAll()
+  if (errors) {
+    form.touchAll()
+    return console.log(JSON.stringify(errors, null, 2))
+  }
   console.log(JSON.stringify(values, null, 2))
 }
 
-const validateUsername = value =>
-  value.trim().length < 3 &&
-  'Username must be at least 3 characters long.'
-
-const notifyUsername = value =>
-  value.length > 2 &&
-  'That is a great username!'
+const validateUsername = (value, _, field) => {
+  if (value === field.value && field.isValid) return
+  const username = value.trim()
+  if (/\s/g.test(username)) {
+    return { error: 'Username may not contain spaces.' }
+  }
+  if (!username) {
+    return { error: 'Please choose a username.' }
+  }
+  if (username.length < 3) {
+    return { error: 'Username must be at least three characters long.' }
+  }
+  return new Promise(resolve => {
+    setTimeout(() => {
+      Math.floor(Math.random() * 10) > 5
+        ? resolve({ error: 'That username is taken.' })
+        : resolve()
+    }, 1500)
+  })
+}
 
 const validateEmail = value =>
-  !/\w+@\w+\.\w+/.test(value) && 'Please enter a valid email.'
+  !/\w+@\w+\.\w+/.test(value) &&
+  { error: 'Please enter a valid email.' }
 
-const validateFriends = friends => {
-  if (friends.some(friend => !friend.name.trim())) {
-    return 'Please name each friend.'
-  }
+const validateFriends = (friends, values, fields, form) => {
   if (friends.length < 3) {
-    return 'Please name at least three friends.'
+    return { error: 'Please name at least three friends.' }
+  }
+  if (form.isSubmitting && friends.some(friend => !friend.name.trim())) {
+    return { error: 'Please name all friends.' }
   }
 }
 
 const validateFriendName = name =>
   !name.trim() &&
-  'Friends require a name.'
-
-const notifyFriends = friends =>
-  (friends.length > 3 && friends.every(friend => friend.name.trim())) &&
-  'You sure are popular!'
+  { error: 'What is your friend\'s name?' }
 
 const renderField = ({ field, control, ...props }) => {
-  const showError = field.isInvalid && field.isTouched
+  const showError = field.isInvalid &&
+                    (field.isTouched || field.isAsyncValidated)
   const inputClass = showError
     ? 'form-control border-danger'
-    : 'form-control'
+    : field.isValidating
+      ? 'form-control border-warning'
+      : field.isValid
+        ? 'form-control border-success'
+        : 'form-control'
   return (
-    <Fragment>
-      <div className='form-group'>
-        { props.label &&
-          <label htmlFor={props.id}>{ props.label }</label>
+    <div className='form-group row'>
+      { props.label &&
+        <label htmlFor={props.id} className="col-lg-2 col-form-label">
+          { props.label }
+        </label>
+      }
+      <div className="col-lg-10">
+        <input id={props.id} className={inputClass} {...control}/>
+        { field.isValidating &&
+          <small className='text-warning'> ⏳ Checking...</small>
+        }
+        { field.isValid &&
+          <small className='text-success'> 👍 Ok!</small>
         }
         { showError &&
-          <div>
-            <small className='text-danger'>{ field.error }</small>
-          </div>
+          <small className='text-danger'> ❌ { field.error }</small>
         }
-        <input id={props.id} className={inputClass} {...control}/>
       </div>
-      { field.hasNotice &&
-        !field.isInvalid &&
-        <div className='alert alert-success'>{ field.notice }</div>
-      }
-    </Fragment>
+    </div>
   )
 }
 
@@ -103,41 +122,43 @@ const renderFriend = (friend, index, fields, key) =>
   </FieldSet>
 
 const renderFriends = ({ fields }) =>
-  <Fragment>
-    <div className='form-group'>
-      <legend><small>Friends ({ fields.length })</small></legend>
-      { fields.map(renderFriend) }
-      <button
-        type='button'
-        onClick={_ => fields.push({ name: '' })}
-        className='btn btn-outline-success'>
-        <i className='oi oi-plus'/>
-      </button>
-    </div>
+  <div className='form-group'>
+    <legend><small>Friends ({ fields.length })</small></legend>
     { fields.isInvalid &&
-      fields.anyTouched &&
-      !fields.isActive &&
+      fields.isInactive &&
       <div className='alert alert-danger'>{ fields.error }</div>
     }
-    { fields.hasNotice &&
-      <div className='alert alert-success'>{ fields.notice }</div>
-    }
-  </Fragment>
+    { fields.map(renderFriend) }
+    <button
+      type='button'
+      onClick={_ => fields.push({ name: '' })}
+      className='btn btn-outline-success'>
+      <i className='oi oi-plus'/>
+    </button>
+  </div>
 
 const renderContactInfo = _ =>
   <fieldset>
     <legend><small>Contact Info</small></legend>
-    <label htmlFor='email'>Email</label>
     <Field
       id='email'
       name='email'
       type='email'
+      label='Email'
       render={renderField}
       validate={validateEmail}/>
   </fieldset>
 
+class DemoForm extends Form {
+  componentDidMount() {
+    super.componentDidMount()
+    window.form = this.model
+  }
+}
+
 render(
-  <Form
+  <DemoForm
+    noValidate
     name='signUp'
     onSubmit={handleSubmit}
     render={({ form, control }) =>
@@ -148,7 +169,6 @@ render(
           name='username'
           label='Username'
           render={renderField}
-          notify={notifyUsername}
           validate={validateUsername}/>
         <FieldSet
           name='contactInfo'
@@ -157,7 +177,6 @@ render(
         <FieldArray
           name='friends'
           render={renderFriends}
-          notify={notifyFriends}
           validate={validateFriends}/>
         <button type='reset' className='btn btn-outline-secondary'>
           Reset

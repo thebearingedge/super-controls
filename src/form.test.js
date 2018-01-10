@@ -1,6 +1,6 @@
 import React from 'react'
 import { describe, it } from 'mocha'
-import { expect, mount, stub, toRoute } from './__test__'
+import { expect, mount, stub } from './__test__'
 import * as Form from './form'
 import * as Field from './field'
 import * as FieldSet from './field-set'
@@ -14,7 +14,7 @@ describe('Form.Model', () => {
       const form = Form.Model.create('test', {})
       const field = form.register({
         init: '',
-        route: toRoute('foo'),
+        route: 'foo',
         Model: Field.Model
       })
       expect(field).to.be.an.instanceOf(Field.Model)
@@ -36,12 +36,12 @@ describe('Form.Model', () => {
       const form = Form.Model.create('test', {})
       const first = form.register({
         init: '',
-        route: toRoute('foo'),
+        route: 'foo',
         Model: Field.Model
       })
       const second = form.register({
         init: '',
-        route: toRoute('foo'),
+        route: 'foo',
         Model: Field.Model
       })
       expect(first).to.be.an.instanceOf(Field.Model)
@@ -54,17 +54,17 @@ describe('Form.Model', () => {
       const form = Form.Model.create('test', { foo: [{ bar: 'baz' }] })
       const array = form.register({
         init: [],
-        route: toRoute('foo'),
+        route: 'foo',
         Model: FieldArray.Model
       })
       const set = form.register({
         init: {},
-        route: toRoute('foo[0]'),
+        route: 'foo[0]',
         Model: FieldSet.Model
       })
       const field = form.register({
         init: '',
-        route: toRoute('foo[0].bar'),
+        route: 'foo[0].bar',
         Model: Field.Model
       })
       expect(array.getState()).to.deep.include({
@@ -100,18 +100,37 @@ describe('Form.Model', () => {
     it('calls the model\'s onSubmit method with its errors', done => {
       const form = Form.Model.create('test', {}, {
         validate(values) {
-          return !Object.keys(values).length && 'incomplete'
+          return { error: 'empty' }
         },
         onSubmit(errors, values, model) {
           expect(errors).to.deep.equal({
-            $self: 'incomplete'
+            $self: 'empty'
           })
-          expect(values).to.equal(form.values)
+          expect(values).to.equal(null)
           expect(model).to.equal(form)
           done()
         }
       })
-      form.submit()
+      form.submit().catch(done)
+    })
+
+    it('resolves all pending validations', done => {
+      const form = Form.Model.create('test', {}, {
+        validate(values) {
+          return new Promise(resolve => {
+            setTimeout(() => resolve({ error: 'empty' }))
+          })
+        },
+        onSubmit(errors, values, model) {
+          expect(errors).to.deep.equal({
+            $self: 'empty'
+          })
+          expect(values).to.equal(null)
+          expect(model).to.equal(form)
+          done()
+        }
+      })
+      form.submit().catch(done)
     })
 
     it('forwards promise rejections from within its onSubmit', done => {

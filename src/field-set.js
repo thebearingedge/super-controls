@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import * as _ from './util'
 import * as SuperControl from './super-control'
 
@@ -8,11 +7,8 @@ export const Model = class FieldSetModel extends SuperControl.Model {
     this.fields = {}
     this._state.active = null
     this.reset = this.reset.bind(this)
-    this.touch = this.touch.bind(this)
-    this.change = this.change.bind(this)
-    this.untouch = this.untouch.bind(this)
-    this.touchAll = this.touchAll.bind(this)
     this.broadcast = this.broadcast.bind(this)
+    this.touchAll = this.touchAll.bind(this)
     this.untouchAll = this.untouchAll.bind(this)
     this.validateAll = this.validateAll.bind(this)
   }
@@ -28,125 +24,132 @@ export const Model = class FieldSetModel extends SuperControl.Model {
   get active() {
     return this._state.active
   }
-  get errors() {
-    const { fields, error } = this
-    return _.keys(fields)
-      .reduce((errors, key) => _.assign(
-        errors,
-        { [key]: fields[key].errors || fields[key].error }
-      ), { $self: error })
+  get allErrors() {
+    const errors = { $self: this.error }
+    this.eachField(field => _.assign(errors, {
+      [field.name]: field.allErrors || field.error
+    }))
+    return errors
+  }
+  get allValidations() {
+    const validations = { $self: this.validation }
+    this.eachField(field => _.assign(validations, {
+      [field.name]: field.allValidations || field.validation
+    }))
+    return validations
   }
   getState() {
     return _.assign(super.getState(), _.pick(this, [
       'values', 'anyVisited', 'anyTouched', 'active'
     ]))
   }
-  register(names, field) {
+  _register(names, field) {
     const [ first, ...rest ] = names
     this.fields = rest.length
-      ? _.set(this.fields, [first], this.fields[first].register(rest, field))
+      ? _.set(this.fields, [first], this.fields[first]._register(rest, field))
       : _.set(this.fields, [first], field)
-    return this._patch(names, field._state)
+    return this._patchField(names, field._state)
   }
-  getField([ first, ...names ]) {
+  _getField([ first, ...rest ]) {
     const child = this.fields[first]
     if (!child) return null
-    if (names.length) {
+    if (rest.length) {
       return child instanceof FieldSetModel
-        ? child.getField(names)
+        ? child._getField(rest)
         : null
     }
     return child
   }
-  unregister(names, field) {
-    const registered = this.getField(names)
+  _unregister(names, field, options) {
+    const registered = this._getField(names)
     if (registered !== field) return this
-    super._patch({
+    this._patch({
       visits: -registered._state.visits,
       touches: -registered._state.touches,
       value: _.unset(this._state.value, names)
-    })
+    }, options)
     const [ first, ...rest ] = names
+    const { fields } = this
     this.fields = rest.length
-      ? _.set(this.fields, [first], this.fields[first].unregister(rest, field))
-      : _.unset(this.fields, [first])
+      ? _.set(fields, [first], fields[first]._unregister(rest, field, options))
+      : _.unset(fields, [first])
     return this
   }
-  _patch(names, change, options = {}) {
-    if (!names.length) return super._patch(change, options)
+  _patchField(names, patch, options = {}) {
+    if (!names.length) return this._patch(patch, options)
     const current = this._state
-    const next = _.omit(change, ['init', 'value'])
-    if ('init' in change && !this.form.isInitialized) {
-      next.init = _.set(current.init, names, change.init)
+    const next = _.omit(patch, ['init', 'value'])
+    if ('init' in patch && !this.form.isInitialized) {
+      next.init = _.set(current.init, names, patch.init)
     }
-    if ('value' in change) {
-      next.value = _.set(current.value, names, change.value)
+    if ('value' in patch) {
+      next.value = _.set(current.value, names, patch.value)
     }
-    if ('visits' in change && change.visits > 0 && options.activate) {
-      next.active = this.getField(names)
+    if ('visits' in patch && patch.visits > 0 && options.activate) {
+      next.active = this._getField(names)
     }
-    if ('touches' in change && change.touches > 0 && options.activate) {
+    if ('touches' in patch && patch.touches > 0 && options.activate) {
       next.active = null
     }
-    super._patch(next, { ...options, silent: !!options.quiet })
+    this._patch(next, { ...options, silent: options.quiet })
     const [ first, ...rest ] = names
-    const field = this.fields[first]
-    field instanceof FieldSetModel
-      ? field._patch(rest, change, options)
-      : field._patch(change, options)
+    const child = this.fields[first]
+    child instanceof FieldSetModel
+      ? child._patchField(rest, patch, options)
+      : child._patch(patch, options)
     return this
   }
-  initialize(init) {
-    _.keys(init).forEach(key => {
-      this.fields[key] &&
-      this.fields[key].initialize(init[key])
+  initialize(init, options) {
+    _.keys(init).forEach(name => {
+      this.fields[name] &&
+      this.fields[name].initialize(init[name], options)
     })
-    super.initialize(init)
+    return super.initialize(init, options)
   }
   broadcast() {
     this.publish()
     this.eachField(field => _.invoke(field.broadcast || field.publish))
     return this
   }
-  change(path, value) {
-    const field = this.getField(_.toNames(path))
+  changeField(path, value) {
+    const field = this._getField(_.toNames(path))
     field && field.change(value)
+    return this
   }
-  touch(path) {
-    const field = this.getField(_.toNames(path))
+  touchField(path) {
+    const field = this._getField(_.toNames(path))
     field && field.touch()
+    return this
   }
-  untouch(path) {
-    const field = this.getField(_.toNames(path))
+  untouchField(path) {
+    const field = this._getField(_.toNames(path))
     field && field.untouch()
+    return this
   }
   touchAll() {
-    super._patch({ touches: 1 })
     this.eachField(field => _.invoke(field.touchAll || field.touch))
+    return this
   }
   untouchAll() {
     this.eachField(field => _.invoke(field.untouchAll || field.untouch))
-  }
-  validate(options) {
-    const { form, config, value } = this
-    super._patch({ error: config.validate(value, form.values, this) }, options)
+    return this
   }
   validateAll() {
-    this.validate()
     this.eachField(field => _.invoke(field.validateAll || field.validate))
+    this.validate()
     return this
   }
   reset() {
-    const { form, names, fields, init } = this
-    _.keys(fields).reverse().forEach(key => {
-      _.exists(init, key)
-        ? fields[key].reset()
-        : form.unregister(fields[key].names, fields[key])
+    const { form, fields, init } = this
+    _.keys(fields).reverse().forEach(name => {
+      _.exists(init, name)
+        ? fields[name].reset()
+        : form._unregister(fields[name].names, fields[name])
     })
-    form._patch(names, { value: init, error: null, notice: null })
+    return super.reset()
   }
   eachField(procedure) {
-    _.keys(this.fields).forEach(key => procedure(this.fields[key]))
+    _.keys(this.fields).forEach(name => procedure(this.fields[name]))
   }
   static create(form, init = {}, route, config) {
     return super.create(form, init, route, config)
@@ -194,15 +197,6 @@ export const View = class FieldSetView extends SuperControl.View {
   }
   static get childContextTypes() {
     return this.contextTypes
-  }
-  static get propTypes() {
-    return {
-      ...super.propTypes,
-      init: PropTypes.object.isRequired,
-      children: PropTypes.oneOfType([
-        PropTypes.array, PropTypes.func, PropTypes.element
-      ])
-    }
   }
   static get defaultProps() {
     return {

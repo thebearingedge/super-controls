@@ -14,6 +14,8 @@ export const isString = value => typeof value === 'string'
 
 export const isFunction = value => typeof value === 'function'
 
+export const isPromise = value => !!value && isFunction(value.then)
+
 export const { keys } = Object
 
 export const omit = (source, omitting) =>
@@ -72,20 +74,20 @@ export const remove = (target, key) =>
     ? sliceOut(target, key)
     : omit(target, [key])
 
-export const get = (source, [ first, ...path ], fallback) => {
+export const get = (source, [ first, ...rest ], fallback) => {
   if (!exists(source, first)) return fallback
-  if (!path.length) return source[first]
-  return get(source[first], path, fallback)
+  if (!rest.length) return source[first]
+  return get(source[first], rest, fallback)
 }
 
-export const set = (target, [ first, next, ...path ], value) => {
+export const set = (target, [ first, next, ...rest ], value) => {
   if (isUndefined(next)) return replace(target, first, value)
-  return replace(target, first, set(target[first], [next, ...path], value))
+  return replace(target, first, set(target[first], [next, ...rest], value))
 }
 
-export const unset = (target, [ first, ...path ]) => {
-  if (!path.length) return remove(target, first)
-  return replace(target, first, unset(target[first], path))
+export const unset = (target, [ first, ...rest ]) => {
+  if (!rest.length) return remove(target, first)
+  return replace(target, first, unset(target[first], rest))
 }
 
 export const isObject = value => ({}).toString.call(value) === '[object Object]'
@@ -101,7 +103,7 @@ export const shallowEqual = (a, b) => {
 
 export const someValues = (target, predicate) =>
   isComplex(target)
-    ? !!keys(target).some(key => someValues(target[key], predicate))
+    ? keys(target).some(key => someValues(target[key], predicate))
     : !!predicate(target)
 
 export const toPath = names =>
@@ -115,8 +117,10 @@ export const toNames = path =>
     .split('.')
     .map(name => name.split('[').filter(Boolean))
     .reduce((flattened, names) => flattened.concat(names.map(name =>
-      /\d\]$/.test(name) ? +name.replace(']', '') : name
+      /^\d+\]$/.test(name) ? +name.replace(']', '') : name
     )), [])
+
+export const toRoute = path => toNames(path).map(wrap)
 
 export const wrapEvent = event =>
   assign({}, event, {
@@ -125,3 +129,10 @@ export const wrapEvent = event =>
       event.preventDefault && event.preventDefault()
     }
   })
+
+export const resolveValues = target =>
+  Promise.all(
+    isComplex(target)
+      ? [].concat(...keys(target).map(key => resolveValues(target[key])))
+      : [].concat(Promise.resolve(target))
+  )

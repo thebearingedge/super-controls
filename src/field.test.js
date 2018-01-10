@@ -9,14 +9,14 @@ describe('Field.Model', () => {
   let form
 
   beforeEach(() => {
-    form = { state: {}, _patch: stub(), values: { foo: 'bar' } }
+    form = { state: {}, _patchField: stub(), values: { foo: 'bar' } }
   })
 
   describe('change', () => {
 
     it('patches the field\'s value state through the form', () => {
       const field = Field.Model.create(form)
-      form._patch.callsFake((_, ...args) => field._patch(...args))
+      form._patchField.callsFake((_, ...args) => field._patch(...args))
       expect(field.getState()).to.include({ value: null })
       field.change('foo')
       expect(field.getState()).to.include({ value: 'foo' })
@@ -28,7 +28,7 @@ describe('Field.Model', () => {
           return values.foo === 'bar' ? 'baz' : value
         }
       })
-      form._patch.callsFake((_, ...args) => field._patch(...args))
+      form._patchField.callsFake((_, ...args) => field._patch(...args))
       field.change('foo')
       expect(field.getState()).to.include({ value: 'baz' })
     })
@@ -39,7 +39,7 @@ describe('Field.Model', () => {
           return values.foo === 'bar' ? 'baz' : value
         }
       })
-      form._patch.callsFake((_, ...args) => field._patch(...args))
+      form._patchField.callsFake((_, ...args) => field._patch(...args))
       field.change('foo', { force: true })
       expect(field.getState()).to.include({ value: 'foo' })
     })
@@ -50,7 +50,7 @@ describe('Field.Model', () => {
 
     it('patches the field\'s isVisited state through the form', () => {
       const field = Field.Model.create(form)
-      form._patch.callsFake((_, ...args) => field._patch(...args))
+      form._patchField.callsFake((_, ...args) => field._patch(...args))
       expect(field.getState()).to.include({ isVisited: false })
       field.visit()
       expect(field.getState()).to.include({ isVisited: true })
@@ -62,7 +62,7 @@ describe('Field.Model', () => {
 
     it('patches the field\'s isTouched state through the form', () => {
       const field = Field.Model.create(form)
-      form._patch.callsFake((_, ...args) => field._patch(...args))
+      form._patchField.callsFake((_, ...args) => field._patch(...args))
       expect(field.getState()).to.include({ isTouched: false })
       field.touch()
       expect(field.getState()).to.include({ isTouched: true })
@@ -74,36 +74,13 @@ describe('Field.Model', () => {
 
     it('resets the field\'s isTouched state through the form', () => {
       const field = Field.Model.create(form)
-      form._patch.callsFake((_, ...args) => field._patch(...args))
+      form._patchField.callsFake((_, ...args) => field._patch(...args))
       field.touch()
       field.touch()
       field.touch()
       expect(field.getState()).to.include({ isTouched: true })
       field.untouch()
       expect(field.getState()).to.include({ isTouched: false })
-    })
-
-  })
-
-  describe('reset', () => {
-
-    it('resets the field\'s state', () => {
-      const field = Field.Model.create(form)
-      form._patch.callsFake((_, ...args) => field._patch(...args))
-      field.change('test')
-      field.visit()
-      field.touch()
-      expect(field.getState()).to.include({
-        value: 'test',
-        isVisited: true,
-        isTouched: true
-      })
-      field.reset()
-      expect(field.getState()).to.include({
-        value: null,
-        isVisited: false,
-        isTouched: false
-      })
     })
 
   })
