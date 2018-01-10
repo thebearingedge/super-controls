@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import * as _ from './util'
 import * as SuperControl from './super-control'
 
@@ -201,15 +200,6 @@ export const View = class FieldSetView extends SuperControl.View {
   }
   static get childContextTypes() {
     return this.contextTypes
-  }
-  static get propTypes() {
-    return {
-      ...super.propTypes,
-      init: PropTypes.object.isRequired,
-      children: PropTypes.oneOfType([
-        PropTypes.array, PropTypes.func, PropTypes.element
-      ])
-    }
   }
   static get defaultProps() {
     return {

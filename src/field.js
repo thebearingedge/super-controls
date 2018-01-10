@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import * as _ from './util'
 import * as SuperControl from './super-control'
 
@@ -119,17 +118,6 @@ export const View = class FieldView extends SuperControl.View {
   }
   static get displayName() {
     return 'Field'
-  }
-  static get propTypes() {
-    return {
-      ...super.propTypes,
-      type: PropTypes.string,
-      value: PropTypes.string,
-      multiple: PropTypes.bool,
-      parse: PropTypes.func.isRequired,
-      format: PropTypes.func.isRequired,
-      override: PropTypes.func.isRequired
-    }
   }
   static get defaultProps() {
     return {

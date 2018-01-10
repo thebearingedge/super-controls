@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import * as _ from './util'
 import * as FieldSet from './field-set'
 
@@ -100,12 +99,6 @@ export const View = class FieldArrayView extends FieldSet.View {
   }
   static get displayName() {
     return 'FieldArray'
-  }
-  static get propTypes() {
-    return {
-      ...super.propTypes,
-      init: PropTypes.array.isRequired
-    }
   }
   static get defaultProps() {
     return {

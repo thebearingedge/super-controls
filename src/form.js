@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import * as _ from './util'
 import * as FieldSet from './field-set'
 
@@ -105,14 +104,6 @@ export const View = class FormView extends FieldSet.View {
   }
   static get displayName() {
     return 'Form'
-  }
-  static get propTypes() {
-    return {
-      ...super.propTypes,
-      name: PropTypes.string,
-      onReset: PropTypes.func,
-      onSubmit: PropTypes.func
-    }
   }
   static get defaultProps() {
     return {

@@ -266,23 +266,6 @@ export const View = class SuperControlView extends Component {
       })
     }
   }
-  static get propTypes() {
-    return {
-      init: PropTypes.any,
-      render: PropTypes.func,
-      notify: PropTypes.func,
-      validate: PropTypes.func,
-      name: PropTypes.oneOfType([
-        PropTypes.string, PropTypes.number
-      ]).isRequired,
-      children: PropTypes.oneOfType([
-        PropTypes.array, PropTypes.func
-      ]),
-      component: PropTypes.oneOfType([
-        PropTypes.string, PropTypes.func
-      ])
-    }
-  }
   static get defaultProps() {
     return {
       init: null,

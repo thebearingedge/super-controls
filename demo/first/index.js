@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React, { Fragment } from 'react'
 import { render } from 'react-dom'
 import { Form, Field, FieldSet, FieldArray } from '~/src'
@@ -39,8 +38,7 @@ const validateFriends = (friends, values, fields, form) => {
   if (friends.length < 3) {
     return { error: 'Please name at least three friends.' }
   }
-  if (form.isSubmitting &&
-      friends.some(friend => !friend.name.trim())) {
+  if (form.isSubmitting && friends.some(friend => !friend.name.trim())) {
     return { error: 'Please name all friends.' }
   }
 }
