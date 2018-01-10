@@ -10,7 +10,8 @@ const handleSubmit = (errors, values, form) => {
   console.log(JSON.stringify(values, null, 2))
 }
 
-const validateUsername = value => {
+const validateUsername = (value, _, field) => {
+  if (value === field.value && field.isValid) return
   const username = value.trim()
   if (/\s/g.test(username)) {
     return { error: 'Username may not contain spaces.' }
