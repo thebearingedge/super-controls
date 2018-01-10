@@ -1,13 +1,12 @@
 import * as _ from './util'
 import * as FieldSet from './field-set'
 
-let key = 0
-
 export const Model = class FieldArrayModel extends FieldSet.Model {
   constructor(...args) {
     super(...args)
+    this._key = 0
     this.fields = []
-    this.keys = this._state.value.map(_ => ++key)
+    this._keys = this._state.value.map(_ => ++this._key)
   }
   getState() {
     return _.assign(super.getState(), _.pick(this, [
@@ -25,11 +24,11 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
   }
   map(transform) {
     return this.values.map((value, index) => {
-      return transform(value, index, this, this.keys[index])
+      return transform(value, index, this, this._keys[index])
     })
   }
   insert(index, value) {
-    this.keys = _.sliceIn(this.keys, index, ++key)
+    this._keys = _.sliceIn(this._keys, index, ++this._key)
     this.fields = _.sliceIn(this.fields, index, void 0)
     this.form._patchField(this.names, {
       value: _.sliceIn(this.values, index, value)
@@ -42,7 +41,7 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
     this.insert(0, value)
   }
   remove(index) {
-    this.keys = _.remove(this.keys, index)
+    this._keys = _.remove(this._keys, index)
     const { _state: { visits, touches } } = this.fields[index]
     this.fields = _.remove(this.fields, index)
     this.form._patchField(this.names, {
@@ -52,7 +51,7 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
     }, { validate: true })
   }
   clear() {
-    this.keys = []
+    this._keys = []
     this.form._patchField(this.names, { value: [] })
     this.fields.slice().reverse().forEach(field => {
       this.form._unregister(field.names, field)
@@ -75,7 +74,7 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
       .forEach(field => this.form._unregister(field.names, field, {
         silent: true
       }))
-    this.keys = init.map((_, index) => this.keys[index] || ++key)
+    this._keys = init.map((_, index) => this._keys[index] || ++this._key)
     super.initialize(init)
   }
   static create(form, init = [], route, config) {
