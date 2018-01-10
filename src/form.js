@@ -24,7 +24,7 @@ export const Model = class FormModel extends FieldSet.Model {
     const names = route.map(_.invoke)
     const registered = this._getField(names)
     if (registered) return registered
-    const value = _.get(this._state.init, names, init)
+    const value = _.get(this.values, names, init)
     const field = Model.create(this, value, route, config)
     this._register(names, field)
     return field

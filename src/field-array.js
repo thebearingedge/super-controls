@@ -41,18 +41,12 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
     this.insert(0, value)
   }
   remove(index) {
-    this._keys = _.remove(this._keys, index)
-    const { _state: { visits, touches } } = this.fields[index]
-    this.fields = _.remove(this.fields, index)
-    this.form._patchField(this.names, {
-      visits: -visits,
-      touches: -touches,
-      value: _.remove(this.values, index)
-    }, { validate: true })
+    const { form, fields, _keys } = this
+    this._keys = _.remove(_keys, index)
+    form._unregister(fields[index].names, fields[index], { validate: true })
   }
   clear() {
     this._keys = []
-    this.form._patchField(this.names, { value: [] })
     this.fields.slice().reverse().forEach(field => {
       this.form._unregister(field.names, field)
     })

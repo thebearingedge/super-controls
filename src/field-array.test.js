@@ -104,16 +104,21 @@ describe('FieldArray.Model', () => {
   describe('remove', () => {
 
     it('removes a value from the model at the given index', () => {
-      const array = FieldArray.Model.create(null, ['foo', 'bar', 'baz'])
+      const array = FieldArray.Model.create(null)
       array.form = array
       array
-        ._register([0], Field.Model.create(array, 'foo', '0'))
-        ._register([1], Field.Model.create(array, 'bar', '1'))
-        ._register([2], Field.Model.create(array, 'baz', '2'))
+        ._register([0], Field.Model.create(array, 'foo', '[0]'))
+        ._register([1], Field.Model.create(array, 'bar', '[1]'))
+        ._register([2], Field.Model.create(array, 'baz', '[2]'))
+      expect(array.getState()).to.deep.include({
+        value: ['foo', 'bar', 'baz']
+      })
+      expect(array.fields).to.have.lengthOf(3)
       array.remove(1)
       expect(array.getState()).to.deep.include({
         value: ['foo', 'baz']
       })
+      expect(array.fields).to.have.lengthOf(2)
     })
 
   })
