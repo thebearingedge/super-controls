@@ -645,15 +645,15 @@ describe('SuperControl.View', () => {
 
     })
 
-    describe('notify', () => {
+    describe('serialize', () => {
 
-      it('configures its model\'s notify method', () => {
-        const notify = _ => {}
+      it('configures its model\'s serialize method', () => {
+        const serialize = _ => {}
         const wrapper = mount(
-          <SuperControl.View name='test' notify={notify}/>
+          <SuperControl.View name='test' serialize={serialize}/>
         )
         const { model } = wrapper.instance()
-        expect(model.config).to.include({ notify })
+        expect(model.config).to.include({ serialize })
       })
 
     })
