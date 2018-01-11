@@ -179,11 +179,16 @@ export const Model = class SuperControlModel {
     form._patchField(names, patch, options)
     return this
   }
+  toJSON() {
+    return this.config.serialize
+      ? this.config.serialize(this)
+      : this.value
+  }
   static create(form, init = null, route = [], config = {}) {
     route = _.isString(route) ? _.toRoute(route) : route
     return new this(form, init, route, _.defaults({}, config, {
       override: _.id,
-      notify: _.toNull,
+      serialize: null,
       validate: _.toNull
     }))
   }
@@ -197,7 +202,7 @@ export const View = class SuperControlView extends Component {
     return Model
   }
   get config() {
-    return _.pick(this.props, ['notify', 'validate'])
+    return _.pick(this.props, ['validate', 'serialize'])
   }
   equalProps(current, next) {
     const ignored = ['name', 'init']

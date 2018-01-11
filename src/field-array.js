@@ -70,6 +70,10 @@ export const Model = class FieldArrayModel extends FieldSet.Model {
     this._keys = init.map((_, index) => _keys[index] || ++this._key)
     return super.initialize(init, options)
   }
+  toJSON() {
+    if (this.config.serialize) return this.config.serialize(this)
+    return this.fields.map(field => field.toJSON())
+  }
   static create(form, init = [], route, config) {
     return super.create(form, init, route, config)
   }
