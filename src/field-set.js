@@ -148,6 +148,12 @@ export const Model = class FieldSetModel extends SuperControl.Model {
     })
     return super.reset()
   }
+  toJSON() {
+    if (this.config.serialize) return this.config.serialize(this)
+    const json = {}
+    this.eachField(field => _.assign(json, { [field.name]: field.toJSON() }))
+    return json
+  }
   eachField(procedure) {
     _.keys(this.fields).forEach(name => procedure(this.fields[name]))
   }

@@ -7,7 +7,7 @@ const handleSubmit = (errors, values, form) => {
     form.touchAll()
     return console.log(JSON.stringify(errors, null, 2))
   }
-  console.log(JSON.stringify(values, null, 2))
+  console.log(JSON.stringify(form, null, 2))
 }
 
 const validateUsername = (value, _, field) => {

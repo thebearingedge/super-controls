@@ -314,6 +314,28 @@ describe('FieldArray.Model', () => {
 
   })
 
+  describe('toJSON', () => {
+
+    it('returns the values within the field array', () => {
+      const array = FieldArray.Model.create(null, [])
+      array.form = array
+      array
+        ._register([0], FieldSet.Model.create(array, {}, '[0]'))
+        ._register([0, 'foo'], Field.Model.create(array, '', '[0].foo'))
+      const json = JSON.stringify(array)
+      expect(json).to.equal('[{"foo":""}]')
+    })
+
+    it('uses a custom serialize method', () => {
+      const model = FieldArray.Model.create(null, ['foo', 'bar'], [], {
+        serialize: model => model.value.toString()
+      })
+      const json = JSON.stringify(model)
+      expect(json).to.equal('"foo,bar"')
+    })
+
+  })
+
 })
 
 describe('FieldArray.View', () => {

@@ -492,6 +492,28 @@ describe('FieldSet.Model', () => {
 
   })
 
+  describe('toJSON', () => {
+
+    it('returns the values within the fieldset', () => {
+      const parent = FieldSet.Model.create()
+      parent.form = parent
+      parent
+        ._register(['foo'], FieldSet.Model.create(parent, {}, 'foo'))
+        ._register(['foo', 'bar'], Field.Model.create(parent, 'baz', 'foo.bar'))
+      const json = JSON.stringify(parent)
+      expect(json).to.equal('{"foo":{"bar":"baz"}}')
+    })
+
+    it('uses a custom serialize method', () => {
+      const model = FieldSet.Model.create(null, {}, '', {
+        serialize: model => model.value.toString()
+      })
+      const json = JSON.stringify(model)
+      expect(json).to.equal('"[object Object]"')
+    })
+
+  })
+
   describe('reset', () => {
 
     it('resets the state of the model and its descendants', () => {

@@ -473,6 +473,25 @@ describe('SuperControl.Model', () => {
         isValidated: false
       })
     })
+
+  })
+
+  describe('toJSON', () => {
+
+    it('returns the value of the field', () => {
+      const model = SuperControl.Model.create(null, 'foo')
+      const json = JSON.stringify(model)
+      expect(json).to.equal('"foo"')
+    })
+
+    it('uses a custom serialize method', () => {
+      const model = SuperControl.Model.create(null, 'foo', '', {
+        serialize: model => model.value.toUpperCase()
+      })
+      const json = JSON.stringify(model)
+      expect(json).to.equal('"FOO"')
+    })
+
   })
 
 })
