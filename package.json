@@ -91,7 +91,7 @@
     "babelify": "^8.0.0",
     "browser-sync": "^2.20.0",
     "browserify-shim": "^3.8.14",
-    "bundlesize": "^0.16.0",
+    "bundlesize": "^0.17.0",
     "chai": "^4.1.2",
     "chai-enzyme": "^1.0.0-beta.0",
     "codecov": "^3.0.0",
