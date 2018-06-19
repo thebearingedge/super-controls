@@ -76,7 +76,7 @@
     "react-dom": "^16.0.0"
   },
   "dependencies": {
-    "prop-types": "^15.6.0"
+    "prop-types": "^15.6.2"
   },
   "devDependencies": {
     "ajv": "^6.0.0",
