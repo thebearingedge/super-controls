@@ -109,7 +109,7 @@
     "gitbook-plugin-anchors": "0.7.1",
     "gitbook-plugin-favicon": "0.0.2",
     "gitbook-plugin-github": "2.0.0",
-    "gitbook-plugin-prism": "2.3.0",
+    "gitbook-plugin-prism": "2.4.0",
     "globify": "^2.2.1",
     "husky": "^0.14.3",
     "jsdom": "^11.5.1",
