@@ -88,7 +88,7 @@
     "babel-plugin-transform-react-jsx": "^6.24.1",
     "babel-preset-env": "^1.6.1",
     "babel-register": "^6.26.0",
-    "babelify": "^8.0.0",
+    "babelify": "^10.0.0",
     "browser-sync": "^2.20.0",
     "browserify-shim": "^3.8.14",
     "bundlesize": "^0.17.0",
