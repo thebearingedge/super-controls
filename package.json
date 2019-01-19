@@ -125,7 +125,7 @@
     "rollup-plugin-babel": "^3.0.3",
     "rollup-plugin-commonjs": "^9.0.0",
     "rollup-plugin-uglify": "^3.0.0",
-    "sinon": "^5.0.0",
+    "sinon": "^7.2.3",
     "sinon-chai": "^3.0.0",
     "source-map-path-normalizify": "0.0.3"
   }
